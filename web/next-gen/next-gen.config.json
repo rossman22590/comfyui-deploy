@@ -1,9 +1,9 @@
 {
     "name": "Pixio API",
-    "og:title": "Pixio API | Customized Stable Diffusion from your terminal to the world",
+    "og:title": "Pixio API | Customized Diffusion from your terminal to the world",
     "og:description": "",
     "author": "TSI",
-    "tagline": "Pixio Stable Diffusion from your terminal to the world",
+    "tagline": "Unleasht he power of Pixio from your terminal to the world",
     "description": "From your AI workflow to production ready API, flexibility at the speed of thought",
     "pricingPlan": [
         {
