@@ -48,9 +48,9 @@ export default function Main() {
           <div className="flex flex-col justify-center gap-2">
             <Section.Announcement
               className="text-sm"
-              href="https://github.com/BennyKok/comfyui-deploy"
+              href="#"
             >
-              ✨ Open Source on Github
+              ✨ Built to scale
             </Section.Announcement>
 
             <Section.Title className="text-left">
@@ -67,7 +67,7 @@ export default function Main() {
               href="/workflows"
               className="mt-10 px-8 py-8 rounded-2xl w-fit text-lg font-bold"
             >
-              Get Started
+              Start Generating
             </Section.PrimaryAction>
           </div>
 
