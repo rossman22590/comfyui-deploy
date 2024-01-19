@@ -35,7 +35,11 @@ export const workflowTable = dbSchema.table("workflows", {
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const workflowRelations = relations(workflowTable, ({ many }) => ({
+export const workflowRelations = relations(workflowTable, ({ many, one }) => ({
+  user: one(usersTable, {
+    fields: [workflowTable.user_id],
+    references: [usersTable.id],
+  }),
   versions: many(workflowVersionTable),
   deployments: many(deploymentsTable),
 }));
@@ -103,7 +107,11 @@ export const deploymentEnvironment = pgEnum("deployment_environment", [
 export const workflowRunOrigin = pgEnum("workflow_run_origin", [
   "manual",
   "api",
+  "public-share",
 ]);
+
+export const WorkflowRunOriginSchema = z.enum(workflowRunOrigin.enumValues);
+export type WorkflowRunOriginType = z.infer<typeof WorkflowRunOriginSchema>;
 
 export const machineGPUOptions = pgEnum("machine_gpu", ["T4", "A10G", "A100"]);
 
