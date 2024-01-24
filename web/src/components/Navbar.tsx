@@ -44,7 +44,7 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col gap-4">
               <SheetHeader>
-                <SheetTitle className="text-start">Comfy Deploy</SheetTitle>
+                <SheetTitle className="text-start">Pixio API</SheetTitle>
               </SheetHeader>
               <div className="grid h-full grid-rows-[1fr_auto]">
                 <NavbarMenu className=" h-full" />
@@ -98,7 +98,7 @@ export function Navbar() {
           variant="outline"
           className="rounded-full aspect-square p-2"
         >
-          <a target="_blank" href="https://github.com/BennyKok/comfyui-deploy" rel="noreferrer">
+          <a target="_blank" href="https://myapps.ai" rel="noreferrer">
             <Github />
           </a>
         </Button>
