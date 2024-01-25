@@ -63,9 +63,9 @@ export default async function Main() {
           <div className="flex flex-col justify-center gap-2">
             <Section.Announcement
               className="text-sm"
-              href="https://github.com/BennyKok/comfyui-deploy"
+              href="https://myapps.ai"
             >
-              ✨ Open Source on Github
+              ✨ No Experience Needed
             </Section.Announcement>
 
             <Section.Title className="text-left">
