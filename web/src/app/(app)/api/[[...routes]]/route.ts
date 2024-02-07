@@ -80,7 +80,7 @@ app.doc("/doc", {
   security: [{ bearerAuth: [] }],
   info: {
     version: "0.0.1",
-    title: "Comfy Deploy API",
+    title: "Pixio API",
     description:
       "Interact with Comfy Deploy programmatically to trigger run and retrieve output",
   },
