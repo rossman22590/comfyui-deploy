@@ -22,7 +22,7 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "Txt2Img SDXL",
     description: "The basic workflow, type a prompt and generate images based on that.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-txt2img-sdxl',
+    previewURL: '#',
     image: {
       src: '/example-workflows/txt2img.webp',
       alt: 'IPAdapter workflow',
@@ -31,7 +31,7 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "Txt2Img LCM SDXL",
     description: "Images in a couple of seconds, increase the speed of each generation using LCM Lora.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-lcm-sdxl',
+    previewURL: '#',
     image: {
       src: '/example-workflows/txt2img-lcm.webp',
       alt: 'txt2img LCM SDXL',
@@ -40,7 +40,7 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "IPAdapter SDXL",
     description: "Load images and use them as reference for new generations.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-ip-adapter-sdxl',
+    previewURL: '#',
     image: {
       src: '/example-workflows/ipadapter.webp',
       alt: 'IPAdapter workflow',
@@ -49,7 +49,7 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "Upscale and Add Detail SDXL",
     description: "Upscale and Add Details to your creations",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-upscale-and-add-detail-sdxl',
+    previewURL: '#',
     image: {
       src: '/example-workflows/upscale.webp',
       alt: 'Upscale and Add Detail SDXL',
