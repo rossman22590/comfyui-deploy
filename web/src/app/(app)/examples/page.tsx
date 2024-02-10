@@ -47,7 +47,7 @@ const exampleWorkflows: exampleWorkflow[] = [
     }
   },
     {
-    title: Digital Influencer",
+    title: "Digital Influencer",
     description: "Load face images and use them as reference for new generations.",
     previewURL: '#',
     image: {
