@@ -46,6 +46,15 @@ const exampleWorkflows: exampleWorkflow[] = [
       alt: 'IPAdapter workflow',
     }
   },
+    {
+    title: Digital Influencer",
+    description: "Load face images and use them as reference for new generations.",
+    previewURL: '#',
+    image: {
+      src: '/example-workflows/ipadapter.webp',
+      alt: 'IPAdapter workflow',
+    }
+  },
   {
     title: "Upscale and Add Detail SDXL",
     description: "Upscale and Add Details to your creations",
