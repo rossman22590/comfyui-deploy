@@ -22,7 +22,7 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "Txt2Img SDXL",
     description: "The basic workflow, type a prompt and generate images based on that.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-txt2img-sdxl',
+    previewURL: '#l',
     image: {
       src: '/example-workflows/txt2img.webp',
       alt: 'IPAdapter workflow',
@@ -31,7 +31,7 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "Txt2Img LCM SDXL",
     description: "Images in a couple of seconds, increase the speed of each generation using LCM Lora.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-lcm-sdxl',
+    previewURL: '#',
     image: {
       src: '/example-workflows/txt2img-lcm.webp',
       alt: 'txt2img LCM SDXL',
@@ -40,7 +40,7 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "IPAdapter SDXL",
     description: "Load images and use them as reference for new generations.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-ip-adapter-sdxl',
+    previewURL: '#',
     image: {
       src: '/example-workflows/ipadapter.webp',
       alt: 'IPAdapter workflow',
@@ -49,7 +49,7 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "Upscale and Add Detail SDXL",
     description: "Upscale and Add Details to your creations.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-upscale-and-add-detail-sdxl',
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-upscaler',
     image: {
       src: '/example-workflows/upscale.webp',
       alt: 'Upscale and Add Detail SDXL',
@@ -58,7 +58,7 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "Txt2Img SDXL Turbo",
     description: "Try SDXL turbo and generate images since 1 step in seconds.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-txt2img-sdxl-turbo',
+    previewURL: '#',
     image: {
       src: '/example-workflows/txt2img-sdxl-turbo.webp',
       alt: 'Txt2Img SDXL Turbo',
@@ -67,7 +67,7 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "Img2Img SDXL Controlnet",
     description: "This workflow uses canny. Generate lines of you original image and create variations.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-img2-img-sdxl-controlnet',
+    previewURL: '#',
     image: {
       src: '/example-workflows/txt2img-controlnet.webp',
       alt: 'Img2Img SDXL Controlnet',
@@ -76,7 +76,7 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "Automatic Inpainting (SEG)",
     description: "Type what do you want to select and change that area with your prompt.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-automatic-inpainting-clip-seg',
+    previewURL: '#',
     image: {
       src: '/example-workflows/automatic-inpainting-seg.webp',
       alt: 'Img2Img SDXL Controlnet',
