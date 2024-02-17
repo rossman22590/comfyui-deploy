@@ -1,11 +1,5 @@
 "use client";
 
-import {
-  plainInputsToZod,
-  workflowVersionInputsToZod,
-} from "../lib/workflowVersionInputsToZod";
-import { callServerPromise } from "./callServerPromise";
-import fetcher from "./fetcher";
 import { LoadingIcon } from "@/components/LoadingIcon";
 import AutoForm, { AutoFormSubmit } from "@/components/ui/auto-form";
 import { Badge } from "@/components/ui/badge";
@@ -42,20 +36,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { workflowAPINodeType } from "@/db/schema";
-import type { getInputsFromWorkflow } from "@/lib/getInputsFromWorkflow";
+import type { showcaseMediaNullable, workflowAPINodeType } from "@/db/schema";
 import { checkStatus, createRun } from "@/server/createRun";
 import { createDeployments } from "@/server/curdDeploments";
 import type { getMachines } from "@/server/curdMachine";
 import type { findFirstTableWithVersion } from "@/server/findFirstTableWithVersion";
-import { useAuth, useClerk } from "@clerk/nextjs";
 import {
   Copy,
+  Edit,
   ExternalLink,
   Info,
   MoreVertical,
   Play,
-  Share,
 } from "lucide-react";
 import { parseAsInteger, useQueryState } from "next-usequerystate";
 import { useEffect, useMemo, useState } from "react";
@@ -63,6 +55,12 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import type { z } from "zod";
 import { create } from "zustand";
+import { workflowVersionInputsToZod } from "../lib/workflowVersionInputsToZod";
+import { callServerPromise } from "./callServerPromise";
+import fetcher from "./fetcher";
+import { ButtonAction } from "@/components/ButtonActionLoader";
+import { editWorkflowOnMachine } from "@/server/editWorkflowOnMachine";
+import { VisualizeImagesGrid } from "@/components/VisualizeImagesGrid";
 
 export function VersionSelect({
   workflow,
@@ -127,28 +125,66 @@ export function MachineSelect({
   );
 }
 
-function useSelectedMachine(machines: Awaited<ReturnType<typeof getMachines>>) {
-  const a = useQueryState("machine", {
-    defaultValue: machines?.[0]?.id ?? "",
-  });
+type SelectedMachineStore = {
+  selectedMachine: string | undefined;
+  setSelectedMachine: (machine: string) => void;
+};
 
-  return a;
+export const selectedMachineStore = create<SelectedMachineStore>((set) => ({
+  selectedMachine: undefined,
+  setSelectedMachine: (machine) => set(() => ({ selectedMachine: machine })),
+}));
+
+export function useSelectedMachine(
+  machines: Awaited<ReturnType<typeof getMachines>>,
+): [string, (v: string) => void] {
+  const { selectedMachine, setSelectedMachine } = selectedMachineStore();
+  return [selectedMachine ?? machines?.[0]?.id ?? "", setSelectedMachine];
+
+  // const searchParams = useSearchParams();
+  // const pathname = usePathname();
+  // const router = useRouter();
+
+  // const createQueryString = useCallback(
+  //   (name: string, value: string) => {
+  //     const params = new URLSearchParams(searchParams.toString());
+  //     params.set(name, value);
+
+  //     return params.toString();
+  //   },
+  //   [searchParams],
+  // );
+
+  // return [
+  //   searchParams.get("machine") ?? machines?.[0]?.id ?? "",
+  //   (v: string) => {
+  //     // window.history.pushState(
+  //     //   "new url",
+  //     //   "",
+  //     //   pathname + "?" + createQueryString("machine", v),
+  //     // );
+  //     // router.push(pathname + "?" + createQueryString("machine", v));
+  //     router.replace(pathname + "?" + createQueryString("machine", v));
+  //   },
+  // ];
 }
 
 type PublicRunStore = {
-  image: string;
+  image: {
+    url: string;
+  }[] | null;
   loading: boolean;
   runId: string;
   status: string;
 
-  setImage: (image: string) => void;
+  setImage: (image: { url: string; }[]) => void;
   setLoading: (loading: boolean) => void;
   setRunId: (runId: string) => void;
   setStatus: (status: string) => void;
 };
 
-const publicRunStore = create<PublicRunStore>((set) => ({
-  image: "",
+export const publicRunStore = create<PublicRunStore>((set) => ({
+  image: null,
   loading: false,
   runId: "",
   status: "",
@@ -159,7 +195,9 @@ const publicRunStore = create<PublicRunStore>((set) => ({
   setStatus: (status) => set({ status }),
 }));
 
-export function PublicRunOutputs() {
+export function PublicRunOutputs(props: {
+  preview: z.infer<typeof showcaseMediaNullable>;
+}) {
   const { image, loading, runId, status, setStatus, setImage, setLoading } =
     publicRunStore();
 
@@ -170,7 +208,10 @@ export function PublicRunOutputs() {
         console.log(res?.status);
         if (res) setStatus(res.status);
         if (res && res.status === "success") {
-          setImage(res.outputs[0]?.data.images[0].url);
+          const imageURLs = res.outputs[0]?.data.images.map((item: { url: string; }) => {
+            return { url: item.url };
+          });
+          setImage(imageURLs);
           setLoading(false);
           clearInterval(interval);
         }
@@ -179,121 +220,26 @@ export function PublicRunOutputs() {
     return () => clearInterval(interval);
   }, [runId]);
 
-  return (
-    <div className="border border-gray-200 w-full square h-[400px] rounded-lg relative">
-      {!loading && image && (
-        <img
-          className="w-full h-full object-contain"
-          src={image}
-          alt="Generated image"
-        />
-      )}
-      {loading && (
+  if (loading) {
+    return (
+      <div className="border border-gray-200 w-full h-[400px] square rounded-lg relative p-4 ">
         <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center gap-2">
           {status} <LoadingIcon />
         </div>
-      )}
-      {loading && <Skeleton className="w-full h-full" />}
-    </div>
-  );
-}
-
-export function RunWorkflowInline({
-  inputs,
-  workflow_version_id,
-  machine_id,
-}: {
-  inputs: ReturnType<typeof getInputsFromWorkflow>;
-  workflow_version_id: string;
-  machine_id: string;
-}) {
-  const [values, setValues] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
-
-  const user = useAuth();
-  const clerk = useClerk();
-
-  const schema = useMemo(() => {
-    return plainInputsToZod(inputs);
-  }, [inputs]);
-
-  const {
-    setRunId,
-    loading,
-    setLoading: setLoading2,
-    setStatus,
-  } = publicRunStore();
-
-  const runWorkflow = async () => {
-    console.log();
-
-    if (!user.isSignedIn) {
-      clerk.openSignIn({
-        redirectUrl: window.location.href,
-      });
-      console.log("hi");
-      return;
-    }
-    console.log(values);
-
-    const val = Object.keys(values).length > 0 ? values : undefined;
-    setLoading2(true);
-    setIsLoading(true);
-    setStatus("preparing");
-    try {
-      const origin = window.location.origin;
-      const a = await callServerPromise(
-        createRun({
-          origin,
-          workflow_version_id: workflow_version_id,
-          machine_id: machine_id,
-          inputs: val,
-          isManualRun: true,
-        })
-      );
-      if (a && !("error" in a)) {
-        setRunId(a.workflow_run_id);
-      } else {
-        setLoading2(false);
-      }
-      console.log(a);
-      setIsLoading(false);
-    } catch (error) {
-      setIsLoading(false);
-      setLoading2(false);
-    }
-  };
+        <Skeleton className="w-full h-full" />
+      </div>
+    );
+  }
 
   return (
-    <>
-      {schema && (
-        <AutoForm
-          formSchema={schema}
-          values={values}
-          onValuesChange={setValues}
-          onSubmit={runWorkflow}
-          className="px-1"
-        >
-          <div className="flex justify-end">
-            <AutoFormSubmit disabled={isLoading || loading}>
-              Run
-              <span className="ml-2">
-                {isLoading || loading ? <LoadingIcon /> : <Play size={14} />}
-              </span>
-            </AutoFormSubmit>
-          </div>
-        </AutoForm>
+    <div className="border border-gray-200 w-full min-h-[400px] square rounded-lg relative p-4 ">
+      {!image && props.preview && props.preview.length > 0 &&
+        <VisualizeImagesGrid images={props.preview} />
+      }
+      {image && (
+        <VisualizeImagesGrid images={image} />
       )}
-      {!schema && (
-        <Button
-          className="gap-2"
-          disabled={isLoading || loading}
-          onClick={runWorkflow}
-        >
-          Confirm {isLoading || loading ? <LoadingIcon /> : <Play size={14} />}
-        </Button>
-      )}
-    </>
+    </div>
   );
 }
 
@@ -317,7 +263,7 @@ export function RunWorkflowButton({
   const schema = useMemo(() => {
     const workflow_version = getWorkflowVersionFromVersionIndex(
       workflow,
-      version
+      version,
     );
 
     if (!workflow_version) return null;
@@ -331,7 +277,7 @@ export function RunWorkflowButton({
     const val = Object.keys(values).length > 0 ? values : undefined;
 
     const workflow_version_id = workflow?.versions.find(
-      (x) => x.version === version
+      (x) => x.version === version,
     )?.id;
     console.log(workflow_version_id);
     if (!workflow_version_id) return;
@@ -345,8 +291,8 @@ export function RunWorkflowButton({
           workflow_version_id,
           machine_id: machine,
           inputs: val,
-          isManualRun: true,
-        })
+          runOrigin: "manual",
+        }),
       );
       // console.log(res.json());
       setIsLoading(false);
@@ -383,11 +329,9 @@ export function RunWorkflowButton({
             className="px-1"
           >
             <div className="flex justify-end">
-              <AutoFormSubmit>
+              <AutoFormSubmit disabled={isLoading}>
                 Run
-                <span className="ml-2">
-                  {isLoading ? <LoadingIcon /> : <Play size={14} />}
-                </span>
+                {isLoading ? <LoadingIcon /> : <Play size={14} />}
               </AutoFormSubmit>
             </div>
           </AutoForm>
@@ -417,7 +361,7 @@ export function CreateDeploymentButton({
 
   const [isLoading, setIsLoading] = useState(false);
   const workflow_version_id = workflow?.versions.find(
-    (x) => x.version === version
+    (x) => x.version === version,
   )?.id;
   return (
     <DropdownMenu>
@@ -437,8 +381,8 @@ export function CreateDeploymentButton({
                 workflow.id,
                 workflow_version_id,
                 machine,
-                "production"
-              )
+                "production",
+              ),
             );
             setIsLoading(false);
           }}
@@ -455,8 +399,8 @@ export function CreateDeploymentButton({
                 workflow.id,
                 workflow_version_id,
                 machine,
-                "staging"
-              )
+                "staging",
+              ),
             );
             setIsLoading(false);
           }}
@@ -468,7 +412,7 @@ export function CreateDeploymentButton({
   );
 }
 
-export function CreateShareButton({
+export function OpenEditButton({
   workflow,
   machines,
 }: {
@@ -480,40 +424,34 @@ export function CreateShareButton({
     ...parseAsInteger,
   });
   const [machine] = useSelectedMachine(machines);
-
-  const [isLoading, setIsLoading] = useState(false);
   const workflow_version_id = workflow?.versions.find(
-    (x) => x.version === version
+    (x) => x.version == version,
   )?.id;
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button className="gap-2" disabled={isLoading} variant="outline">
-          Share {isLoading ? <LoadingIcon /> : <Share size={14} />}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
-        <DropdownMenuItem
-          onClick={async () => {
-            if (!workflow_version_id) return;
-
-            setIsLoading(true);
-            await callServerPromise(
-              createDeployments(
-                workflow.id,
-                workflow_version_id,
-                machine,
-                "public-share"
-              )
-            );
-            setIsLoading(false);
-          }}
-        >
-          Public
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    workflow_version_id &&
+    machine && (
+      <Button
+        className="gap-2"
+        onClick={async () => {
+          setIsLoading(true);
+          const url = await callServerPromise(
+            editWorkflowOnMachine(workflow_version_id, machine),
+          );
+          if (url && typeof url !== "object") {
+            window.open(url, "_blank");
+          } else if (url && typeof url === "object" && url.error) {
+            console.error(url.error);
+          }
+          setIsLoading(false);
+        }}
+        // asChild
+        variant="outline"
+      >
+        Edit {isLoading ? <LoadingIcon /> : <Edit size={14} />}
+      </Button>
+    )
   );
 }
 
@@ -527,7 +465,7 @@ export function CopyWorkflowVersion({
     ...parseAsInteger,
   });
   const workflow_version = workflow?.versions.find(
-    (x) => x.version === version
+    (x) => x.version === version,
   );
   return (
     <DropdownMenu>
@@ -551,7 +489,7 @@ export function CopyWorkflowVersion({
             });
 
             navigator.clipboard.writeText(
-              JSON.stringify(workflow_version?.workflow)
+              JSON.stringify(workflow_version?.workflow),
             );
             toast("Copied to clipboard");
           }}
@@ -561,7 +499,7 @@ export function CopyWorkflowVersion({
         <DropdownMenuItem
           onClick={async () => {
             navigator.clipboard.writeText(
-              JSON.stringify(workflow_version?.workflow_api)
+              JSON.stringify(workflow_version?.workflow_api),
             );
             toast("Copied to clipboard");
           }}
@@ -575,7 +513,7 @@ export function CopyWorkflowVersion({
 
 export function getWorkflowVersionFromVersionIndex(
   workflow: Awaited<ReturnType<typeof findFirstTableWithVersion>>,
-  version: number
+  version: number,
 ) {
   const workflow_version = workflow?.versions.find((x) => x.version == version);
 
@@ -601,7 +539,7 @@ export function ViewWorkflowDetailsButton({
     isLoading: isNodesIndexLoading,
   } = useSWR(
     "https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/extension-node-map.json",
-    fetcher
+    fetcher,
   );
 
   const groupedByAuxName = useMemo(() => {
@@ -611,7 +549,7 @@ export function ViewWorkflowDetailsButton({
 
     const workflow_version = getWorkflowVersionFromVersionIndex(
       workflow,
-      version
+      version,
     );
 
     const api = workflow_version?.workflow_api;
@@ -622,7 +560,7 @@ export function ViewWorkflowDetailsButton({
       .map(([_, value]) => {
         const classType = value.class_type;
         const classTypeData = Object.entries(data).find(([_, nodeArray]) =>
-          nodeArray[0].includes(classType)
+          nodeArray[0].includes(classType),
         );
         return classTypeData ? { node: value, classTypeData } : null;
       })
@@ -652,7 +590,7 @@ export function ViewWorkflowDetailsButton({
           node: z.infer<typeof workflowAPINodeType>[];
           url: string;
         }
-      >
+      >,
     );
 
     // console.log(groupedByAuxName);
@@ -694,6 +632,7 @@ export function ViewWorkflowDetailsButton({
                           href={group.url}
                           target="_blank"
                           className="hover:underline"
+                          rel="noreferrer"
                         >
                           {key}
                           <ExternalLink

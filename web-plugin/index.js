@@ -1,6 +1,9 @@
 import { app } from "./app.js";
 import { api } from "./api.js";
 import { ComfyWidgets, LGraphNode } from "./widgets.js";
+import { generateDependencyGraph } from "https://esm.sh/comfyui-json@0.1.19";
+
+const loadingIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="#888888" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg>`;
 
 /** @typedef {import('../../../web/types/comfy.js').ComfyExtension} ComfyExtension*/
 /** @type {ComfyExtension} */
@@ -9,6 +12,76 @@ const ext = {
 
   init(app) {
     addButton();
+
+    const queryParams = new URLSearchParams(window.location.search);
+    const workflow_version_id = queryParams.get("workflow_version_id");
+    const auth_token = queryParams.get("auth_token");
+    const org_display = queryParams.get("org_display");
+    const origin = queryParams.get("origin");
+
+    const data = getData();
+    let endpoint = data.endpoint;
+    let apiKey = data.apiKey;
+
+    // If there is auth token override it
+    if (auth_token) {
+      apiKey = auth_token;
+      endpoint = origin;
+      saveData({
+        displayName: org_display,
+        endpoint: origin,
+        apiKey: auth_token,
+        displayName: org_display,
+        environment: "cloud",
+      });
+      localStorage.setItem("comfy_deploy_env", "cloud");
+    }
+
+    if (!workflow_version_id) {
+      console.error("No workflow_version_id provided in query parameters.");
+    } else {
+      loadingDialog.showLoading(
+        "Loading workflow from " + org_display,
+        "Please wait...",
+      );
+      fetch(endpoint + "/api/workflow-version/" + workflow_version_id, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + apiKey,
+        },
+      })
+        .then(async (res) => {
+          const data = await res.json();
+          const { workflow, workflow_id, error } = data;
+          if (error) {
+            infoDialog.showMessage("Unable to load this workflow", error);
+            return;
+          }
+
+          // Adding a delay to wait for the intial graph to load
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          workflow?.nodes.forEach((x) => {
+            if (x?.type === "ComfyDeploy") {
+              x.widgets_values[1] = workflow_id;
+              // x.widgets_values[2] = workflow_version.version;
+            }
+          });
+
+          /** @type {LGraph} */
+          app.loadGraphData(workflow);
+        })
+        .catch((e) => infoDialog.showMessage("Error", e.message))
+        .finally(() => {
+          loadingDialog.close();
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname,
+          );
+        });
+    }
   },
 
   registerCustomNodes() {
@@ -108,6 +181,92 @@ function showError(title, message) {
   );
 }
 
+function createDynamicUIHtml(data) {
+  console.log(data);
+  let html =
+    '<div style="min-width: 600px; max-width: 1024px; margin: 14px auto; display: flex; flex-direction: column; gap: 24px;">';
+  const bgcolor = "var(--comfy-input-bg)";
+  const evenBg = "var(--border-color)";
+  const textColor = "var(--input-text)";
+
+  // Custom Nodes
+  html += `<div style="background-color: ${bgcolor}; padding: 24px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">`;
+  html +=
+    '<h2 style="margin-top: 0px; font-size: 24px; font-weight: bold; margin-bottom: 16px;">Custom Nodes</h2>';
+
+  if (data.missing_nodes?.length > 0) {
+    html += `
+      <div style="border-bottom: 1px solid #e2e8f0; padding: 4px 12px; background-color: ${evenBg}">
+          <h3 style="font-size: 14px; font-weight: semibold; margin-bottom: 8px;">Missing Nodes</h3>
+          <p style="font-size: 12px;">These nodes are not found with any matching custom_nodes in the ComfyUI Manager Database</p>
+          ${data.missing_nodes
+            .map((node) => {
+              return `<p style="font-size: 14px; color: #d69e2e;">${node}</p>`;
+            })
+            .join("")}
+      </div>
+  `;
+  }
+
+  Object.values(data.custom_nodes).forEach((node) => {
+    html += `
+          <div style="border-bottom: 1px solid #e2e8f0; padding-top: 16px;">
+              <a href="${
+                node.url
+              }" target="_blank" style="font-size: 18px; font-weight: semibold; color: white; text-decoration: none;">${
+                node.name
+              }</a>
+              <p style="font-size: 14px; color: #4b5563;">${node.hash}</p>
+              ${
+                node.warning
+                  ? `<p style="font-size: 14px; color: #d69e2e;">${node.warning}</p>`
+                  : ""
+              }
+          </div>
+      `;
+  });
+  html += "</div>";
+
+  // Models
+  html += `<div style="background-color: ${bgcolor}; padding: 24px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">`;
+  html +=
+    '<h2 style="margin-top: 0px; font-size: 24px; font-weight: bold; margin-bottom: 16px;">Models</h2>';
+
+  Object.entries(data.models).forEach(([section, items]) => {
+    html += `
+    <div style="border-bottom: 1px solid #e2e8f0; padding-top: 8px; padding-bottom: 8px;">
+        <h3 style="font-size: 18px; font-weight: semibold; margin-bottom: 8px;">${
+          section.charAt(0).toUpperCase() + section.slice(1)
+        }</h3>`;
+    items.forEach((item) => {
+      html += `<p style="font-size: 14px; color: ${textColor};">${item.name}</p>`;
+    });
+    html += "</div>";
+  });
+  html += "</div>";
+
+  // Models
+  html += `<div style="background-color: ${bgcolor}; padding: 24px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">`;
+  html +=
+    '<h2 style="margin-top: 0px; font-size: 24px; font-weight: bold; margin-bottom: 16px;">Files</h2>';
+
+  Object.entries(data.files).forEach(([section, items]) => {
+    html += `
+    <div style="border-bottom: 1px solid #e2e8f0; padding-top: 8px; padding-bottom: 8px;">
+        <h3 style="font-size: 18px; font-weight: semibold; margin-bottom: 8px;">${
+          section.charAt(0).toUpperCase() + section.slice(1)
+        }</h3>`;
+    items.forEach((item) => {
+      html += `<p style="font-size: 14px; color: ${textColor};">${item.name}</p>`;
+    });
+    html += "</div>";
+  });
+  html += "</div>";
+
+  html += "</div>";
+  return html;
+}
+
 function addButton() {
   const menu = document.querySelector(".comfy-menu");
 
@@ -119,8 +278,49 @@ function addButton() {
     /** @type {LGraph} */
     const graph = app.graph;
 
+    let { endpoint, apiKey, displayName } = getData();
+
+    if (!endpoint || !apiKey || apiKey === "" || endpoint === "") {
+      configDialog.show();
+      return;
+    }
+
+    const ok = await confirmDialog.confirm(
+      `Confirm deployment`,
+      `
+      <div>
+
+      A new version will be deployed, do you confirm? 
+      <br><br>
+
+      <button style="font-size: 18px;">${displayName}</button>
+      <br>
+      <button style="font-size: 18px;">${endpoint}</button>
+
+      <br><br>
+      <label>
+      <input id="include-deps" type="checkbox" checked>Include dependency</input>
+      </label>
+      <br>
+      <label>
+      <input id="reuse-hash" type="checkbox" checked>Reuse hash from last version</input>
+      </label>
+      </div>
+      `,
+    );
+    if (!ok) return;
+
+    const includeDeps = document.getElementById("include-deps").checked;
+    const reuseHash = document.getElementById("reuse-hash").checked;
+
+    if (endpoint.endsWith("/")) {
+      endpoint = endpoint.slice(0, -1);
+    }
+    loadingDialog.showLoading("Generating snapshot");
+
     const snapshot = await fetch("/snapshot/get_current").then((x) => x.json());
-    console.log(snapshot);
+    // console.log(snapshot);
+    loadingDialog.close();
 
     if (!snapshot) {
       showError(
@@ -154,52 +354,150 @@ function addButton() {
 
     const deployMetaNode = deployMeta[0];
 
-    console.log(deployMetaNode);
-
     const workflow_name = deployMetaNode.widgets[0].value;
     const workflow_id = deployMetaNode.widgets[1].value;
 
-    console.log(workflow_name, workflow_id);
-
     const prompt = await app.graphToPrompt();
-    console.log(graph);
-    console.log(prompt);
+    let deps = undefined;
 
-    // const endpoint = localStorage.getItem("endpoint") ?? "";
-    // const apiKey = localStorage.getItem("apiKey");
+    if (includeDeps) {
+      loadingDialog.showLoading("Fetching existing version");
 
-    const { endpoint, apiKey } = getData();
+      const existing_workflow = await fetch(
+        endpoint + "/api/workflow/" + workflow_id,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + apiKey,
+          },
+        },
+      )
+        .then((x) => x.json())
+        .catch(() => {
+          return {};
+        });
 
-    if (!endpoint || !apiKey || apiKey === "" || endpoint === "") {
-      configDialog.show();
-      return;
+      loadingDialog.close();
+
+      loadingDialog.showLoading("Generating dependency graph");
+      deps = await generateDependencyGraph({
+        workflow_api: prompt.output,
+        snapshot: snapshot,
+        computeFileHash: async (file) => {
+          console.log(existing_workflow?.dependencies?.models);
+
+          // Match previous hash for models
+          if (reuseHash && existing_workflow?.dependencies?.models) {
+            const previousModelHash = Object.entries(
+              existing_workflow?.dependencies?.models,
+            ).flatMap(([key, value]) => {
+              return Object.values(value).map((x) => ({
+                ...x,
+                name: "models/" + key + "/" + x.name,
+              }));
+            });
+            console.log(previousModelHash);
+
+            const match = previousModelHash.find((x) => {
+              console.log(file, x.name);
+              return file == x.name;
+            });
+            console.log(match);
+            if (match && match.hash) {
+              console.log("cached hash used");
+              return match.hash;
+            }
+          }
+          console.log(file);
+          loadingDialog.showLoading("Generating hash", file);
+          const hash = await fetch(
+            `/comfyui-deploy/get-file-hash?file_path=${encodeURIComponent(
+              file,
+            )}`,
+          ).then((x) => x.json());
+          loadingDialog.showLoading("Generating hash", file);
+          console.log(hash);
+          return hash.file_hash;
+        },
+        handleFileUpload: async (file, hash, prevhash) => {
+          console.log("Uploading ", file);
+          loadingDialog.showLoading("Uploading file", file);
+          try {
+            const { download_url } = await fetch(
+              `/comfyui-deploy/upload-file`,
+              {
+                method: "POST",
+                body: JSON.stringify({
+                  file_path: file,
+                  token: apiKey,
+                  url: endpoint + "/api/upload-url",
+                }),
+              },
+            )
+              .then((x) => x.json())
+              .catch(() => {
+                loadingDialog.close();
+                confirmDialog.confirm("Error", "Unable to upload file " + file);
+              });
+            loadingDialog.showLoading("Uploaded file", file);
+            console.log(download_url);
+            return download_url;
+          } catch (error) {
+            return undefined;
+          }
+        },
+        existingDependencies: existing_workflow.dependencies,
+      });
+
+      loadingDialog.close();
+
+      const depsOk = await confirmDialog.confirm(
+        "Check dependencies",
+        // JSON.stringify(deps, null, 2),
+        `
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">${loadingIcon}</div>
+        <iframe 
+        style="z-index: 10; min-width: 600px; max-width: 1024px; min-height: 600px; border: none; background-color: transparent;"
+        src="${endpoint}/dependency-graph?deps=${encodeURIComponent(
+          JSON.stringify(deps),
+        )}" />`,
+        // createDynamicUIHtml(deps),
+      );
+      if (!depsOk) return;
+
+      console.log(deps);
     }
 
-    const ok = await confirmDialog.confirm("Confirm deployment", "A new version will be deployed, are you conform?")
-    if (!ok) return;
+    loadingDialog.showLoading("Deploying...");
 
     title.innerText = "Deploying...";
     title.style.color = "orange";
 
-    console.log(prompt);
+    // console.log(prompt);
 
     // TODO trim the ending / from endpoint is there is
     if (endpoint.endsWith("/")) {
       endpoint = endpoint.slice(0, -1);
     }
 
-    const apiRoute = endpoint + "/api/upload";
+    // console.log(prompt.workflow);
+
+    const apiRoute = endpoint + "/api/workflow";
     // const userId = apiKey
     try {
+      const body = {
+        workflow_name,
+        workflow_id,
+        workflow: prompt.workflow,
+        workflow_api: prompt.output,
+        snapshot: snapshot,
+        dependencies: deps,
+      };
+      console.log(body);
       let data = await fetch(apiRoute, {
         method: "POST",
-        body: JSON.stringify({
-          workflow_name,
-          workflow_id,
-          workflow: prompt.workflow,
-          workflow_api: prompt.output,
-          snapshot: snapshot,
-        }),
+        body: JSON.stringify(body),
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + apiKey,
@@ -213,6 +511,8 @@ function addButton() {
       } else {
         data = await data.json();
       }
+
+      loadingDialog.close();
 
       title.textContent = "Done";
       title.style.color = "green";
@@ -230,6 +530,7 @@ function addButton() {
         title.style.color = "white";
       }, 1000);
     } catch (e) {
+      loadingDialog.close();
       app.ui.dialog.show(e);
       console.error(e);
       title.textContent = "Error";
@@ -275,14 +576,16 @@ export class InfoDialog extends ComfyDialog {
     this.element.classList.add("comfy-normal-modal");
     this.element.style.paddingBottom = "20px";
   }
+
+  button = undefined;
+
   createButtons() {
-    return [
-      $el("button", {
-        type: "button",
-        textContent: "Close",
-        onclick: () => this.close(),
-      }),
-    ];
+    this.button = $el("button", {
+      type: "button",
+      textContent: "Close",
+      onclick: () => this.close(),
+    });
+    return [this.button];
   }
 
   close() {
@@ -300,6 +603,74 @@ export class InfoDialog extends ComfyDialog {
     }
     this.element.style.display = "flex";
     this.element.style.zIndex = 1001;
+  }
+
+  showMessage(title, message) {
+    this.show(`
+      <div style="width: 100%; max-width: 600px; display: flex; gap: 18px; flex-direction: column; overflow: unset">
+        <h3 style="margin: 0px;">${title}</h3>
+        <label>
+          ${message}
+        </label>
+        </div>
+      `);
+  }
+
+  showLoading(title, message) {
+    this.show(`
+      <div style="width: 400px; display: flex; gap: 18px; flex-direction: column; overflow: unset">
+        <h3 style="margin: 0px; display: flex; align-items: center; justify-content: center;">${title} ${loadingIcon}</h3>
+        <label>
+          ${message}
+        </label>
+        </div>
+      `);
+  }
+}
+
+export class LoadingDialog extends ComfyDialog {
+  constructor() {
+    super();
+    this.element.classList.add("comfy-normal-modal");
+    // this.element.style.paddingBottom = "20px";
+  }
+
+  createButtons() {
+    return [];
+  }
+
+  close() {
+    this.element.style.display = "none";
+  }
+
+  show(html) {
+    this.textElement.style["white-space"] = "normal";
+    this.textElement.style.color = "white";
+    this.textElement.style.marginTop = "0px";
+    if (typeof html === "string") {
+      this.textElement.innerHTML = html;
+    } else {
+      this.textElement.replaceChildren(html);
+    }
+    this.element.style.display = "flex";
+    this.element.style.zIndex = 1001;
+  }
+
+  loadingIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="#888888" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg>`;
+
+  showLoading(title, message) {
+    this.show(`
+      <div style="width: 400px; display: flex; gap: 18px; flex-direction: column; overflow: unset">
+        <h3 style="margin: 0px; display: flex; align-items: center; justify-content: center; gap: 12px;">${title} ${
+          this.loadingIcon
+        }</h3>
+          ${
+            message
+              ? `<label style="max-width: 100%; white-space: pre-wrap; word-wrap: break-word;">${message}</label>`
+              : ""
+          }
+        </div>
+      `);
   }
 }
 
@@ -367,7 +738,6 @@ export class InputDialog extends InfoDialog {
   }
 }
 
-
 export class ConfirmDialog extends InfoDialog {
   callback = undefined;
 
@@ -417,11 +787,9 @@ export class ConfirmDialog extends InfoDialog {
     return new Promise((resolve, reject) => {
       this.callback = resolve;
       this.show(`
-      <div style="width: 400px; display: flex; gap: 18px; flex-direction: column; overflow: unset">
+      <div style="width: 100%; max-width: 600px; display: flex; gap: 18px; flex-direction: column; overflow: unset; position: relative;">
         <h3 style="margin: 0px;">${title}</h3>
-        <label>
-          ${message}
-        </label>
+        ${message}
         </div>
       `);
     });
@@ -429,9 +797,15 @@ export class ConfirmDialog extends InfoDialog {
 }
 
 export const inputDialog = new InputDialog();
+export const loadingDialog = new LoadingDialog();
 export const infoDialog = new InfoDialog();
 export const confirmDialog = new ConfirmDialog();
 
+/**
+ * Retrieves deployment data from local storage or defaults.
+ * @param {string} [environment] - The environment to get the data for.
+ * @returns {{endpoint: string, apiKey: string, displayName: string, environment?: string}} The deployment data.
+ */
 function getData(environment) {
   const deployOption =
     environment || localStorage.getItem("comfy_deploy_env") || "cloud";
@@ -454,8 +828,21 @@ function getData(environment) {
   };
 }
 
+/**
+ * Retrieves deployment data from local storage or defaults.
+ * @param {{endpoint: string, apiKey: string, displayName: string, environment?: string}} [data] - The environment to get the data for.
+ */
+function saveData(data) {
+  localStorage.setItem(
+    "comfy_deploy_env_data_" + data.environment,
+    JSON.stringify(data),
+  );
+}
+
 export class ConfigDialog extends ComfyDialog {
   container = null;
+  poll = null;
+  timeout = null;
 
   constructor() {
     super();
@@ -498,22 +885,24 @@ export class ConfigDialog extends ComfyDialog {
 
   close() {
     this.element.style.display = "none";
+    clearInterval(this.poll);
+    clearTimeout(this.timeout);
   }
 
-  save() {
+  save(api_key, displayName) {
+    if (!displayName) displayName = getData().displayName;
+
     const deployOption = this.container.querySelector("#deployOption").value;
     localStorage.setItem("comfy_deploy_env", deployOption);
 
     const endpoint = this.container.querySelector("#endpoint").value;
-    const apiKey = this.container.querySelector("#apiKey").value;
-    const data = {
+    const apiKey = api_key ?? this.container.querySelector("#apiKey").value;
+    saveData({
       endpoint,
       apiKey,
-    };
-    localStorage.setItem(
-      "comfy_deploy_env_data_" + deployOption,
-      JSON.stringify(data),
-    );
+      displayName,
+      environment: deployOption,
+    });
     this.close();
   }
 
@@ -527,12 +916,8 @@ export class ConfigDialog extends ComfyDialog {
     <h3 style="margin: 0px;">Comfy Deploy Config</h3>
     <label style="color: white; width: 100%;">
       <select id="deployOption" style="margin: 8px 0px; width: 100%; height:30px; box-sizing: border-box;" >
-        <option value="cloud" ${
-          data.environment === "cloud" ? "selected" : ""
-        }>Cloud</option>
-        <option value="local" ${
-          data.environment === "local" ? "selected" : ""
-        }>Local</option>
+        <option value="cloud" ${data.environment === "cloud" ? "selected" : ""}>Cloud</option>
+        <option value="local" ${data.environment === "local" ? "selected" : ""}>Local</option>
       </select>
     </label>
       <label style="color: white; width: 100%;">
@@ -542,16 +927,61 @@ export class ConfigDialog extends ComfyDialog {
         }">
       </label>
       <label style="color: white;">
-        API Key:
+        API Key: ${data.displayName ?? ""}
         <input id="apiKey" style="margin-top: 8px; width: 100%; height:40px; box-sizing: border-box; padding: 0px 6px;" type="password" value="${
           data.apiKey
         }">
+        <button id="loginButton" style="margin-top: 8px; width: 100%; height:40px; box-sizing: border-box; padding: 0px 6px;">
+          ${
+            data.apiKey ? "Re-login with ComfyDeploy" : "Login with ComfyDeploy"
+          }
+        </button>
       </label>
       </div>
     `;
 
+    const button = this.container.querySelector("#loginButton");
+    button.onclick = () => {
+      const uuid =
+        Math.random().toString(36).substring(2, 15) +
+        Math.random().toString(36).substring(2, 15);
+      window.open(data.endpoint + "/auth-request/" + uuid, "_blank");
+
+      this.timeout = setTimeout(() => {
+        clearInterval(poll);
+        infoDialog.showMessage(
+          "Timeout",
+          "Wait too long for the response, please try re-login",
+        );
+      }, 30000); // Stop polling after 30 seconds
+
+      this.poll = setInterval(() => {
+        fetch(data.endpoint + "/api/auth-response/" + uuid)
+          .then((response) => response.json())
+          .then((json) => {
+            if (json.api_key) {
+              this.save(json.api_key, json.name);
+              this.container.querySelector("#apiKey").value = json.api_key;
+              infoDialog.show();
+              clearInterval(this.poll);
+              clearTimeout(this.timeout);
+              infoDialog.showMessage(
+                "Authenticated",
+                "You will be able to upload workflow to " + json.name,
+              );
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            clearInterval(this.poll);
+            clearTimeout(this.timeout);
+            infoDialog.showMessage("Error", error);
+          });
+      }, 2000);
+    };
+
     const apiKeyInput = this.container.querySelector("#apiKey");
-    apiKeyInput.addEventListener("paste", function (e) {
+    apiKeyInput.addEventListener("paste", (e) => {
       e.stopPropagation();
     });
 

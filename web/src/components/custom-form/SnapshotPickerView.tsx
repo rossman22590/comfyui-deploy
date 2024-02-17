@@ -2,6 +2,12 @@
 
 import type { AutoFormInputComponentProps } from "../ui/auto-form/types";
 import fetcher from "@/components/fetcher";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -21,28 +27,35 @@ import { cn } from "@/lib/utils";
 import { findAllDeployments } from "@/server/curdDeploments";
 import { Check, ChevronsUpDown } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
+import { z } from "zod";
 
 export function SnapshotPickerView({
   field,
 }: Pick<AutoFormInputComponentProps, "field">) {
   return (
-    <div className="flex gap-2 flex-col">
-      <SnapshotPresetPicker field={field} />
-      <CustomNodesSelector field={field} />
-      {field.value && (
-        // <ScrollArea className="w-full bg-gray-100 mx-auto max-w-[500px] rounded-lg">
-        <Textarea
-          className="min-h-[150px] max-h-[300px] p-2 rounded-md text-xs w-full"
-          value={JSON.stringify(field.value, null, 2)}
-          onChange={(e) => {
-            // Update field.onChange to pass the array of selected models
-            field.onChange(JSON.parse(e.target.value));
-          }}
-        />
-        // </ScrollArea>
-      )}
-    </div>
+    <Accordion type="single" collapsible>
+      <AccordionItem value="item-1">
+        <AccordionTrigger className="text-sm">Custom Nodes</AccordionTrigger>
+        <AccordionContent className="flex gap-2 flex-col px-1">
+          <SnapshotPresetPicker field={field} />
+          <CustomNodesSelector field={field} />
+          {field.value && (
+            // <ScrollArea className="w-full bg-gray-100 mx-auto max-w-[500px] rounded-lg">
+            <Textarea
+              className="min-h-[150px] max-h-[300px] p-2 rounded-md text-xs w-full"
+              value={JSON.stringify(field.value, null, 2)}
+              onChange={(e) => {
+                // Update field.onChange to pass the array of selected models
+                field.onChange(JSON.parse(e.target.value));
+              }}
+            />
+            // </ScrollArea>
+          )}
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }
 
@@ -97,14 +110,16 @@ function SnapshotPresetPicker({
           aria-expanded={open}
           className="w-full justify-between flex"
         >
-          {selected ? findItem(selected)?.label : "Select snapshot..."}
+          {selected
+            ? findItem(selected)?.label
+            : "Select snapshot (From deployments)"}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[375px] p-0">
         <Command>
-          <CommandInput placeholder="Search framework..." className="h-9" />
-          <CommandEmpty>No framework found.</CommandEmpty>
+          <CommandInput placeholder="Search snapshot..." className="h-9" />
+          <CommandEmpty>No snapshot found.</CommandEmpty>
           <CommandGroup>
             {frameworks?.map((framework) => (
               <CommandItem
@@ -148,6 +163,24 @@ type CustomNodeList = {
   }[];
 };
 
+const RepoSchema = z.object({
+  default_branch: z.string(),
+});
+
+const BranchInfoSchema = z.object({
+  commit: z.object({
+    sha: z.string(),
+  }),
+});
+
+function extractRepoName(repoUrl: string) {
+  const url = new URL(repoUrl);
+  const pathParts = url.pathname.split("/");
+  const repoName = pathParts[2].replace(".git", "");
+  const author = pathParts[1];
+  return `${author}/${repoName}`;
+}
+
 function CustomNodesSelector({
   field,
 }: Pick<AutoFormInputComponentProps, "field">) {
@@ -188,7 +221,7 @@ function CustomNodesSelector({
           aria-expanded={open}
           className="w-full justify-between flex"
         >
-          Select custom nodes... {keys.length} selected
+          Add custom nodes - {keys.length} selected
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -203,7 +236,52 @@ function CustomNodesSelector({
                   <CommandItem
                     key={index}
                     value={framework.reference}
-                    onSelect={(currentValue) => {
+                    onSelect={async (currentValue) => {
+                      const repoName = extractRepoName(currentValue);
+
+                      console.log(repoName);
+
+                      const id = toast.loading(`Fetching repo info...`);
+                      // toast.info("hi");
+
+                      const repo = await fetch(
+                        `https://api.github.com/repos/${repoName}`
+                      )
+                        .then((x) => x.json())
+                        .then((x) => {
+                          console.log(x);
+                          return x;
+                        })
+                        .then((x) => RepoSchema.parse(x))
+                        .catch((e) => {
+                          console.error(e);
+                          toast.dismiss(id);
+                          toast.error(`Failed to fetch repo info ${e.message}`);
+                          return null;
+                        });
+
+                      if (!repo) return;
+
+                      const branch = repo.default_branch;
+
+                      const branchInfo = await fetch(
+                        `https://api.github.com/repos/${repoName}/branches/${branch}`
+                      )
+                        .then((x) => x.json())
+                        .then((x) => BranchInfoSchema.parse(x))
+                        .catch((e) => {
+                          console.error(e);
+                          toast.dismiss(id);
+                          toast.error(
+                            `Failed to fetch branch info ${e.message}`
+                          );
+                          return null;
+                        });
+
+                      toast.dismiss(id);
+
+                      if (!branchInfo) return;
+
                       let nodeList: Record<
                         string,
                         {
@@ -220,7 +298,7 @@ function CustomNodesSelector({
                       } else {
                         nodeList = {
                           [currentValue]: {
-                            hash: "latest",
+                            hash: branchInfo?.commit.sha,
                             disabled: false,
                           },
                           ...x,

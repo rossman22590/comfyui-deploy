@@ -3,6 +3,7 @@
 import { getRelativeTime } from "../lib/getRelativeTime";
 import { InsertModal, UpdateModal } from "./InsertModal";
 import { callServerPromise } from "./callServerPromise";
+import { LoadingIcon } from "@/components/LoadingIcon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -107,8 +108,20 @@ export const columns: ColumnDef<Machine>[] = [
           {row.original.disabled && (
             <Badge variant="destructive">Disabled</Badge>
           )}
+          {row.original.status == "building" && (
+            <Badge variant="amber" className="capitalize">
+              {row.original.status} <LoadingIcon />
+            </Badge>
+          )}
           {!row.original.disabled && row.original.status && (
-            <Badge variant="outline">{row.original.status}</Badge>
+            <Badge
+              variant={
+                row.original.status == "ready" ? "success" : "destructive"
+              }
+              className="capitalize"
+            >
+              {row.original.status}
+            </Badge>
           )}
         </div>
         // </a>
@@ -210,7 +223,7 @@ export const columns: ColumnDef<Machine>[] = [
                     href={machine.endpoint.replace(
                       "comfyui-api",
                       "comfyui-app"
-                    )}
+                    )} rel="noreferrer"
                   >
                     Open ComfyUI
                   </a>
@@ -343,7 +356,7 @@ export function MachineList({
                 : undefined
             }
             title="New Machine"
-            description="Add custom Comfyui machines to your account."
+            description="Add custom ComfyUI machines to your account."
             serverAction={addCustomMachine}
             formSchema={addCustomMachineSchema}
             fieldConfig={{
@@ -357,9 +370,15 @@ export function MachineList({
               },
               snapshot: {
                 fieldType: "snapshot",
+                inputProps: {
+                  showLabel: false,
+                },
               },
               models: {
                 fieldType: "models",
+                inputProps: {
+                  showLabel: false,
+                },
               },
               gpu: {
                 fieldType: !userMetadata.betaFeaturesAccess

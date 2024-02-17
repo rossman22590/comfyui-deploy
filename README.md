@@ -4,6 +4,8 @@ Open source comfyui deployment platform, a `vercel` for generative workflow infr
 
 Join [Discord](https://discord.gg/EEYcQmdYZw) to chat more or visit [Comfy Deploy](https://comfydeploy.com/) to get started!
 
+Check out our latest [nextjs starter kit](https://github.com/BennyKok/comfyui-deploy-next-example) with Comfy Deploy
+
 ![63shots_so 1](https://github.com/BennyKok/comfyui-deploy/assets/18395202/c0b88377-0135-4d9a-8a20-8b38b975bb48)\# How it works
 
 1. Comfy Deploy Dashboard (https://comfydeploy.com) or self-hosted version
@@ -73,10 +75,11 @@ Major areas
 3. `bun i`
 4. Start docker
 5. `cp .env.example .env.local`
-6. Repace `JWT_SECRET` with `openssl rand -hex 32`
+6. Replace `JWT_SECRET` with `openssl rand -hex 32`
 7. Get a local clerk dev key for `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`
 8. Keep a terminal live for `bun run db-dev`
-9. Finally start the next server with `bun dev`
+9. Execute the local migration to create the initial data `bun run migrate-local`
+10. Finally start the next server with `bun dev`
 
 **Schema Changes**
 
@@ -89,6 +92,10 @@ Major areas
 - oss/acc
 
 # Self Hosting with Vercel
+
+[![Video](https://img.mytsi.org/i/nFOG479.png)](https://www.youtube.com/watch?v=hWvsEY1cS2M)
+Tutorial Created by [Ross](https://github.com/rossman22590) and [Syn](https://github.com/mortlsyn)
+
 
 Build command
 

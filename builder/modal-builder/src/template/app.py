@@ -36,6 +36,9 @@ if not deploy_test:
 
     dockerfile_image = (
         modal.Image.debian_slim()
+        .env({
+            "CIVITAI_TOKEN": config["civitai_token"],
+        })
         .apt_install("git", "wget")
         .pip_install(
             "git+https://github.com/modal-labs/asgiproxy.git", "httpx", "tqdm"
@@ -47,7 +50,8 @@ if not deploy_test:
             "cd /comfyui && pip install xformers!=0.0.18 -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu121",
 
             # Install comfyui manager
-            "cd /comfyui/custom_nodes && git clone --depth 1 https://github.com/ltdrdata/ComfyUI-Manager.git",
+            "cd /comfyui/custom_nodes && git clone https://github.com/ltdrdata/ComfyUI-Manager.git",
+            "cd /comfyui/custom_nodes/ComfyUI-Manager && git reset --hard 9c86f62b912f4625fe2b929c7fc61deb9d16f6d3",
             "cd /comfyui/custom_nodes/ComfyUI-Manager && pip install -r requirements.txt",
             "cd /comfyui/custom_nodes/ComfyUI-Manager && mkdir startup-scripts",
         )
@@ -55,7 +59,7 @@ if not deploy_test:
         #     # Install comfy deploy
         #     "cd /comfyui/custom_nodes && git clone https://github.com/BennyKok/comfyui-deploy.git",
         # )
-        .copy_local_file(f"{current_directory}/data/extra_model_paths.yaml", "/comfyui")
+        # .copy_local_file(f"{current_directory}/data/extra_model_paths.yaml", "/comfyui")
 
         .copy_local_file(f"{current_directory}/data/start.sh", "/start.sh")
         .run_commands("chmod +x /start.sh")
@@ -230,7 +234,8 @@ def run(input: Input):
 async def bar(request_input: RequestInput):
     # print(request_input)
     if not deploy_test:
-        return run.remote(request_input.input)
+        run.spawn(request_input.input)
+        return {"status": "success"}
     # pass
 
 
