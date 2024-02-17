@@ -102,7 +102,7 @@ export function Navbar() {
           variant="outline"
           className="rounded-full aspect-square p-2"
         >
-          <a target="_blank" href="https://github.com/BennyKok/comfyui-deploy" rel="noreferrer">
+          <a target="_blank" href="#" rel="noreferrer">
             <Github />
           </a>
         </Button>
