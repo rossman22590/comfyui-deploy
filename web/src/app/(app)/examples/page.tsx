@@ -40,7 +40,7 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "IPAdapter FaceID",
     description: "Load image and use it  as reference for new consistant generations.",
-    previewURL: 'https://api.myapps.ai/share/ross-cohen-instant-id',
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-ipadapter-example',
     image: {
       src: '/example-workflows/ipadapter.png',
       alt: 'IPAdapter workflow',
