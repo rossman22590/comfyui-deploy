@@ -22,18 +22,18 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "Txt2Img SDXL",
     description: "The basic workflow, type a prompt and generate images based on that.",
-    previewURL: '#l',
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-txt2img-sdxl',
     image: {
-      src: '/example-workflows/txt2img.webp',
+      src: '/example-workflows/txt2img.png',
       alt: 'IPAdapter workflow',
     }
   },
   {
     title: "Txt2Img LCM SDXL",
     description: "Images in a couple of seconds, increase the speed of each generation using LCM Lora.",
-    previewURL: '#',
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-lcm-text2img',
     image: {
-      src: '/example-workflows/txt2img-lcm.webp',
+      src: '/example-workflows/txt2img-lcm.png',
       alt: 'txt2img LCM SDXL',
     }
   },
@@ -42,7 +42,7 @@ const exampleWorkflows: exampleWorkflow[] = [
     description: "Load image and use it  as reference for new consistant generations.",
     previewURL: 'https://api.myapps.ai/share/ross-cohen-instant-id',
     image: {
-      src: '/example-workflows/ipadapter.webp',
+      src: '/example-workflows/ipadapter.png',
       alt: 'IPAdapter workflow',
     }
   },
@@ -51,16 +51,16 @@ const exampleWorkflows: exampleWorkflow[] = [
     description: "Upscale and Add Details to your creations.",
     previewURL: 'https://api.myapps.ai/share/ross-cohen-upscaler',
     image: {
-      src: '/example-workflows/upscale.webp',
+      src: '/example-workflows/upscale.png',
       alt: 'Upscale and Add Detail SDXL',
     }
   },
   {
     title: "Txt2Img SDXL Turbo",
     description: "Try SDXL turbo and generate images since 1 step in seconds.",
-    previewURL: '#',
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-txt2img-sdxl-turbo',
     image: {
-      src: '/example-workflows/txt2img-sdxl-turbo.webp',
+      src: '/example-workflows/txt2img-sdxl-turbo.png',
       alt: 'Txt2Img SDXL Turbo',
     }
   },
@@ -69,16 +69,16 @@ const exampleWorkflows: exampleWorkflow[] = [
     description: "This workflow uses canny. Generate lines of you original image and create variations.",
     previewURL: '#',
     image: {
-      src: '/example-workflows/txt2img-controlnet.webp',
+      src: '/example-workflows/txt2img-controlnet.png',
       alt: 'Img2Img SDXL Controlnet',
     }
   },
   {
     title: "Automatic Inpainting (SEG)",
     description: "Type what do you want to select and change that area with your prompt.",
-    previewURL: '#',
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-automatic-inpainting',
     image: {
-      src: '/example-workflows/automatic-inpainting-seg.webp',
+      src: '/example-workflows/automatic-inpainting-seg.png',
       alt: 'Img2Img SDXL Controlnet',
     }
   }
