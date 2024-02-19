@@ -51,7 +51,7 @@ const exampleWorkflows: exampleWorkflow[] = [
     description: "Load image and use it  as reference for new consistant generations.",
     previewURL: 'https://api.myapps.ai/share/ross-cohen-instant-id',
     image: {
-      src: '/example-workflows/ipadapter.png',
+      src: '/example-workflows/influencer.png',
       alt: 'IPAdapter workflow',
     }
   },
