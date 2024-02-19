@@ -46,6 +46,15 @@ const exampleWorkflows: exampleWorkflow[] = [
       alt: 'IPAdapter workflow',
     }
   },
+    {
+    title: "AI Influencer",
+    description: "Load image and use it  as reference for new consistant generations.",
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-instant-id',
+    image: {
+      src: '/example-workflows/ipadapter.png',
+      alt: 'IPAdapter workflow',
+    }
+  },
   {
     title: "Upscale and Add Detail SDXL",
     description: "Upscale and Add Details to your creations.",
