@@ -55,6 +55,7 @@ class SimplePrompt(BaseModel):
     uploading_nodes: set = set()
     done: bool = False
     is_realtime: bool = False,
+    start_time: Optional[float] = None,
     
 streaming_prompt_metadata: dict[str, StreamingPrompt] = {}
 
@@ -142,7 +143,7 @@ def send_prompt(sid: str, inputs: StreamingPrompt):
             
     prompt = {
         "prompt": workflow_api,
-        "client_id": "comfy_deploy_instance", #api.client_id
+        "client_id": sid, #"comfy_deploy_instance", #api.client_id
         "prompt_id": prompt_id
     }
     
@@ -490,21 +491,37 @@ send_json = prompt_server.send_json
 async def send_json_override(self, event, data, sid=None):
     # print("INTERNAL:", event, data, sid)
     prompt_id = data.get('prompt_id')
+    
+    target_sid = sid
+    if target_sid == "comfy_deploy_instance":
+        target_sid = None
 
     # now we send everything
     await asyncio.wait([
-        asyncio.create_task(send(event, data, sid=sid)),
+        asyncio.create_task(send(event, data, sid=target_sid)),
         asyncio.create_task(self.send_json_original(event, data, sid))
     ])
 
     if event == 'execution_start':
         update_run(prompt_id, Status.RUNNING)
+        
+        if prompt_id in prompt_metadata:
+            prompt_metadata[prompt_id].start_time = time.perf_counter()
 
     # the last executing event is none, then the workflow is finished
     if event == 'executing' and data.get('node') is None:
         mark_prompt_done(prompt_id=prompt_id)
         if not have_pending_upload(prompt_id):
             update_run(prompt_id, Status.SUCCESS)
+            if prompt_id in prompt_metadata:
+                current_time = time.perf_counter()
+                if prompt_metadata[prompt_id].start_time is not None:
+                    elapsed_time = current_time - prompt_metadata[prompt_id].start_time
+                    print(f"Elapsed time: {elapsed_time} seconds")
+                    await send("elapsed_time", {
+                        "prompt_id": prompt_id,
+                        "elapsed_time": elapsed_time
+                    }, sid=sid)
 
     if event == 'executing' and data.get('node') is not None:
         node = data.get('node')
@@ -522,6 +539,11 @@ async def send_json_override(self, event, data, sid=None):
             prompt_metadata[prompt_id].last_updated_node = node
             class_type = prompt_metadata[prompt_id].workflow_api[node]['class_type']
             print("updating run live status", class_type)
+            await send("live_status", {
+                "prompt_id": prompt_id,
+                "current_node": class_type,
+                "progress": calculated_progress,
+            }, sid=sid)
             await update_run_live_status(prompt_id, "Executing " + class_type, calculated_progress)
 
     if event == 'execution_cached' and data.get('nodes') is not None:
@@ -552,7 +574,7 @@ async def update_run_live_status(prompt_id, live_status, calculated_progress: fl
     if prompt_id not in prompt_metadata:
         return
     
-    if prompt_metadata[prompt_id].is_realtime:
+    if prompt_metadata[prompt_id].is_realtime is True:
         return
     
     print("progress", calculated_progress)
@@ -575,8 +597,10 @@ def update_run(prompt_id: str, status: Status):
     if prompt_id not in prompt_metadata:
         return
     
+    # if prompt_metadata[prompt_id].start_time is None and status == Status.RUNNING:
     # if its realtime prompt we need to skip that.
-    if prompt_metadata[prompt_id].is_realtime:
+    if prompt_metadata[prompt_id].is_realtime is True:
+        prompt_metadata[prompt_id].status = status
         return
 
     if (prompt_metadata[prompt_id].status != status):
@@ -626,7 +650,6 @@ def update_run(prompt_id: str, status: Status):
                 except Exception as log_error:
                     print(f"Error reading log file: {log_error}")
                 
-
         except Exception as e:
             error_type = type(e).__name__
             stack_trace = traceback.format_exc().strip()
@@ -716,7 +739,7 @@ def is_prompt_done(prompt_id: str):
     Returns:
         bool: True if the prompt is marked as done, False otherwise.
     """
-    if prompt_id in prompt_metadata and prompt_metadata[prompt_id].done:
+    if prompt_id in prompt_metadata and prompt_metadata[prompt_id].done is True:
         return True
 
     return False
@@ -805,7 +828,7 @@ async def update_run_with_output(prompt_id, data, node_id=None):
     if prompt_id not in prompt_metadata:
         return
         
-    if prompt_metadata[prompt_id].is_realtime:
+    if prompt_metadata[prompt_id].is_realtime is True:
         return
     
     status_endpoint = prompt_metadata[prompt_id].status_endpoint
