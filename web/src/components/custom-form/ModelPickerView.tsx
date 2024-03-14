@@ -42,40 +42,40 @@ const Model = z.object({
   url: z.string(),
 });
 
-export const CivitalModelSchema = z.object({
+const CivitalModelSchema = z.object({
   items: z.array(
     z.object({
       id: z.number(),
       name: z.string(),
       description: z.string(),
       type: z.string(),
-      creator: z.object({
-        username: z.string().nullable(),
-        image: z.string().nullable().default(null),
-      }).nullable(),
+      creator: z
+        .object({
+          username: z.string().nullable(),
+          image: z.string().nullable().default(null),
+        })
+        .nullable(),
       tags: z.array(z.string()),
       modelVersions: z.array(
         z.object({
           id: z.number(),
-          modelId: z.number().optional(), // Adjust for potential undefined
           name: z.string(),
           createdAt: z.string(),
           updatedAt: z.string(),
           status: z.string(),
-          publishedAt: z.string().optional(), // Adjust for potential undefined
+          publishedAt: z.string(),
           trainedWords: z.array(z.unknown()),
-          trainingStatus: z.string().nullable(),
-          trainingDetails: z.string().nullable(),
+          trainingStatus: z.string().nullable().optional(),
+          trainingDetails: z.string().nullable().optional(),
           baseModel: z.string(),
           baseModelType: z.string().nullable(),
-          earlyAccessTimeFrame: z.number().optional(), // Adjust for potential undefined
           description: z.string().nullable(),
-          vaeId: z.number().nullable(), // Adjust for potential undefined
+          vaeId: z.number().nullable().optional(),
           stats: z.object({
             downloadCount: z.number(),
             ratingCount: z.number(),
             rating: z.number(),
-          }).optional(), // Adjust for potential undefined stats
+          }),
           files: z.array(
             z.object({
               id: z.number(),
@@ -89,20 +89,14 @@ export const CivitalModelSchema = z.object({
             z.object({
               id: z.number(),
               url: z.string(),
-              nsfw: z.string().optional(), // Adjust for potential undefined
+              nsfw: z.string(),
               width: z.number(),
               height: z.number(),
               hash: z.string(),
               type: z.string(),
-              metadata: z.object({
-                hash: z.string(),
-                width: z.number(),
-                height: z.number(),
-              }).optional(), // Adjust for potential undefined metadata
-              meta: z.any(),
             })
           ),
-          downloadUrl: z.string().optional(), // Adjust for potential undefined
+          downloadUrl: z.string(),
         })
       ),
     })
@@ -118,7 +112,7 @@ export const CivitalModelSchema = z.object({
 
 const ModelList = z.array(Model);
 
-export const ModelListWrapper = z.object({
+const ModelListWrapper = z.object({
   models: ModelList,
 });
 // export const CivitalModelSchema = z.object({
