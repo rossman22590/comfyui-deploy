@@ -49,81 +49,47 @@ export const CivitalModelSchema = z.object({
       name: z.string(),
       description: z.string(),
       type: z.string(),
-      // poi: z.boolean(),
-      // nsfw: z.boolean(),
-      // allowNoCredit: z.boolean(),
-      // allowCommercialUse: z.string(),
-      // allowDerivatives: z.boolean(),
-      // allowDifferentLicense: z.boolean(),
-      // stats: z.object({
-      //   downloadCount: z.number(),
-      //   favoriteCount: z.number(),
-      //   commentCount: z.number(),
-      //   ratingCount: z.number(),
-      //   rating: z.number(),
-      //   tippedAmountCount: z.number(),
-      // }),
-      creator: z
-        .object({
-          username: z.string().nullable(),
-          image: z.string().nullable().default(null),
-        })
-        .nullable(),
+      creator: z.object({
+        username: z.string().nullable(),
+        image: z.string().nullable().default(null),
+      }).nullable(),
       tags: z.array(z.string()),
       modelVersions: z.array(
         z.object({
           id: z.number(),
-          modelId: z.number(),
+          modelId: z.number().optional(), // Adjust for potential undefined
           name: z.string(),
           createdAt: z.string(),
           updatedAt: z.string(),
           status: z.string(),
-          publishedAt: z.string(),
+          publishedAt: z.string().optional(), // Adjust for potential undefined
           trainedWords: z.array(z.unknown()),
           trainingStatus: z.string().nullable(),
           trainingDetails: z.string().nullable(),
           baseModel: z.string(),
           baseModelType: z.string().nullable(),
-          earlyAccessTimeFrame: z.number(),
+          earlyAccessTimeFrame: z.number().optional(), // Adjust for potential undefined
           description: z.string().nullable(),
-          vaeId: z.number().nullable(),
+          vaeId: z.number().nullable(), // Adjust for potential undefined
           stats: z.object({
             downloadCount: z.number(),
             ratingCount: z.number(),
             rating: z.number(),
-          }),
+          }).optional(), // Adjust for potential undefined stats
           files: z.array(
             z.object({
               id: z.number(),
               sizeKB: z.number(),
               name: z.string(),
               type: z.string(),
-              // metadata: z.object({
-              //   fp: z.string().nullable().optional(),
-              //   size: z.string().nullable().optional(),
-              //   format: z.string().nullable().optional(),
-              // }),
-              // pickleScanResult: z.string(),
-              // pickleScanMessage: z.string(),
-              // virusScanResult: z.string(),
-              // virusScanMessage: z.string().nullable(),
-              // scannedAt: z.string(),
-              // hashes: z.object({
-              //   AutoV1: z.string().nullable().optional(),
-              //   AutoV2: z.string().nullable().optional(),
-              //   SHA256: z.string().nullable().optional(),
-              //   CRC32: z.string().nullable().optional(),
-              //   BLAKE3: z.string().nullable().optional(),
-              // }),
               downloadUrl: z.string(),
-              // primary: z.boolean().default(false),
             })
           ),
           images: z.array(
             z.object({
               id: z.number(),
               url: z.string(),
-              nsfw: z.string(),
+              nsfw: z.string().optional(), // Adjust for potential undefined
               width: z.number(),
               height: z.number(),
               hash: z.string(),
@@ -132,11 +98,11 @@ export const CivitalModelSchema = z.object({
                 hash: z.string(),
                 width: z.number(),
                 height: z.number(),
-              }),
+              }).optional(), // Adjust for potential undefined metadata
               meta: z.any(),
             })
           ),
-          downloadUrl: z.string(),
+          downloadUrl: z.string().optional(), // Adjust for potential undefined
         })
       ),
     })
@@ -155,6 +121,119 @@ const ModelList = z.array(Model);
 export const ModelListWrapper = z.object({
   models: ModelList,
 });
+// export const CivitalModelSchema = z.object({
+//   items: z.array(
+//     z.object({
+//       id: z.number(),
+//       name: z.string(),
+//       description: z.string(),
+//       type: z.string(),
+//       // poi: z.boolean(),
+//       // nsfw: z.boolean(),
+//       // allowNoCredit: z.boolean(),
+//       // allowCommercialUse: z.string(),
+//       // allowDerivatives: z.boolean(),
+//       // allowDifferentLicense: z.boolean(),
+//       // stats: z.object({
+//       //   downloadCount: z.number(),
+//       //   favoriteCount: z.number(),
+//       //   commentCount: z.number(),
+//       //   ratingCount: z.number(),
+//       //   rating: z.number(),
+//       //   tippedAmountCount: z.number(),
+//       // }),
+//       creator: z
+//         .object({
+//           username: z.string().nullable(),
+//           image: z.string().nullable().default(null),
+//         })
+//         .nullable(),
+//       tags: z.array(z.string()),
+//       modelVersions: z.array(
+//         z.object({
+//           id: z.number(),
+//           modelId: z.number(),
+//           name: z.string(),
+//           createdAt: z.string(),
+//           updatedAt: z.string(),
+//           status: z.string(),
+//           publishedAt: z.string(),
+//           trainedWords: z.array(z.unknown()),
+//           trainingStatus: z.string().nullable(),
+//           trainingDetails: z.string().nullable(),
+//           baseModel: z.string(),
+//           baseModelType: z.string().nullable(),
+//           earlyAccessTimeFrame: z.number(),
+//           description: z.string().nullable(),
+//           vaeId: z.number().nullable(),
+//           stats: z.object({
+//             downloadCount: z.number(),
+//             ratingCount: z.number(),
+//             rating: z.number(),
+//           }),
+//           files: z.array(
+//             z.object({
+//               id: z.number(),
+//               sizeKB: z.number(),
+//               name: z.string(),
+//               type: z.string(),
+//               // metadata: z.object({
+//               //   fp: z.string().nullable().optional(),
+//               //   size: z.string().nullable().optional(),
+//               //   format: z.string().nullable().optional(),
+//               // }),
+//               // pickleScanResult: z.string(),
+//               // pickleScanMessage: z.string(),
+//               // virusScanResult: z.string(),
+//               // virusScanMessage: z.string().nullable(),
+//               // scannedAt: z.string(),
+//               // hashes: z.object({
+//               //   AutoV1: z.string().nullable().optional(),
+//               //   AutoV2: z.string().nullable().optional(),
+//               //   SHA256: z.string().nullable().optional(),
+//               //   CRC32: z.string().nullable().optional(),
+//               //   BLAKE3: z.string().nullable().optional(),
+//               // }),
+//               downloadUrl: z.string(),
+//               // primary: z.boolean().default(false),
+//             })
+//           ),
+//           images: z.array(
+//             z.object({
+//               id: z.number(),
+//               url: z.string(),
+//               nsfw: z.string(),
+//               width: z.number(),
+//               height: z.number(),
+//               hash: z.string(),
+//               type: z.string(),
+//               metadata: z.object({
+//                 hash: z.string(),
+//                 width: z.number(),
+//                 height: z.number(),
+//               }),
+//               meta: z.any(),
+//             })
+//           ),
+//           downloadUrl: z.string(),
+//         })
+//       ),
+//     })
+//   ),
+//   metadata: z.object({
+//     totalItems: z.number(),
+//     currentPage: z.number(),
+//     pageSize: z.number(),
+//     totalPages: z.number(),
+//     nextPage: z.string().optional(),
+//   }),
+// });
+
+// const ModelList = z.array(Model);
+
+// export const ModelListWrapper = z.object({
+//   models: ModelList,
+// });
 
 export function ModelPickerView({
   field,
