@@ -54,28 +54,29 @@ const CivitalModelSchema = z.object({
           username: z.string().nullable(),
           image: z.string().nullable().default(null),
         })
-        .nullable(),
+        .nullable()
+        .optional(), // Adjusted here to handle `undefined` values for `creator`
       tags: z.array(z.string()),
       modelVersions: z.array(
         z.object({
           id: z.number(),
           name: z.string(),
-          createdAt: z.string(),
-          updatedAt: z.string(),
-          status: z.string(),
-          publishedAt: z.string(),
+          createdAt: z.string().optional(),
+          updatedAt: z.string().optional(),
+          status: z.string().optional(),
+          publishedAt: z.string().optional(),
           trainedWords: z.array(z.unknown()),
           trainingStatus: z.string().nullable().optional(),
           trainingDetails: z.string().nullable().optional(),
           baseModel: z.string(),
-          baseModelType: z.string().nullable(),
-          description: z.string().nullable(),
+          baseModelType: z.string().nullable().optional(),
+          description: z.string().nullable().optional(),
           vaeId: z.number().nullable().optional(),
           stats: z.object({
             downloadCount: z.number(),
             ratingCount: z.number(),
             rating: z.number(),
-          }),
+          }).optional(),
           files: z.array(
             z.object({
               id: z.number(),
@@ -89,23 +90,23 @@ const CivitalModelSchema = z.object({
             z.object({
               id: z.number(),
               url: z.string(),
-              nsfw: z.string(),
+              nsfw: z.string().optional(),
               width: z.number(),
               height: z.number(),
               hash: z.string(),
               type: z.string(),
             })
-          ),
+          ).optional(),
           downloadUrl: z.string(),
         })
       ),
     })
   ),
   metadata: z.object({
-    totalItems: z.number(),
-    currentPage: z.number(),
-    pageSize: z.number(),
-    totalPages: z.number(),
+    totalItems: z.number().optional(),
+    currentPage: z.number().optional(),
+    pageSize: z.number().optional(),
+    totalPages: z.number().optional(),
     nextPage: z.string().optional(),
   }),
 });
