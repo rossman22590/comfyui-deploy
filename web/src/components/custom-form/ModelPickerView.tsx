@@ -2,10 +2,26 @@
 
 import type { AutoFormInputComponentProps } from "../ui/auto-form/types";
 import { LoadingIcon } from "@/components/LoadingIcon";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -100,6 +116,119 @@ const ModelList = z.array(Model);
 const ModelListWrapper = z.object({
   models: ModelList,
 });
+// export const CivitalModelSchema = z.object({
+//   items: z.array(
+//     z.object({
+//       id: z.number(),
+//       name: z.string(),
+//       description: z.string(),
+//       type: z.string(),
+//       // poi: z.boolean(),
+//       // nsfw: z.boolean(),
+//       // allowNoCredit: z.boolean(),
+//       // allowCommercialUse: z.string(),
+//       // allowDerivatives: z.boolean(),
+//       // allowDifferentLicense: z.boolean(),
+//       // stats: z.object({
+//       //   downloadCount: z.number(),
+//       //   favoriteCount: z.number(),
+//       //   commentCount: z.number(),
+//       //   ratingCount: z.number(),
+//       //   rating: z.number(),
+//       //   tippedAmountCount: z.number(),
+//       // }),
+//       creator: z
+//         .object({
+//           username: z.string().nullable(),
+//           image: z.string().nullable().default(null),
+//         })
+//         .nullable(),
+//       tags: z.array(z.string()),
+//       modelVersions: z.array(
+//         z.object({
+//           id: z.number(),
+//           modelId: z.number(),
+//           name: z.string(),
+//           createdAt: z.string(),
+//           updatedAt: z.string(),
+//           status: z.string(),
+//           publishedAt: z.string(),
+//           trainedWords: z.array(z.unknown()),
+//           trainingStatus: z.string().nullable(),
+//           trainingDetails: z.string().nullable(),
+//           baseModel: z.string(),
+//           baseModelType: z.string().nullable(),
+//           earlyAccessTimeFrame: z.number(),
+//           description: z.string().nullable(),
+//           vaeId: z.number().nullable(),
+//           stats: z.object({
+//             downloadCount: z.number(),
+//             ratingCount: z.number(),
+//             rating: z.number(),
+//           }),
+//           files: z.array(
+//             z.object({
+//               id: z.number(),
+//               sizeKB: z.number(),
+//               name: z.string(),
+//               type: z.string(),
+//               // metadata: z.object({
+//               //   fp: z.string().nullable().optional(),
+//               //   size: z.string().nullable().optional(),
+//               //   format: z.string().nullable().optional(),
+//               // }),
+//               // pickleScanResult: z.string(),
+//               // pickleScanMessage: z.string(),
+//               // virusScanResult: z.string(),
+//               // virusScanMessage: z.string().nullable(),
+//               // scannedAt: z.string(),
+//               // hashes: z.object({
+//               //   AutoV1: z.string().nullable().optional(),
+//               //   AutoV2: z.string().nullable().optional(),
+//               //   SHA256: z.string().nullable().optional(),
+//               //   CRC32: z.string().nullable().optional(),
+//               //   BLAKE3: z.string().nullable().optional(),
+//               // }),
+//               downloadUrl: z.string(),
+//               // primary: z.boolean().default(false),
+//             })
+//           ),
+//           images: z.array(
+//             z.object({
+//               id: z.number(),
+//               url: z.string(),
+//               nsfw: z.string(),
+//               width: z.number(),
+//               height: z.number(),
+//               hash: z.string(),
+//               type: z.string(),
+//               metadata: z.object({
+//                 hash: z.string(),
+//                 width: z.number(),
+//                 height: z.number(),
+//               }),
+//               meta: z.any(),
+//             })
+//           ),
+//           downloadUrl: z.string(),
+//         })
+//       ),
+//     })
+//   ),
+//   metadata: z.object({
+//     totalItems: z.number(),
+//     currentPage: z.number(),
+//     pageSize: z.number(),
+//     totalPages: z.number(),
+//     nextPage: z.string().optional(),
+//   }),
+// });
+
+// const ModelList = z.array(Model);
+
+// export const ModelListWrapper = z.object({
+//   models: ModelList,
+// });
 
 export function ModelPickerView({
   field,
@@ -114,6 +243,7 @@ export function ModelPickerView({
           <div className="flex gap-2 flex-col px-1">
             <ComfyUIManagerModelRegistry field={field} />
             <CivitaiModelRegistry field={field} />
+            {/* <span>{field.value.length} selected</span> */}
             {field.value && (
               <ScrollArea className="w-full bg-gray-100 mx-auto rounded-lg mt-2">
                 <Textarea
@@ -132,6 +262,14 @@ export function ModelPickerView({
   );
 }
 
+function mapType(type: string) {
+  switch (type) {
+    case "checkpoint":
+      return "checkpoints";
+  }
+  return type;
+}
+
 function mapModelsList(
   models: z.infer<typeof CivitalModelSchema>
 ): z.infer<typeof ModelListWrapper> {
@@ -139,20 +277,19 @@ function mapModelsList(
     models: models.items.flatMap((item) => {
       return item.modelVersions.map((v) => {
         return {
-          name: `${item.name} ${v.name} (${v.files[0]?.name})`,
-          type: item.type.toLowerCase(),
+          name: `${item.name} ${v.name} (${v.files[0].name})`,
+          type: mapType(item.type.toLowerCase()),
           base: v.baseModel,
           save_path: "default",
-          description: item.description ?? "",
+          description: item.description,
           reference: "",
-          filename: v.files[0]?.name ?? "N/A",
-          url: v.files[0]?.downloadUrl ?? "",
-        };
+          filename: v.files[0].name,
+          url: v.files[0].downloadUrl,
+        } as z.infer<typeof Model>;
       });
     }),
   };
 }
-
 
 function getUrl(search?: string) {
   const baseUrl = "https://civitai.com/api/v1/models";
