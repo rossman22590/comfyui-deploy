@@ -38,7 +38,8 @@ const CivitalModelSchema = z.object({
           username: z.string().nullable(),
           image: z.string().nullable().default(null),
         })
-        .nullable(),
+        .nullable()
+        .optional(), // Adjusted here to handle `undefined` values for `creator`
       tags: z.array(z.string()),
       modelVersions: z.array(
         z.object({
