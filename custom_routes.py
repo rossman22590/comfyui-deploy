@@ -13,7 +13,6 @@ import traceback
 import uuid
 import asyncio
 import logging
-from enum import Enum
 from urllib.parse import quote
 import threading
 import hashlib
@@ -24,32 +23,17 @@ from PIL import Image
 import copy
 import struct
 
-from globals import StreamingPrompt, sockets, streaming_prompt_metadata, BaseModel
-
-class Status(Enum):
-    NOT_STARTED = "not-started"
-    RUNNING = "running"
-    SUCCESS = "success"
-    FAILED = "failed"
-    UPLOADING = "uploading"
-    
-class SimplePrompt(BaseModel):
-    status_endpoint: str
-    file_upload_endpoint: str
-    workflow_api: dict
-    status: Status = Status.NOT_STARTED
-    progress: set = set()
-    last_updated_node: Optional[str] = None,
-    uploading_nodes: set = set()
-    done: bool = False
-    is_realtime: bool = False,
-    start_time: Optional[float] = None,
+from globals import StreamingPrompt, Status, sockets, SimplePrompt, streaming_prompt_metadata, prompt_metadata
 
 api = None
 api_task = None
-prompt_metadata: dict[str, SimplePrompt] = {}
+
 cd_enable_log = os.environ.get('CD_ENABLE_LOG', 'false').lower() == 'true'
 cd_enable_run_log = os.environ.get('CD_ENABLE_RUN_LOG', 'false').lower() == 'true'
+bypass_upload = os.environ.get('CD_BYPASS_UPLOAD', 'false').lower() == 'true'
+
+print("CD_BYPASS_UPLOAD", bypass_upload)
+
 
 def clear_current_prompt(sid):
     prompt_server = server.PromptServer.instance
@@ -125,6 +109,47 @@ def apply_random_seed_to_workflow(workflow_api):
                 workflow_api[key]['inputs']['seed'] = randomSeed(8);
                 continue
             workflow_api[key]['inputs']['seed'] = randomSeed();
+            
+def apply_inputs_to_workflow(workflow_api: Any, inputs: Any, sid: str = None):
+    # Loop through each of the inputs and replace them
+    for key, value in workflow_api.items():
+        if 'inputs' in value:
+            
+            # Support websocket
+            if sid is not None:
+                if (value["class_type"] == "ComfyDeployWebscoketImageOutput"):
+                    value['inputs']["client_id"] = sid
+                if (value["class_type"] == "ComfyDeployWebscoketImageInput"):
+                    value['inputs']["client_id"] = sid
+                    
+            if "input_id" in value['inputs'] and inputs is not None and value['inputs']['input_id'] in inputs:
+                new_value = inputs[value['inputs']['input_id']]
+                
+                # Lets skip it if its an image
+                if isinstance(new_value, Image.Image):
+                    continue
+                
+                # Backward compactibility
+                value['inputs']["input_id"] = new_value
+            
+                # Fix for external text default value
+                if (value["class_type"] == "ComfyUIDeployExternalText"):
+                    value['inputs']["default_value"] = new_value
+                    
+                if (value["class_type"] == "ComfyUIDeployExternalCheckpoint"):
+                    value['inputs']["default_value"] = new_value
+                    
+                if (value["class_type"] == "ComfyUIDeployExternalImageBatch"):
+                    value['inputs']["images"] = new_value
+                
+                if value["class_type"] == "ComfyUIDeployExternalLora":
+                    value["inputs"]["default_lora_name"] = new_value
+                
+                if value["class_type"] == "ComfyUIDeployExternalSlider":
+                    value["inputs"]["default_value"] = new_value
+                    
+                if value["class_type"] == "ComfyUIDeployExternalBoolean":
+                    value["inputs"]["default_value"] = new_value
 
 def send_prompt(sid: str, inputs: StreamingPrompt):
     # workflow_api = inputs.workflow_api
@@ -134,28 +159,8 @@ def send_prompt(sid: str, inputs: StreamingPrompt):
     apply_random_seed_to_workflow(workflow_api)
             
     print("getting inputs" , inputs.inputs)
-            
-    # Loop through each of the inputs and replace them
-    for key, value in workflow_api.items():
-        if 'inputs' in value:
-            if (value["class_type"] == "ComfyDeployWebscoketImageOutput"):
-                value['inputs']["client_id"] = sid
-            if (value["class_type"] == "ComfyDeployWebscoketImageInput"):
-                value['inputs']["client_id"] = sid
-                
-            if "input_id" in value['inputs'] and value['inputs']['input_id'] in inputs.inputs:
-                new_value = inputs.inputs[value['inputs']['input_id']]
-                
-                # Lets skip it if its an image
-                if isinstance(new_value, Image.Image):
-                    continue
-                
-                value['inputs']["input_id"] = new_value
-            
-                # Fix for external text default value
-                if (value["class_type"] == "ComfyUIDeployExternalText"):
-                    value['inputs']["default_value"] = new_value
-
+    
+    apply_inputs_to_workflow(workflow_api, inputs.inputs, sid=sid)
                 
     print(workflow_api)
                 
@@ -188,15 +193,15 @@ async def comfy_deploy_run(request):
     prompt_server = server.PromptServer.instance
     data = await request.json()
 
-    workflow_api = data.get("workflow_api")
-
+    # In older version, we use workflow_api, but this has inputs already swapped in nextjs frontend, which is tricky
+    workflow_api = data.get("workflow_api_raw")
     # The prompt id generated from comfy deploy, can be None
     prompt_id = data.get("prompt_id")
+    inputs = data.get("inputs")
 
+    # Now it handles directly in here
     apply_random_seed_to_workflow(workflow_api)
-    # for key in workflow_api:
-    #     if 'inputs' in workflow_api[key] and 'seed' in workflow_api[key]['inputs']:
-    #         workflow_api[key]['inputs']['seed'] = randomSeed()
+    apply_inputs_to_workflow(workflow_api, inputs)
 
     prompt = {
         "prompt": workflow_api,
@@ -352,7 +357,7 @@ async def upload_file_endpoint(request):
                         with open(file_path, 'rb') as f:
                             headers = {
                                 "Content-Type": file_type,
-                                "x-amz-acl": "public-read",
+                                # "x-amz-acl": "public-read",
                                 "Content-Length": str(file_size)
                             }
                             async with session.put(upload_url, data=f, headers=headers) as upload_response:
@@ -379,26 +384,58 @@ async def upload_file_endpoint(request):
     }, status=500)
         
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+# Assuming the cache file is stored in the same directory as this script
+CACHE_FILE_PATH = script_dir + '/file-hash-cache.json'
+
+# Global in-memory cache
+file_hash_cache = {}
+
+# Load cache from disk at startup
+def load_cache():
+    global file_hash_cache
+    try:
+        with open(CACHE_FILE_PATH, 'r') as cache_file:
+            file_hash_cache = json.load(cache_file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        file_hash_cache = {}
+
+# Save cache to disk
+def save_cache():
+    with open(CACHE_FILE_PATH, 'w') as cache_file:
+        json.dump(file_hash_cache, cache_file)
+
+# Initialize cache on application start
+load_cache()
+
 @server.PromptServer.instance.routes.get('/comfyui-deploy/get-file-hash')
 async def get_file_hash(request):
     file_path = request.rel_url.query.get('file_path', '')
 
-    if file_path is None:
+    if not file_path:
         return web.json_response({
             "error": "file_path is required"
         }, status=400)
     
     try:
         base = folder_paths.base_path
-        file_path = os.path.join(base, file_path)
-        # print("file_path", file_path)
-        start_time = time.time()  # Capture the start time
-        file_hash = await compute_sha256_checksum(
-            file_path
-        )
-        end_time = time.time()  # Capture the end time after the code execution
-        elapsed_time = end_time - start_time  # Calculate the elapsed time
-        print(f"Execution time: {elapsed_time} seconds")
+        full_file_path = os.path.join(base, file_path)
+
+        # Check if the file hash is in the cache
+        if full_file_path in file_hash_cache:
+            file_hash = file_hash_cache[full_file_path]
+        else:
+            start_time = time.time()
+            file_hash = await compute_sha256_checksum(full_file_path)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print(f"Cache miss -> Execution time: {elapsed_time} seconds")
+
+            # Update the in-memory cache
+            file_hash_cache[full_file_path] = file_hash
+            
+            save_cache()
+
         return web.json_response({
             "file_hash": file_hash
         })
@@ -477,6 +514,7 @@ async def websocket_handler(request):
                         print("Got input: ", data.get("inputs"))
                         input = data.get('inputs')
                         streaming_prompt_metadata[sid].inputs.update(input)
+                    elif event_type == 'queue_prompt':
                         clear_current_prompt(sid)
                         send_prompt(sid, streaming_prompt_metadata[sid])
                     else:
@@ -516,8 +554,8 @@ async def websocket_handler(request):
                         except Exception as e:
                             print(f"Error closing previous image for input ID {input_id}: {e}")
                     streaming_prompt_metadata[sid].inputs[input_id] = image
-                    clear_current_prompt(sid)
-                    send_prompt(sid, streaming_prompt_metadata[sid])
+                    # clear_current_prompt(sid)
+                    # send_prompt(sid, streaming_prompt_metadata[sid])
                     print(f"Received {image_type} image of size {image.size} with input ID {input_id}")
             
             if msg.type == aiohttp.WSMsgType.ERROR:
@@ -649,6 +687,15 @@ async def send_json_override(self, event, data, sid=None):
         # await update_run_with_output(prompt_id, data)
 
     if event == 'executed' and 'node' in data and 'output' in data:
+        print("executed", data)
+        if prompt_id in prompt_metadata:
+            node = data.get('node')
+            class_type = prompt_metadata[prompt_id].workflow_api[node]['class_type']
+            print("executed", class_type)
+            if class_type == "PreviewImage":
+                print("skipping preview image")
+                return
+            
         await update_run_with_output(prompt_id, data.get('output'), node_id=data.get('node'))
         # await update_run_with_output(prompt_id, data.get('output'), node_id=data.get('node'))
         # update_run_with_output(prompt_id, data.get('output'))
@@ -692,7 +739,7 @@ def update_run(prompt_id: str, status: Status):
     if (prompt_metadata[prompt_id].status != status):
 
         # when the status is already failed, we don't want to update it to success
-        if ('status' in prompt_metadata[prompt_id] and prompt_metadata[prompt_id].status == Status.FAILED):
+        if (prompt_metadata[prompt_id].status is Status.FAILED):
             return
 
         status_endpoint = prompt_metadata[prompt_id].status_endpoint
@@ -781,20 +828,27 @@ async def upload_file(prompt_id, filename, subfolder=None, content_type="image/p
 
     target_url = f"{file_upload_endpoint}?file_name={filename}&run_id={prompt_id}&type={content_type}"
 
+    start_time = time.time()  # Start timing here
     result = requests.get(target_url)
+    end_time = time.time()  # End timing after the request is complete
+    print("Time taken for getting file upload endpoint: {:.2f} seconds".format(end_time - start_time))
     ok = result.json()
+    
+    start_time = time.time()  # Start timing here
     
     with open(file, 'rb') as f:
         data = f.read()
         headers = {
-            "x-amz-acl": "public-read",
+            # "x-amz-acl": "public-read",
             "Content-Type": content_type,
             "Content-Length": str(len(data)),
         }
-        response = requests.put(ok.get("url"), headers=headers, data=data)
+        # response = requests.put(ok.get("url"), headers=headers, data=data)
         async with aiohttp.ClientSession() as session:
             async with session.put(ok.get("url"), headers=headers, data=data) as response:
-                print("upload file response", response.status)
+                print("Upload file response", response.status)
+                end_time = time.time()  # End timing after the request is complete
+                print("Upload time: {:.2f} seconds".format(end_time - start_time))
 
 def have_pending_upload(prompt_id):
     if prompt_id in prompt_metadata and len(prompt_metadata[prompt_id].uploading_nodes) > 0:
@@ -880,7 +934,7 @@ async def update_file_status(prompt_id: str, data, uploading, have_error=False, 
     # if there are no nodes that are uploading, then we set the status to success
     elif not uploading and not have_pending_upload(prompt_id) and is_prompt_done(prompt_id=prompt_id):
         update_run(prompt_id, Status.SUCCESS)
-        print("Status: SUCCUSS")
+        # print("Status: SUCCUSS")
         await send("success", {
             "prompt_id": prompt_id,
         })
@@ -888,14 +942,26 @@ async def update_file_status(prompt_id: str, data, uploading, have_error=False, 
 async def handle_upload(prompt_id: str, data, key: str, content_type_key: str, default_content_type: str):
     items = data.get(key, [])
     for item in items:
+        # # Skipping temp files
+        if item.get("type") == "temp":
+            continue
+        
+        file_type = item.get(content_type_key, default_content_type)
+        file_extension = os.path.splitext(item.get("filename"))[1]
+        if file_extension in ['.jpg', '.jpeg']:
+            file_type = 'image/jpeg'
+        elif file_extension == '.png':
+            file_type = 'image/png'
+        elif file_extension == '.webp':
+            file_type = 'image/webp'
+        
         await upload_file(
             prompt_id,
             item.get("filename"),
             subfolder=item.get("subfolder"),
             type=item.get("type"),
-            content_type=item.get(content_type_key, default_content_type)
+            content_type=file_type
         )
-
 
 # Upload files in the background
 async def upload_in_background(prompt_id: str, data, node_id=None, have_upload=True):
@@ -904,6 +970,7 @@ async def upload_in_background(prompt_id: str, data, node_id=None, have_upload=T
         await handle_upload(prompt_id, data, 'files', "content_type", "image/png")
         # This will also be mp4
         await handle_upload(prompt_id, data, 'gifs', "format", "image/gif")
+        await handle_upload(prompt_id, data, 'mesh', "format", "application/octet-stream")
             
         if have_upload:
             await update_file_status(prompt_id, data, False, node_id=node_id)
@@ -924,18 +991,19 @@ async def update_run_with_output(prompt_id, data, node_id=None):
         "output_data": data
     }
 
-    try:
-        have_upload = 'images' in data or 'files' in data or 'gifs' in data
-        print("\nhave_upload", have_upload, node_id)
+    if not bypass_upload:
+        try:
+            have_upload = 'images' in data or 'files' in data or 'gifs' in data or 'mesh' in data
+            print("\nhave_upload", have_upload, node_id)
 
-        if have_upload:
-            await update_file_status(prompt_id, data, True, node_id=node_id)
+            if have_upload:
+                await update_file_status(prompt_id, data, True, node_id=node_id)
 
-        asyncio.create_task(upload_in_background(prompt_id, data, node_id=node_id, have_upload=have_upload))
+            asyncio.create_task(upload_in_background(prompt_id, data, node_id=node_id, have_upload=have_upload))
+            # await upload_in_background(prompt_id, data, node_id=node_id, have_upload=have_upload)
 
-    except Exception as e:
-        await handle_error(prompt_id, data, e)
-        
+        except Exception as e:
+            await handle_error(prompt_id, data, e)
 
     requests.post(status_endpoint, json=body)
 
