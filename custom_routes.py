@@ -1019,7 +1019,7 @@ async def upload_file(prompt_id, filename, subfolder=None, content_type="image/p
     with open(file, 'rb') as f:
         data = f.read()
         headers = {
-            # "x-amz-acl": "public-read",
+            "x-amz-acl": "public-read",
             "Content-Type": content_type,
             "Content-Length": str(len(data)),
         }
