@@ -227,7 +227,7 @@ async def comfy_deploy_run(request):
     data = await request.json()
 
     # In older version, we use workflow_api, but this has inputs already swapped in nextjs frontend, which is tricky
-    workflow_api = data.get("workflow_api_raw")
+    workflow_api = data.get("workflow_api")
     # The prompt id generated from comfy deploy, can be None
     prompt_id = data.get("prompt_id")
     inputs = data.get("inputs")
@@ -285,7 +285,7 @@ async def comfy_deploy_run(request):
 
 async def stream_prompt(data):
     # In older version, we use workflow_api, but this has inputs already swapped in nextjs frontend, which is tricky
-    workflow_api = data.get("workflow_api_raw")
+    workflow_api = data.get("workflow_api")
     # The prompt id generated from comfy deploy, can be None
     prompt_id = data.get("prompt_id")
     inputs = data.get("inputs")
