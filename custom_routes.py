@@ -493,7 +493,7 @@ async def upload_file_endpoint(request):
                         with open(file_path, 'rb') as f:
                             headers = {
                                 "Content-Type": file_type,
-                                # "x-amz-acl": "public-read",
+                                "x-amz-acl": "public-read",
                                 "Content-Length": str(file_size)
                             }
                             async with session.put(upload_url, data=f, headers=headers) as upload_response:
