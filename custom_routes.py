@@ -24,7 +24,7 @@ from typing import Dict, List, Union, Any, Optional
 from PIL import Image
 import copy
 import struct
-from aiohttp import web, ClientSession, ClientError, ClientTimeout
+from aiohttp import web, ClientSession, ClientError, ClientTimeout, ClientResponseError
 import atexit
 
 # Global session
@@ -59,7 +59,7 @@ print(f"max_retries: {max_retries}, retry_delay_multiplier: {retry_delay_multipl
 
 import time
 
-async def async_request_with_retry(method, url, disable_timeout=False, **kwargs):
+async def async_request_with_retry(method, url, disable_timeout=False, token=None, **kwargs):
     global client_session
     await ensure_client_session()
     retry_delay = 1  # Start with 1 second delay
@@ -72,14 +72,19 @@ async def async_request_with_retry(method, url, disable_timeout=False, **kwargs)
                 timeout = ClientTimeout(total=None, connect=initial_timeout)
                 kwargs['timeout'] = timeout
 
+            if token is not None:
+                if 'headers' not in kwargs:
+                    kwargs['headers'] = {}
+                kwargs['headers']['Authorization'] = f"Bearer {token}"
+
             request_start = time.time()
             async with client_session.request(method, url, **kwargs) as response:
                 request_end = time.time()
-                logger.info(f"Request attempt {attempt + 1} took {request_end - request_start:.2f} seconds")
+                # logger.info(f"Request attempt {attempt + 1} took {request_end - request_start:.2f} seconds")
                 
                 if response.status != 200:
                     error_body = await response.text()
-                    logger.error(f"Request failed with status {response.status} and body {error_body}")
+                    # logger.error(f"Request failed with status {response.status} and body {error_body}")
                     # raise Exception(f"Request failed with status {response.status}")
                 
                 response.raise_for_status()
@@ -87,7 +92,7 @@ async def async_request_with_retry(method, url, disable_timeout=False, **kwargs)
                     await response.read()
                 
                 total_time = time.time() - start_time
-                logger.info(f"Request succeeded after {total_time:.2f} seconds (attempt {attempt + 1}/{max_retries})")
+                # logger.info(f"Request succeeded after {total_time:.2f} seconds (attempt {attempt + 1}/{max_retries})")
                 return response
         except asyncio.TimeoutError:
             logger.warning(f"Request timed out after {initial_timeout} seconds (attempt {attempt + 1}/{max_retries})")
@@ -304,7 +309,7 @@ def apply_inputs_to_workflow(workflow_api: Any, inputs: Any, sid: str = None):
                 value['inputs']["input_id"] = new_value
 
                 # Fix for external text default value
-                if (value["class_type"] == "ComfyUIDeployExternalText"):
+                if (value["class_type"] == "ComfyUIDeployExternalText" or value["class_type"] == "ComfyUIDeployExternalTextAny"):
                     value['inputs']["default_value"] = new_value
 
                 if (value["class_type"] == "ComfyUIDeployExternalCheckpoint"):
@@ -321,6 +326,9 @@ def apply_inputs_to_workflow(workflow_api: Any, inputs: Any, sid: str = None):
 
                 if value["class_type"] == "ComfyUIDeployExternalBoolean":
                     value["inputs"]["default_value"] = new_value
+
+                if value["class_type"] == "ComfyUIDeployExternalFaceModel":
+                    value["inputs"]["face_model_url"] = new_value
 
 def send_prompt(sid: str, inputs: StreamingPrompt):
     # workflow_api = inputs.workflow_api
@@ -361,7 +369,18 @@ def send_prompt(sid: str, inputs: StreamingPrompt):
 
 @server.PromptServer.instance.routes.post("/comfyui-deploy/run")
 async def comfy_deploy_run(request):
+    # Extract the bearer token from the Authorization header
     data = await request.json()
+    
+    if "cd_token" in data:
+        token = data["cd_token"]
+    else:
+        auth_header = request.headers.get('Authorization')
+        token = None
+        if auth_header:
+            parts = auth_header.split()
+            if len(parts) == 2 and parts[0].lower() == 'bearer':
+                token = parts[1]
 
     # In older version, we use workflow_api, but this has inputs already swapped in nextjs frontend, which is tricky
     workflow_api = data.get("workflow_api")
@@ -376,13 +395,14 @@ async def comfy_deploy_run(request):
     prompt = {
         "prompt": workflow_api,
         "client_id": "comfy_deploy_instance", #api.client_id
-        "prompt_id": prompt_id
+        "prompt_id": prompt_id,
     }
 
     prompt_metadata[prompt_id] = SimplePrompt(
         status_endpoint=data.get('status_endpoint'),
         file_upload_endpoint=data.get('file_upload_endpoint'),
-        workflow_api=workflow_api
+        workflow_api=workflow_api,
+        token=token
     )
 
     try:
@@ -420,7 +440,7 @@ async def comfy_deploy_run(request):
 
     return web.json_response(res, status=status)
 
-async def stream_prompt(data):
+async def stream_prompt(data, token):
     # In older version, we use workflow_api, but this has inputs already swapped in nextjs frontend, which is tricky
     workflow_api = data.get("workflow_api")
     # The prompt id generated from comfy deploy, can be None
@@ -440,7 +460,8 @@ async def stream_prompt(data):
     prompt_metadata[prompt_id] = SimplePrompt(
         status_endpoint=data.get('status_endpoint'),
         file_upload_endpoint=data.get('file_upload_endpoint'),
-        workflow_api=workflow_api
+        workflow_api=workflow_api,
+        token=token
     )
 
     # log('info', "Begin prompt", prompt=prompt)
@@ -489,6 +510,14 @@ comfy_message_queues: Dict[str, asyncio.Queue] = {}
 async def stream_response(request):
     response = web.StreamResponse(status=200, reason='OK', headers={'Content-Type': 'text/event-stream'})
     await response.prepare(request)
+    
+    # Extract the bearer token from the Authorization header
+    auth_header = request.headers.get('Authorization')
+    token = None
+    if auth_header:
+        parts = auth_header.split()
+        if len(parts) == 2 and parts[0].lower() == 'bearer':
+            token = parts[1]
 
     pending = True
     data = await request.json()
@@ -500,7 +529,7 @@ async def stream_response(request):
         log('info', 'Streaming prompt')
 
         try:
-            result = await stream_prompt(data=data)
+            result = await stream_prompt(data=data, token=token)
             await response.write(f"event: event_update\ndata: {json.dumps(result)}\n\n".encode('utf-8'))
             # await response.write(.encode('utf-8'))
             await response.drain()  # Ensure the buffer is flushed
@@ -948,6 +977,7 @@ async def send_json_override(self, event, data, sid=None):
             "data": data
         })
 
+    asyncio.create_task(update_run_ws_event(prompt_id, event, data))
     # event_emitter.emit("send_json", {
     #     "event": event,
     #     "data": data
@@ -1045,6 +1075,7 @@ async def update_run_live_status(prompt_id, live_status, calculated_progress: fl
         return
 
     status_endpoint = prompt_metadata[prompt_id].status_endpoint
+    token = prompt_metadata[prompt_id].token
 
     if (status_endpoint is None):
         return
@@ -1068,7 +1099,27 @@ async def update_run_live_status(prompt_id, live_status, calculated_progress: fl
         })
 
     # requests.post(status_endpoint, json=body)
-    await async_request_with_retry('POST', status_endpoint, json=body)
+    await async_request_with_retry('POST', status_endpoint, token=token, json=body)
+
+async def update_run_ws_event(prompt_id: str, event: str, data: dict):
+    if prompt_id not in prompt_metadata:
+        return
+    
+    # print("update_run_ws_event", prompt_id, event, data)
+    status_endpoint = prompt_metadata[prompt_id].status_endpoint
+    
+    if status_endpoint is None:
+        return
+    
+    token = prompt_metadata[prompt_id].token
+    body = {
+        "run_id": prompt_id,
+        "ws_event": {
+            "event": event,
+            "data": data,
+        },
+    }
+    await async_request_with_retry('POST', status_endpoint, token=token, json=body)
 
 
 async def update_run(prompt_id: str, status: Status):
@@ -1099,7 +1150,8 @@ async def update_run(prompt_id: str, status: Status):
         try:
             # requests.post(status_endpoint, json=body)
             if (status_endpoint is not None):
-                await async_request_with_retry('POST', status_endpoint, json=body)
+                token = prompt_metadata[prompt_id].token
+                await async_request_with_retry('POST', status_endpoint, token=token, json=body)
 
             if (status_endpoint is not None) and cd_enable_run_log and (status == Status.SUCCESS or status == Status.FAILED):
                 try:
@@ -1129,7 +1181,7 @@ async def update_run(prompt_id: str, status: Status):
                             ]
                         }
 
-                        await async_request_with_retry('POST', status_endpoint, json=body)
+                        await async_request_with_retry('POST', status_endpoint, token=token, json=body)
                         # requests.post(status_endpoint, json=body)
                 except Exception as log_error:
                     logger.info(f"Error reading log file: {log_error}")
@@ -1149,6 +1201,47 @@ async def update_run(prompt_id: str, status: Status):
                     }
                 })
 
+
+async def file_sender(file_object, chunk_size):
+    while True:
+        chunk = await file_object.read(chunk_size)
+        if not chunk:
+            break
+        yield chunk
+        
+        
+chunk_size = 1024 * 1024  # 1MB chunks, adjust as needed
+
+async def upload_with_retry(session, url, headers, data, max_retries=3, initial_delay=1):
+    start_time = time.time()  # Start timing here
+    for attempt in range(max_retries):
+        try:
+            async with session.put(url, headers=headers, data=data) as response:
+                upload_duration = time.time() - start_time
+                logger.info(f"Upload attempt {attempt + 1} completed in {upload_duration:.2f} seconds")
+                logger.info(f"Upload response status: {response.status}")
+                
+                response.raise_for_status()  # This will raise an exception for 4xx and 5xx status codes
+                
+                response_text = await response.text()
+                logger.info(f"Response body: {response_text[:1000]}...")
+                
+                logger.info("Upload successful")
+                return response  # Successful upload, exit the retry loop
+                
+        except (ClientError, ClientResponseError) as e:
+            logger.error(f"Upload attempt {attempt + 1} failed: {str(e)}")
+            if attempt < max_retries - 1:  # If it's not the last attempt
+                delay = initial_delay * (2 ** attempt)  # Exponential backoff
+                logger.info(f"Retrying in {delay} seconds...")
+                await asyncio.sleep(delay)
+            else:
+                logger.error("Max retries reached. Upload failed.")
+                raise  # Re-raise the last exception if all retries are exhausted
+        except Exception as e:
+            logger.error(f"Unexpected error during upload: {str(e)}")
+            logger.error(traceback.format_exc())
+            raise  # Re-raise unexpected exceptions immediately
 
 async def upload_file(prompt_id, filename, subfolder=None, content_type="image/png", type="output", item=None):
     """
@@ -1180,45 +1273,60 @@ async def upload_file(prompt_id, filename, subfolder=None, content_type="image/p
     logger.info(f"Uploading file {file}")
 
     file_upload_endpoint = prompt_metadata[prompt_id].file_upload_endpoint
-
+    token = prompt_metadata[prompt_id].token
     filename = quote(filename)
     prompt_id = quote(prompt_id)
     content_type = quote(content_type)
 
+    target_url = f"{file_upload_endpoint}?file_name={filename}&run_id={prompt_id}&type={content_type}&version=v2"
+
+    start_time = time.time()  # Start timing here
+    logger.info(f"Target URL: {target_url}")
+    result = await async_request_with_retry("GET", target_url, disable_timeout=True, token=token)
+    end_time = time.time()  # End timing after the request is complete
+    logger.info("Time taken for getting file upload endpoint: {:.2f} seconds".format(end_time - start_time))
+    ok = await result.json()
+    
+    logger.info(f"Result: {ok}")
+
     async with aiofiles.open(file, 'rb') as f:
         data = await f.read()
         size = str(len(data))
-        target_url = f"{file_upload_endpoint}?file_name={filename}&run_id={prompt_id}&type={content_type}&version=v2"
-
-        start_time = time.time()  # Start timing here
-        logger.info(f"Target URL: {target_url}")
-        result = await async_request_with_retry("GET", target_url, disable_timeout=True)
-        end_time = time.time()  # End timing after the request is complete
-        logger.info("Time taken for getting file upload endpoint: {:.2f} seconds".format(end_time - start_time))
-        ok = await result.json()
+        # logger.info(f"Image size: {size}")
         
-        logger.info(f"Result: {ok}")
-
         start_time = time.time()  # Start timing here
         headers = {
             "Content-Type": content_type,
-            # "Content-Length": size,
+            "Content-Length": size,
         }
-        
+
+        logger.info(headers)
+
         if ok.get('include_acl') is True:
             headers["x-amz-acl"] = "public-read"
-        
+
         # response = requests.put(ok.get("url"), headers=headers, data=data)
-        response = await async_request_with_retry('PUT', ok.get("url"), headers=headers, data=data)
-        logger.info(f"Upload file response status: {response.status}, status text: {response.reason}")
+        # response = await async_request_with_retry('PUT', ok.get("url"), headers=headers, data=data)
+        # logger.info(f"Upload file response status: {response.status}, status text: {response.reason}")
+
+        async with aiohttp.ClientSession() as session:
+            try:
+                response = await upload_with_retry(session, ok.get("url"), headers, data)
+                # Process successful response...
+            except Exception as e:
+                # Handle final failure...
+                logger.error(f"Upload ultimately failed: {str(e)}")
+
         end_time = time.time()  # End timing after the request is complete
         logger.info("Upload time: {:.2f} seconds".format(end_time - start_time))
-        
-        if item is not None:
-            file_download_url = ok.get("download_url")
-            if file_download_url is not None:
-                item["url"] = file_download_url
-            item["upload_duration"] = end_time - start_time
+    
+    if item is not None:
+        file_download_url = ok.get("download_url")
+        if file_download_url is not None:
+            item["url"] = file_download_url
+        item["upload_duration"] = end_time - start_time
+        if ok.get("is_public") is not None:
+            item["is_public"] = ok.get("is_public")
 
 def have_pending_upload(prompt_id):
     if prompt_id in prompt_metadata and len(prompt_metadata[prompt_id].uploading_nodes) > 0:
@@ -1335,6 +1443,14 @@ async def handle_upload(prompt_id: str, data, key: str, content_type_key: str, d
             content_type=file_type,
             item=item
         ))
+        # await upload_file(
+        #     prompt_id,
+        #     item.get("filename"),
+        #     subfolder=item.get("subfolder"),
+        #     type=item.get("type"),
+        #     content_type=file_type,
+        #     item=item
+        # )
 
     # Execute all upload tasks concurrently
     await asyncio.gather(*upload_tasks)
@@ -1342,16 +1458,23 @@ async def handle_upload(prompt_id: str, data, key: str, content_type_key: str, d
 # Upload files in the background
 async def upload_in_background(prompt_id: str, data, node_id=None, have_upload=True, node_meta=None):
     try:
+        # await handle_upload(prompt_id, data, 'images', "content_type", "image/png")
+        # await handle_upload(prompt_id, data, 'files', "content_type", "image/png")
+        # await handle_upload(prompt_id, data, 'gifs', "format", "image/gif")
+        # await handle_upload(prompt_id, data, 'mesh', "format", "application/octet-stream")
         upload_tasks = [
-            handle_upload(prompt_id, data, 'images', "content_type", "image/png"),
-            handle_upload(prompt_id, data, 'files', "content_type", "image/png"),
-            handle_upload(prompt_id, data, 'gifs', "format", "image/gif"),
-            handle_upload(prompt_id, data, 'mesh', "format", "application/octet-stream")
+            handle_upload(prompt_id, data, "images", "content_type", "image/png"),
+            handle_upload(prompt_id, data, "files", "content_type", "image/png"),
+            handle_upload(prompt_id, data, "gifs", "format", "image/gif"),
+            handle_upload(
+                prompt_id, data, "mesh", "format", "application/octet-stream"
+            ),
         ]
 
         await asyncio.gather(*upload_tasks)
 
         status_endpoint = prompt_metadata[prompt_id].status_endpoint
+        token = prompt_metadata[prompt_id].token
         if have_upload:
             if status_endpoint is not None:
                 body = {
@@ -1360,7 +1483,7 @@ async def upload_in_background(prompt_id: str, data, node_id=None, have_upload=T
                     "node_meta": node_meta,
                 }
                 # pprint(body)
-                await async_request_with_retry('POST', status_endpoint, json=body)
+                await async_request_with_retry('POST', status_endpoint, token=token, json=body)
             await update_file_status(prompt_id, data, False, node_id=node_id)
     except Exception as e:
         await handle_error(prompt_id, data, e)
@@ -1379,7 +1502,10 @@ async def update_run_with_output(prompt_id, data, node_id=None, node_meta=None):
         "output_data": data,
         "node_meta": node_meta,
     }
-    have_upload_media = 'images' in data or 'files' in data or 'gifs' in data or 'mesh' in data
+    pprint(body)
+    have_upload_media = False
+    if data is not None:
+        have_upload_media = 'images' in data or 'files' in data or 'gifs' in data or 'mesh' in data
     if bypass_upload and have_upload_media:
         print("CD_BYPASS_UPLOAD is enabled, skipping the upload of the output:", node_id)
         return
@@ -1391,14 +1517,16 @@ async def update_run_with_output(prompt_id, data, node_id=None, node_meta=None):
             if have_upload_media:
                 await update_file_status(prompt_id, data, True, node_id=node_id)
 
-            asyncio.create_task(upload_in_background(prompt_id, data, node_id=node_id, have_upload=have_upload_media, node_meta=node_meta))
+            # asyncio.create_task(upload_in_background(prompt_id, data, node_id=node_id, have_upload=have_upload_media, node_meta=node_meta))
+            await upload_in_background(prompt_id, data, node_id=node_id, have_upload=have_upload_media, node_meta=node_meta)
             # await upload_in_background(prompt_id, data, node_id=node_id, have_upload=have_upload)
 
         except Exception as e:
             await handle_error(prompt_id, data, e)
     # requests.post(status_endpoint, json=body)
     elif status_endpoint is not None:
-        await async_request_with_retry('POST', status_endpoint, json=body)
+        token = prompt_metadata[prompt_id].token
+        await async_request_with_retry('POST', status_endpoint, token=token, json=body)
 
     await send('outputs_uploaded', {
         "prompt_id": prompt_id
