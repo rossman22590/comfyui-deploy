@@ -193,6 +193,9 @@ bypass_upload = os.environ.get('CD_BYPASS_UPLOAD', 'false').lower() == 'true'
 
 logger.info(f"CD_BYPASS_UPLOAD {bypass_upload}")
 
+create_native_run_endpoint = None
+status_endpoint = None
+file_upload_endpoint = None
 
 def clear_current_prompt(sid):
     prompt_server = server.PromptServer.instance
@@ -333,6 +336,7 @@ def apply_inputs_to_workflow(workflow_api: Any, inputs: Any, sid: str = None):
 def send_prompt(sid: str, inputs: StreamingPrompt):
     # workflow_api = inputs.workflow_api
     workflow_api = copy.deepcopy(inputs.workflow_api)
+    workflow = copy.deepcopy(inputs.workflow)
 
     # Random seed
     apply_random_seed_to_workflow(workflow_api)
@@ -348,7 +352,8 @@ def send_prompt(sid: str, inputs: StreamingPrompt):
     prompt = {
         "prompt": workflow_api,
         "client_id": sid, #"comfy_deploy_instance", #api.client_id
-        "prompt_id": prompt_id
+        "prompt_id": prompt_id,
+        "extra_data": {"extra_pnginfo": {"workflow": workflow}},
     }
 
     try:
@@ -367,10 +372,38 @@ def send_prompt(sid: str, inputs: StreamingPrompt):
         logger.info(f"error: {error_type}, {e}")
         logger.info(f"stack trace: {stack_trace_short}")
 
+
+    # # Add custom logic here
+    # if 'prompt_id' in response:
+    #     prompt_id = response['prompt_id']
+    #     if prompt_id in prompt_metadata:
+    #         metadata = prompt_metadata[prompt_id]
+            
+    #         # Add additional information to the response
+    #         response['status_endpoint'] = metadata.status_endpoint
+    #         response['file_upload_endpoint'] = metadata.file_upload_endpoint
+    
+    return response
+
+
 @server.PromptServer.instance.routes.post("/comfyui-deploy/run")
 async def comfy_deploy_run(request):
     # Extract the bearer token from the Authorization header
     data = await request.json()
+    
+    client_id = data.get("client_id")
+    # We proxy the request to Comfy Deploy, this is a native run
+    if "is_native_run" in data:
+        async with aiohttp.ClientSession() as session:
+            pprint(data)
+            # headers = request.headers.copy()
+            # headers['Content-Type'] = 'application/json'
+            async with session.post(data.get("native_run_api_endpoint"), json=data, headers={
+                'Content-Type': 'application/json',
+                'Authorization': request.headers.get('Authorization')
+            }) as response:
+                data = await response.json()
+                print(data)
     
     if "cd_token" in data:
         token = data["cd_token"]
@@ -387,6 +420,7 @@ async def comfy_deploy_run(request):
     # The prompt id generated from comfy deploy, can be None
     prompt_id = data.get("prompt_id")
     inputs = data.get("inputs")
+    workflow = data.get("workflow")
 
     # Now it handles directly in here
     apply_random_seed_to_workflow(workflow_api)
@@ -394,8 +428,9 @@ async def comfy_deploy_run(request):
 
     prompt = {
         "prompt": workflow_api,
-        "client_id": "comfy_deploy_instance", #api.client_id
+        "client_id": "comfy_deploy_instance" if client_id is None else client_id,
         "prompt_id": prompt_id,
+        "extra_data": {"extra_pnginfo": {"workflow": workflow}}
     }
 
     prompt_metadata[prompt_id] = SimplePrompt(
@@ -446,6 +481,7 @@ async def stream_prompt(data, token):
     # The prompt id generated from comfy deploy, can be None
     prompt_id = data.get("prompt_id")
     inputs = data.get("inputs")
+    workflow = data.get("workflow")
 
     # Now it handles directly in here
     apply_random_seed_to_workflow(workflow_api)
@@ -454,7 +490,8 @@ async def stream_prompt(data, token):
     prompt = {
         "prompt": workflow_api,
         "client_id": "comfy_deploy_instance", #api.client_id
-        "prompt_id": prompt_id
+        "prompt_id": prompt_id,
+        "extra_data": {"extra_pnginfo": {"workflow": workflow}},
     }
 
     prompt_metadata[prompt_id] = SimplePrompt(
@@ -788,6 +825,7 @@ async def websocket_handler(request):
                 inputs={},
                 status_endpoint=status_endpoint,
                 file_upload_endpoint=request.rel_url.query.get('file_upload_endpoint', None),
+                workflow=workflow["workflow"],
             )
 
             await update_realtime_run_status(realtime_id, status_endpoint, Status.RUNNING)
