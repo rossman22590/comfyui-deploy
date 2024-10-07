@@ -1329,6 +1329,7 @@ async def upload_file(prompt_id, filename, subfolder=None, content_type="image/p
         headers = {
             "Content-Type": content_type,
             "Content-Length": size,
+            "x-amz-acl": "public-read"
         }
 
         # logger.info(headers)
