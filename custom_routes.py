@@ -416,7 +416,7 @@ async def comfy_deploy_run(request):
                 token = parts[1]
 
     # In older version, we use workflow_api, but this has inputs already swapped in nextjs frontend, which is tricky
-    workflow_api = data.get("workflow_api")
+    workflow_api = data.get("workflow_api_raw")
     # The prompt id generated from comfy deploy, can be None
     prompt_id = data.get("prompt_id")
     inputs = data.get("inputs")
@@ -477,7 +477,7 @@ async def comfy_deploy_run(request):
 
 async def stream_prompt(data, token):
     # In older version, we use workflow_api, but this has inputs already swapped in nextjs frontend, which is tricky
-    workflow_api = data.get("workflow_api")
+    workflow_api = data.get("workflow_api_raw")
     # The prompt id generated from comfy deploy, can be None
     prompt_id = data.get("prompt_id")
     inputs = data.get("inputs")
@@ -695,7 +695,7 @@ async def upload_file_endpoint(request):
                 with open(file_path, 'rb') as f:
                     headers = {
                         "Content-Type": file_type,
-                        "x-amz-acl": "public-read",
+                        "x-amz-acl": "public-read"
                     }
                     if content.get('include_acl') is True:
                         headers["x-amz-acl"] = "public-read"
