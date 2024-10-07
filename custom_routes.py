@@ -600,7 +600,7 @@ async def upload_file_endpoint(request):
                 with open(file_path, 'rb') as f:
                     headers = {
                         "Content-Type": file_type,
-                        # "x-amz-acl": "public-read",
+                        "x-amz-acl": "public-read",
                         "Content-Length": str(file_size)
                     }
                     upload_response = await async_request_with_retry('PUT', upload_url, data=f, headers=headers)
@@ -1163,7 +1163,7 @@ async def upload_file(prompt_id, filename, subfolder=None, content_type="image/p
     with open(file, 'rb') as f:
         data = f.read()
         headers = {
-            # "x-amz-acl": "public-read",
+            "x-amz-acl": "public-read",
             "Content-Type": content_type,
             "Content-Length": str(len(data)),
         }
