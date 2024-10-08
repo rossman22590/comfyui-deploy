@@ -1,4 +1,4 @@
-# ComfyUI Deploy  
+# ComfyUI Deploy   
 
 Open source comfyui deployment platform, a `vercel` for generative workflow infra. (serverless hosted gpu with vertical intergation with comfyui)
 
