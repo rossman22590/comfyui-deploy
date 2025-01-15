@@ -225,28 +225,20 @@ def send_prompt(sid: str, inputs: StreamingPrompt):
 @server.PromptServer.instance.routes.post("/comfyui-deploy/run")
 async def comfy_deploy_run(request):
     data = await request.json()
-    logger.info(f"Received data: {json.dumps(data, indent=2)}")
 
-    # Try to get workflow_api from different possible keys
-    workflow_api = data.get("workflow_api_raw")
-    if not workflow_api:
-        workflow_api = data.get("workflow_api")
-    if not workflow_api:
-        workflow_api = data.get("prompt")  # As an additional fallback
-    
-    if workflow_api is None:
-        logger.error("workflow_api is None")
-        return web.Response(status=400, reason="workflow_api is required")
-
+    # In older version, we use workflow_api, but this has inputs already swapped in nextjs frontend, which is tricky
+    workflow_api = data.get("workflow_api")
+    # The prompt id generated from comfy deploy, can be None
     prompt_id = data.get("prompt_id")
     inputs = data.get("inputs")
 
+    # Now it handles directly in here
     apply_random_seed_to_workflow(workflow_api)
     apply_inputs_to_workflow(workflow_api, inputs)
 
     prompt = {
         "prompt": workflow_api,
-        "client_id": "comfy_deploy_instance",
+        "client_id": "comfy_deploy_instance", #api.client_id
         "prompt_id": prompt_id
     }
 
@@ -259,20 +251,25 @@ async def comfy_deploy_run(request):
     try:
         res = post_prompt(prompt)
     except Exception as e:
-        logger.error(f"Error in post_prompt: {str(e)}")
-        logger.error(traceback.format_exc())
+        error_type = type(e).__name__
+        stack_trace_short = traceback.format_exc().strip().split('\n')[-2]
+        stack_trace = traceback.format_exc().strip()
+        logger.info(f"error: {error_type}, {e}")
+        logger.info(f"stack trace: {stack_trace_short}")
         await update_run_with_output(prompt_id, {
             "error": {
-                "error_type": type(e).__name__,
-                "stack_trace": traceback.format_exc()
+                "error_type": error_type,
+                "stack_trace": stack_trace
             }
         })
+         # When there are critical errors, the prompt is actually not run
         await update_run(prompt_id, Status.FAILED)
-        return web.Response(status=500, reason=f"Error in post_prompt: {str(e)}")
+        return web.Response(status=500, reason=f"{error_type}: {e}, {stack_trace_short}")
 
     status = 200
 
     if "node_errors" in res and res["node_errors"]:
+        # Even tho there are node_errors it can still be run
         status = 400
         await update_run_with_output(prompt_id, {
             "error": {
@@ -280,11 +277,11 @@ async def comfy_deploy_run(request):
             }
         })
 
+        # When there are critical errors, the prompt is actually not run
         if "error" in res:
             await update_run(prompt_id, Status.FAILED)
 
     return web.json_response(res, status=status)
-
 
 async def stream_prompt(data):
     # In older version, we use workflow_api, but this has inputs already swapped in nextjs frontend, which is tricky
