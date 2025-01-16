@@ -226,7 +226,7 @@ def send_prompt(sid: str, inputs: StreamingPrompt):
 async def comfy_deploy_run(request):
     data = await request.json()
 
-    # Ensure we have a valid 'workflow_api' dictionary in the request
+    # 1) Ensure we have a valid 'workflow_api' dictionary
     workflow_api = data.get("workflow_api")
     if not workflow_api or not isinstance(workflow_api, dict):
         return web.json_response(
@@ -234,21 +234,22 @@ async def comfy_deploy_run(request):
             status=400
         )
 
-    # The prompt id generated from comfy deploy can be None
+    # 2) The prompt ID can be user-provided or None
     prompt_id = data.get("prompt_id")
     inputs = data.get("inputs")
 
-    # Now it handles directly in here
+    # 3) Safely apply random seeds and inputs
     apply_random_seed_to_workflow(workflow_api)
     apply_inputs_to_workflow(workflow_api, inputs)
 
+    # 4) Construct the ComfyUI prompt
     prompt = {
         "prompt": workflow_api,
-        "client_id": "comfy_deploy_instance",  # api.client_id
+        "client_id": "comfy_deploy_instance",  # or your own ID
         "prompt_id": prompt_id
     }
 
-    # Track prompt metadata for status updates, error reporting, etc.
+    # 5) Track prompt metadata (status updates, logs, etc.)
     prompt_metadata[prompt_id] = SimplePrompt(
         status_endpoint=data.get('status_endpoint'),
         file_upload_endpoint=data.get('file_upload_endpoint'),
@@ -256,16 +257,16 @@ async def comfy_deploy_run(request):
     )
 
     try:
-        # Submit the prompt to ComfyUI
+        # 6) Post the prompt to ComfyUI
         res = post_prompt(prompt)
     except Exception as e:
+        # If we have a critical error, log it and mark the run as failed
         error_type = type(e).__name__
         stack_trace_short = traceback.format_exc().strip().split('\n')[-2]
         stack_trace = traceback.format_exc().strip()
         logger.info(f"error: {error_type}, {e}")
         logger.info(f"stack trace: {stack_trace_short}")
 
-        # If we have a critical error, mark the run as failed
         await update_run_with_output(prompt_id, {
             "error": {
                 "error_type": error_type,
@@ -273,17 +274,13 @@ async def comfy_deploy_run(request):
             }
         })
         await update_run(prompt_id, Status.FAILED)
-
         return web.Response(status=500, reason=f"{error_type}: {e}, {stack_trace_short}")
 
+    # 7) Determine status code if node errors exist
     status = 200
-
-    # If there are node-level errors, we still run, but indicate possible problems
     if "node_errors" in res and res["node_errors"]:
         status = 400
         await update_run_with_output(prompt_id, {"error": {**res}})
-
-        # If there's a top-level "error" key, the prompt likely failed
         if "error" in res:
             await update_run(prompt_id, Status.FAILED)
 
