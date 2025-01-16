@@ -1675,14 +1675,14 @@ async def upload_file(
     prompt_id = quote(prompt_id)
     content_type = quote(content_type)
 
-    target_url = f"{file_upload_endpoint}?file_name={filename}&run_id={prompt_id}&type={content_type}&version=v2"
+    # Add force_public=true parameter to ensure public access
+    target_url = f"{file_upload_endpoint}?file_name={filename}&run_id={prompt_id}&type={content_type}&version=v2&force_public=true"
 
-    start_time = time.time()  # Start timing here
-    # logger.info(f"Target URL: {target_url}")
+    start_time = time.time()
     result = await async_request_with_retry(
         "GET", target_url, disable_timeout=True, token=token
     )
-    end_time = time.time()  # End timing after the request is complete
+    end_time = time.time()
     logger.info(
         "Time taken for getting file upload endpoint: {:.2f} seconds".format(
             end_time - start_time
@@ -1690,39 +1690,26 @@ async def upload_file(
     )
     ok = await result.json()
 
-    # logger.info(f"Result: {ok}")
-
     async with aiofiles.open(file, "rb") as f:
         data = await f.read()
         size = str(len(data))
-        # logger.info(f"Image size: {size}")
 
-        start_time = time.time()  # Start timing here
+        start_time = time.time()
         headers = {
             "Content-Type": content_type,
             "Content-Length": size,
+            "x-amz-acl": "public-read"  # Always set ACL to public-read
         }
-
-        # logger.info(headers)
-
-        if ok.get("include_acl") is True:
-            headers["x-amz-acl"] = "public-read"
-
-        # response = requests.put(ok.get("url"), headers=headers, data=data)
-        # response = await async_request_with_retry('PUT', ok.get("url"), headers=headers, data=data)
-        # logger.info(f"Upload file response status: {response.status}, status text: {response.reason}")
 
         async with aiohttp.ClientSession() as session:
             try:
                 response = await upload_with_retry(
                     session, ok.get("url"), headers, data
                 )
-                # Process successful response...
             except Exception as e:
-                # Handle final failure...
                 logger.error(f"Upload ultimately failed: {str(e)}")
 
-        end_time = time.time()  # End timing after the request is complete
+        end_time = time.time()
         logger.info("Upload time: {:.2f} seconds".format(end_time - start_time))
 
     if item is not None:
@@ -1730,8 +1717,7 @@ async def upload_file(
         if file_download_url is not None:
             item["url"] = file_download_url
         item["upload_duration"] = end_time - start_time
-        if ok.get("is_public") is not None:
-            item["is_public"] = ok.get("is_public")
+        item["is_public"] = True  # Always set is_public to True
 
     return item
 
