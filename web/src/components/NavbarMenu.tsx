@@ -30,6 +30,10 @@ export function NavbarMenu({
       path: "/workflows",
     },
     {
+      name: "About",
+      path: "/about",
+    },
+    {
       name: "Machines",
       path: "/machines",
     },
