@@ -144,7 +144,7 @@ export default function AboutPage() {
       </Section>
 
       {/* NEW COMFYUI SCREENSHOT SECTION */}
-      <Section>
+      <Section className="bg-white">
         <SectionHeading
           title="A Quick Look at ComfyUI"
           subtitle="Visual node-based workflows for powerful creative pipelines"
