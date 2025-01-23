@@ -293,7 +293,7 @@ export default function AICreativeWorkflow() {
             variants={fadeInUp}
             className="text-5xl md:text-7xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 leading-tight drop-shadow-lg"
           >
-            AI-Powered Creative Workflows
+            Pixio AI Powered Creative Workflows
           </motion.h1>
           <motion.p
             variants={fadeInUp}
