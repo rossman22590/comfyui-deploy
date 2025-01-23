@@ -508,7 +508,7 @@ export default function AICreativeWorkflow() {
             variants={fadeInUp}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <GradientButton primary href="/get-started">
+            <GradientButton primary href="/machines">
               Start Creating
             </GradientButton>
             <GradientButton href="https://calendly.com/techinschools/pixio-api-onboarding?month=2025-01">
