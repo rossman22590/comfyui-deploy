@@ -69,13 +69,8 @@ function Section({ children, className = "", id }: SectionProps) {
 /** Cleanly styled heading that animates in */
 function SectionHeading({ title, subtitle }: SectionHeadingProps) {
   return (
-    <motion.div
-      variants={fadeInUp}
-      className="mb-10 text-center max-w-3xl mx-auto"
-    >
-      <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
-        {title}
-      </h2>
+    <motion.div variants={fadeInUp} className="mb-10 text-center max-w-3xl mx-auto">
+      <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">{title}</h2>
       {subtitle && (
         <p className="text-xl text-gray-500 leading-relaxed">{subtitle}</p>
       )}
@@ -117,7 +112,7 @@ function GradientButton({ href = "#", children, className = "" }: GradientButton
 }
 
 /* -------------------------------------------------------------------------
-   4. MAIN ABOUT PAGE (Pixio API + ComfyUI)
+   4. MAIN ABOUT PAGE (Pixio API + ComfyUI + Screenshot Section)
    ------------------------------------------------------------------------- */
 export default function AboutPage() {
   return (
@@ -145,6 +140,26 @@ export default function AboutPage() {
             The simplest way to build and orchestrate your creative AI pipelines.
           </p>
           <GradientButton href="#story">Learn Our Journey</GradientButton>
+        </motion.div>
+      </Section>
+
+      {/* NEW COMFYUI SCREENSHOT SECTION */}
+      <Section>
+        <SectionHeading
+          title="A Quick Look at ComfyUI"
+          subtitle="Visual node-based workflows for powerful creative pipelines"
+        />
+        <motion.div variants={fadeInUp} className="max-w-4xl mx-auto text-center">
+          <img
+            src="https://raw.githubusercontent.com/comfyanonymous/ComfyUI/main/screenshots/comfyui_screenshot.png"
+            alt="ComfyUI Screenshot"
+            className="rounded-lg shadow-lg mx-auto"
+          />
+          <p className="mt-6 text-lg text-gray-700 leading-relaxed">
+            ComfyUI provides a visual, node-based environment to chain AI operations together.
+            It helps you see the flow of data through each step of your pipeline, making
+            complex workflows easier to manage and debug.
+          </p>
         </motion.div>
       </Section>
 
@@ -205,7 +220,7 @@ export default function AboutPage() {
         </motion.div>
       </Section>
 
-      {/* COMFYUI SECTION (NEW) */}
+      {/* COMFYUI SECTION */}
       <Section>
         <SectionHeading
           title="Why We Chose ComfyUI"
@@ -246,10 +261,6 @@ export default function AboutPage() {
             Discover how Pixio API and ComfyUI can power your creative workflows,
             unlocking new possibilities in record time.
           </p>
-          {/* 
-            ADD A WIDER CLASS, e.g. w-48, w-64, or min-w-[12rem]
-            Adjust as desired for your design 
-          */}
           <GradientButton href="/contact" className="w-48">
             Contact Us
           </GradientButton>
