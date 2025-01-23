@@ -6,9 +6,9 @@ import {
   SparklesIcon,
   PaintBrushIcon,
   VideoCameraIcon,
-  MusicalNoteIcon,
   CameraIcon,
   CodeBracketIcon,
+  CogIcon,
 } from "@heroicons/react/24/outline";
 
 interface SectionProps {
@@ -223,11 +223,6 @@ export default function AICreativeWorkflow() {
       description: "Generate and edit videos using advanced AI techniques.",
     },
     {
-      icon: <MusicalNoteIcon className="w-6 h-6 text-green-600" />,
-      title: "Music Composition",
-      description: "Compose original music tracks with AI assistance.",
-    },
-    {
       icon: <CameraIcon className="w-6 h-6 text-red-600" />,
       title: "Image Enhancement",
       description: "Upscale and improve image quality using AI algorithms.",
@@ -242,33 +237,38 @@ export default function AICreativeWorkflow() {
       title: "Custom Workflows",
       description: "Create and deploy your own AI creative pipelines.",
     },
+    {
+      icon: <CogIcon className="w-6 h-6 text-green-600" />,
+      title: "ComfyUI Integration",
+      description: "Seamlessly integrate with ComfyUI for advanced control.",
+    },
   ];
 
   const workflowSteps: WorkflowStepProps[] = [
     {
       number: 1,
-      title: "Choose Your Medium",
-      description: "Select from images, videos, or music as your creative canvas.",
+      title: "Design Your Workflow",
+      description: "Use ComfyUI's intuitive interface to design your AI workflow.",
     },
     {
       number: 2,
-      title: "Set Parameters",
-      description: "Adjust AI settings to guide the creative process.",
+      title: "Configure Nodes",
+      description: "Set up and connect nodes to define your AI processing pipeline.",
     },
     {
       number: 3,
+      title: "Input Parameters",
+      description: "Adjust settings and provide prompts to guide the AI generation.",
+    },
+    {
+      number: 4,
       title: "Generate Content",
       description: "Let our powerful AI models bring your vision to life.",
     },
     {
-      number: 4,
-      title: "Refine and Iterate",
-      description: "Fine-tune the results with our intuitive editing tools.",
-    },
-    {
       number: 5,
-      title: "Export and Share",
-      description: "Download your creations or share them directly to social media.",
+      title: "Refine and Iterate",
+      description: "Fine-tune the results by adjusting your workflow or parameters.",
     },
   ];
 
@@ -299,8 +299,8 @@ export default function AICreativeWorkflow() {
             variants={fadeInUp}
             className="text-xl md:text-2xl text-gray-700 mb-10 max-w-3xl mx-auto"
           >
-            Transform your ideas into stunning visuals, captivating videos, 
-            and mesmerizing music with our AI-driven creative platform.
+            Transform your ideas into stunning visuals and captivating videos 
+            with our AI-driven creative platform, powered by ComfyUI.
           </motion.p>
           <motion.div
             variants={fadeInUp}
@@ -355,7 +355,7 @@ export default function AICreativeWorkflow() {
             variants={fadeInUp}
             className="text-4xl font-bold text-center mb-12"
           >
-            How It Works
+            How It Works with ComfyUI
           </motion.h2>
           <div className="flex flex-col space-y-10">
             {workflowSteps.map((step, index) => (
