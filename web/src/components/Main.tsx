@@ -420,7 +420,7 @@ export default function AICreativeWorkflow() {
         "5 Machine Credits",
         "Standard Image Enhancement",
       ],
-      ctaLink: "#",
+      ctaLink: "https://docs.google.com/forms/d/e/1FAIpQLSf8tmmvyA108ZjTbMsvecjMy1STSJi-HnPZ-cVS0VMfmGfLEw/viewform",
     },
     {
       title: "Pro",
@@ -431,7 +431,7 @@ export default function AICreativeWorkflow() {
         "High-Resolution Image Enhancement",
         "Priority Support",
       ],
-      ctaLink: "#",
+      ctaLink: "https://docs.google.com/forms/d/e/1FAIpQLSf8tmmvyA108ZjTbMsvecjMy1STSJi-HnPZ-cVS0VMfmGfLEw/viewform",
       highlighted: true,
     },
     {
@@ -443,7 +443,7 @@ export default function AICreativeWorkflow() {
         "High-Fidelity Image Enhancement",
         "Dedicated Support & SLA",
       ],
-      ctaLink: "#",
+      ctaLink: "https://docs.google.com/forms/d/e/1FAIpQLSf8tmmvyA108ZjTbMsvecjMy1STSJi-HnPZ-cVS0VMfmGfLEw/viewform",
     },
   ];
 
