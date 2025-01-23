@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 interface SectionProps {
   children: ReactNode;
   className?: string;
-  id?: string; // allow passing an 'id' prop
+  id?: string;
 }
 
 interface SectionHeadingProps {
@@ -143,7 +143,7 @@ function GradientButton({ href = "#", children, className = "" }: GradientButton
 }
 
 /* -------------------------------------------------------------------------
-   4. MAIN ABOUT PAGE
+   4. MAIN ABOUT PAGE (Pixio API Focus)
    ------------------------------------------------------------------------- */
 export default function AboutPage() {
   return (
@@ -153,48 +153,56 @@ export default function AboutPage() {
       variants={stagger}
       className="min-h-screen w-full bg-gray-50 text-gray-900"
     >
+      {/* Global style override */}
+      <style jsx global>{`
+        .px-6 {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+        }
+      `}</style>
+
       {/* HERO SECTION */}
       <Section className="bg-gradient-to-r from-purple-100 to-blue-100 text-center">
         <motion.div variants={fadeInUp} className="max-w-3xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800 mb-6">
-            About Our Company
+            About the Pixio API
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            We’re on a mission to transform how people create, collaborate,
-            and innovate.
+            The simplest way to build and orchestrate your creative AI pipelines.
           </p>
-          <GradientButton href="#team">Meet Our Team</GradientButton>
+          <GradientButton href="#story">Learn Our Story</GradientButton>
         </motion.div>
       </Section>
 
       {/* OUR MISSION SECTION */}
       <Section>
         <SectionHeading
-          title="Our Mission"
-          subtitle="Shaping a creative future for everyone."
+          title="Why Pixio API?"
+          subtitle="Empowering developers, creators, and teams to integrate AI seamlessly."
         />
         <motion.div
           variants={stagger}
           className="max-w-4xl mx-auto text-center text-xl text-gray-700 leading-relaxed"
         >
           <motion.p variants={fadeInUp} className="mb-6">
-            We believe technology should empower creators and dreamers—never
-            hold them back. Our platform merges state-of-the-art AI with
-            intuitive design, aiming to unleash human potential at scale.
+            Whether you're designing a next-gen application or building out
+            creative workflows, Pixio API makes it easy to integrate cutting-edge
+            AI features like image generation, style transfer, video synthesis,
+            and more—all from a single, intuitive interface.
           </motion.p>
           <motion.p variants={fadeInUp}>
-            From the hobbyist doodler to the world-class marketing team, we want
-            everyone to create faster, collaborate smarter, and innovate like
-            never before.
+            We believe in bringing powerful tools to everyone, simplifying the
+            creation of stunning visuals and interactive experiences, without
+            complex overhead.
           </motion.p>
         </motion.div>
       </Section>
 
       {/* OUR STORY SECTION */}
-      <Section className="bg-white">
+      <Section className="bg-white" id="story">
         <SectionHeading
-          title="Our Story"
-          subtitle="From a small garage to a global creative hub"
+          title="Our Journey"
+          subtitle="From a tiny prototype to a global AI platform"
         />
         <motion.div
           variants={stagger}
@@ -202,18 +210,24 @@ export default function AboutPage() {
         >
           <InfoCard
             icon={<span className="text-2xl">🚀</span>}
-            title="Humble Beginnings"
-            text="We started as a tiny group of tech enthusiasts building AI prototypes in a garage. We quickly learned that creators needed a simpler, more efficient way to produce stunning content."
+            title="Tiny Beginnings"
+            text="Pixio started as a small internal prototype for managing art pipelines.
+                  We quickly realized the need for a developer-friendly API that
+                  could power a wide range of creative projects."
+          />
+          <InfoCard
+            icon={<span className="text-2xl">⚙️</span>}
+            title="Building Pipelines"
+            text="With user feedback at our core, we crafted a flexible system that
+                  allows developers to chain AI operations—like transforming images,
+                  video editing, and more—seamlessly into their own apps."
           />
           <InfoCard
             icon={<span className="text-2xl">🌎</span>}
-            title="Global Reach"
-            text="With a growing user base spanning 100+ countries, we strive to make AI-driven art and design accessible to anyone, anywhere—no matter your skill level."
-          />
-          <InfoCard
-            icon={<span className="text-2xl">🔥</span>}
-            title="Continual Innovation"
-            text="We never stop iterating. Whether it’s launching new features or refining existing ones, we’re committed to pushing the boundaries of what's possible."
+            title="Global Growth"
+            text="Our community now spans designers, startups, and enterprise teams
+                  around the globe. Pixio API is constantly evolving to meet
+                  the ever-changing landscape of creative AI."
           />
         </motion.div>
       </Section>
@@ -221,8 +235,8 @@ export default function AboutPage() {
       {/* TEAM SECTION */}
       <Section id="team">
         <SectionHeading
-          title="Meet the Team"
-          subtitle="A dynamic group of creators, technologists, and innovators"
+          title="Meet the Core Team"
+          subtitle="Dedicated to pushing the boundaries of creative AI"
         />
         <motion.div
           variants={stagger}
@@ -231,17 +245,20 @@ export default function AboutPage() {
           <InfoCard
             icon={<span className="text-2xl">👩‍💻</span>}
             title="Sarah - CEO"
-            text="Sarah leads the strategic vision and ensures our team has everything they need to succeed. A lifelong entrepreneur, she’s driven by a passion for creative tech."
+            text="Sarah leads the overall strategy and ensures that Pixio remains user-centric,
+                  leveraging her background in product development and machine learning."
           />
           <InfoCard
             icon={<span className="text-2xl">🧑‍🎨</span>}
-            title="Mike - Lead Designer"
-            text="Mike orchestrates the look and feel of our products. He believes in clean, user-friendly designs that spark joy and creativity."
+            title="Mike - Design Chief"
+            text="Mike spearheads all design efforts. From the developer console to marketing
+                  assets, he makes sure every interaction reflects our AI-forward vision."
           />
           <InfoCard
             icon={<span className="text-2xl">🤖</span>}
-            title="Alex - AI Architect"
-            text="With a PhD in Machine Learning, Alex is the brain behind our AI models—bringing cutting-edge research into real-world applications."
+            title="Alex - Lead Engineer"
+            text="The mind behind our pipeline architecture. Alex’s expertise in distributed
+                  computing and AI ensures Pixio scales for any creative challenge."
           />
         </motion.div>
       </Section>
@@ -249,8 +266,8 @@ export default function AboutPage() {
       {/* TESTIMONIALS SECTION */}
       <Section className="bg-gray-100">
         <SectionHeading
-          title="What Others Say"
-          subtitle="Trusted by creatives and teams worldwide"
+          title="What Our Users Say"
+          subtitle="Hear from those building AI pipelines with Pixio"
         />
         <motion.div
           variants={stagger}
@@ -258,20 +275,24 @@ export default function AboutPage() {
         >
           <Testimonial
             name="Alice Smith"
-            title="Art Director"
-            message="The team’s dedication to seamless AI integration has saved me countless hours on every project."
+            title="App Developer"
+            message="Integrating Pixio into my workflow was a breeze. It saved me months of
+                     development time and now I can focus on creating user experiences,
+                     not wrangling AI models."
             avatar="https://randomuser.me/api/portraits/women/68.jpg"
           />
           <Testimonial
             name="John Davis"
             title="Product Manager"
-            message="What started as a small trial ended up being our secret weapon for rapid marketing iterations."
+            message="Our marketing team’s creative pipeline is now fully automated with Pixio.
+                     We produce stunning visuals for campaigns in record time."
             avatar="https://randomuser.me/api/portraits/men/46.jpg"
           />
           <Testimonial
             name="Emily Yang"
             title="Freelance Illustrator"
-            message="I feel like I have a second brain helping me generate fresh concepts. The speed is incredible!"
+            message="Pixio gave me superpowers. I can add AI-driven effects to my artworks
+                     and quickly experiment with styles for my clients."
             avatar="https://randomuser.me/api/portraits/women/89.jpg"
           />
         </motion.div>
@@ -281,10 +302,11 @@ export default function AboutPage() {
       <Section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-center">
         <motion.div variants={fadeInUp} className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Learn More?
+            Ready to Build Your Pipeline?
           </h2>
           <p className="text-xl text-gray-100 mb-6">
-            Discover how we can help you power up your creative workflows.
+            Discover how Pixio API can power your creative workflows,
+            unlocking possibilities in record time.
           </p>
           <GradientButton href="/contact">Contact Us</GradientButton>
         </motion.div>
