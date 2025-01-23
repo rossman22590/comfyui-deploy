@@ -11,9 +11,6 @@ import {
   CodeBracketIcon,
 } from "@heroicons/react/24/outline";
 
-/* ----------------------------------------------------------------------------
-  TYPE DEFINITIONS
----------------------------------------------------------------------------- */
 interface SectionProps {
   children: ReactNode;
   className?: string;
@@ -44,9 +41,6 @@ interface ArtShowcaseProps {
   type?: "image" | "video";
 }
 
-/* ----------------------------------------------------------------------------
-  ANIMATION VARIANTS
----------------------------------------------------------------------------- */
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: {
@@ -65,9 +59,6 @@ const stagger = {
   },
 };
 
-/* ----------------------------------------------------------------------------
-  REUSABLE COMPONENTS
----------------------------------------------------------------------------- */
 function Section({ children, className = "" }: SectionProps) {
   return <section className={`py-20 w-full relative ${className}`}>{children}</section>;
 }
@@ -140,7 +131,7 @@ function WorkflowStep({ number, title, description }: WorkflowStepProps) {
         {number}
       </div>
       <div>
-        <h3 className="text-xl font-semibold mb-1">{title}</h3>
+        <h3 className="text-xl font-semibold mb-2">{title}</h3>
         <p className="text-gray-600">{description}</p>
       </div>
     </motion.div>
@@ -186,9 +177,6 @@ function ArtShowcase({ src, alt, type = "image" }: ArtShowcaseProps) {
   );
 }
 
-/* ----------------------------------------------------------------------------
-  BACKGROUND ANIMATION FOR HERO
----------------------------------------------------------------------------- */
 function HeroBackgroundAnimation() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -216,9 +204,6 @@ function HeroBackgroundAnimation() {
   );
 }
 
-/* ----------------------------------------------------------------------------
-  MAIN PAGE COMPONENT
----------------------------------------------------------------------------- */
 export default function AICreativeWorkflow() {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -296,7 +281,6 @@ export default function AICreativeWorkflow() {
         }
       `}</style>
       
-      {/* Hero Section */}
       <Section className="bg-gradient-to-br from-purple-50 via-blue-50 to-blue-100 flex flex-col items-center justify-center text-center overflow-hidden">
         <HeroBackgroundAnimation />
         <motion.div
@@ -332,7 +316,6 @@ export default function AICreativeWorkflow() {
         </motion.div>
       </Section>
 
-      {/* Features Section */}
       <Section className="bg-white">
         <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <motion.h2
@@ -360,14 +343,13 @@ export default function AICreativeWorkflow() {
         </div>
       </Section>
 
-      {/* Workflow Section */}
       <Section className="bg-gray-50">
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={stagger}
-          className="w-full px-6"
+          className="w-full px-6 max-w-2xl mx-auto"
         >
           <motion.h2
             variants={fadeInUp}
@@ -375,7 +357,7 @@ export default function AICreativeWorkflow() {
           >
             How It Works
           </motion.h2>
-          <div className="flex flex-col space-y-10 mx-auto max-w-4xl">
+          <div className="flex flex-col space-y-10">
             {workflowSteps.map((step, index) => (
               <WorkflowStep key={index} {...step} />
             ))}
@@ -383,7 +365,6 @@ export default function AICreativeWorkflow() {
         </motion.div>
       </Section>
 
-      {/* Showcase Section */}
       <Section className="bg-white">
         <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <motion.h2
@@ -426,7 +407,6 @@ export default function AICreativeWorkflow() {
         </div>
       </Section>
 
-      {/* Call to Action Section */}
       <Section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
         <div className="w-full px-6 text-center">
           <motion.h2
@@ -464,7 +444,6 @@ export default function AICreativeWorkflow() {
         </div>
       </Section>
 
-      {/* Footer */}
       <footer className="bg-gray-900 text-white pt-12 pb-8 w-full">
         <div className="w-full px-6 md:px-12 lg:px-24 max-w-7xl mx-auto" style={{ paddingLeft: '0 !important', paddingRight: '0 !important' }}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
