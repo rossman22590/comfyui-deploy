@@ -139,7 +139,7 @@ export default function AboutPage() {
           <p className="text-xl text-gray-600 mb-8">
             The simplest way to build and orchestrate your creative AI pipelines.
           </p>
-          <GradientButton href="#story">Learn Our Journey</GradientButton>
+          <GradientButton href="#story" className="w-48">Our Journey</GradientButton>
         </motion.div>
       </Section>
 
