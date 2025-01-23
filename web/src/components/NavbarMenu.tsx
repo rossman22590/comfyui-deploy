@@ -64,6 +64,11 @@ export function NavbarMenu({
       name: "Status",
       path: "https://ai-tutor-x-pixio.instatus.com", // External link
       external: true
+    },
+    {
+      name: "API Demo",
+      path: "https://api-demo.myapps.ai", // External link
+      external: true
     }
   ];
 
