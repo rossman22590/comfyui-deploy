@@ -512,7 +512,7 @@ export default function AICreativeWorkflow() {
               Start Creating
             </GradientButton>
             <GradientButton href="https://calendly.com/techinschools/pixio-api-onboarding?month=2025-01">
-              Watch Demo
+              Book Demo
             </GradientButton>
             <GradientButton href="https://pixio.myapps.ai">
               Pixio
