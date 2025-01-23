@@ -458,7 +458,7 @@ export default function AICreativeWorkflow() {
               href="/signup"
               className="bg-white text-purple-600 hover:bg-gray-200"
             >
-              Get Started for Free
+              Get Started for Now!
             </GradientButton>
           </motion.div>
         </div>
@@ -469,31 +469,31 @@ export default function AICreativeWorkflow() {
         <div className="w-full px-6 md:px-12 lg:px-24 max-w-7xl mx-auto" style={{ paddingLeft: '0 !important', paddingRight: '0 !important' }}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="font-bold text-xl mb-4">AI Creative Studio</h3>
+              <h3 className="font-bold text-xl mb-4">Pixio API</h3>
               <p className="text-gray-400">Empowering creativity with AI</p>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#pricing">Pricing</a></li>
-                <li><a href="#tutorials">Tutorials</a></li>
+                <li><a href="https://api.myapps.ai/">Features</a></li>
+                <li><a href="https://api.myapps.ai/">Pricing</a></li>
+                <li><a href="https://api.myapps.ai/">Tutorials</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#about">About</a></li>
-                <li><a href="#blog">Blog</a></li>
-                <li><a href="#careers">Careers</a></li>
+                <li><a href="https://api.myapps.ai/">About</a></li>
+                <li><a href="https://support.myapps.ai/api-reference/endpoint/get">API Docs</a></li>
+                <li><a href="/examples">Workflows</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#privacy">Privacy</a></li>
-                <li><a href="#terms">Terms</a></li>
-                <li><a href="#copyright">Copyright</a></li>
+                <li><a href="http://myapps.ai/privacy-policy/">Privacy</a></li>
+                <li><a href="https://myapps.ai/terms-condition/">Terms</a></li>
+                <li><a href="https://myapps.ai/terms-condition/">Copyright</a></li>
               </ul>
             </div>
           </div>
