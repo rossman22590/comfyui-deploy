@@ -367,7 +367,7 @@ function AddMachinesDialog() {
             <DialogHeader>
               <DialogTitle>Create API Key</DialogTitle>
               <DialogDescription>
-                Create API Key for workflow upload
+                Create API Key for workflow upload. This will not show again please copy and paste it to a safe place.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">

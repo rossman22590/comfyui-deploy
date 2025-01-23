@@ -80,9 +80,9 @@ app.doc("/doc", {
   security: [{ bearerAuth: [] }],
   info: {
     version: "0.0.1",
-    title: "Comfy Deploy API",
+    title: "Pixio API",
     description:
-      "Interact with Comfy Deploy programmatically to trigger run and retrieve output",
+      "Interact with Pixio API programmatically to trigger run and retrieve output",
   },
 });
 
@@ -92,7 +92,7 @@ app.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
   in: "header",
   name: "Authorization",
   description:
-    "API token created in Comfy Deploy <a href='/api-keys' target='_blank' style='text-decoration: underline;'>/api-keys</a>",
+    "API token created in Pixio API <a href='/api-keys' target='_blank' style='text-decoration: underline;'>/api-keys</a>",
 });
 
 const handler = handle(app);

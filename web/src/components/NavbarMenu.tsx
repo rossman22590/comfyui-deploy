@@ -40,12 +40,30 @@ export function NavbarMenu({
     {
       name: "Examples",
       path: "/examples"
+    },
+    {
+      name: "Help",
+      path: "https://support.myapps.ai", // External link
+      external: true
+    },
+    {
+      name: "Civit AI",
+      path: "https://civitai.com", // External link
+      external: true
+    },
+    {
+      name: "Manage Billing",
+      path: "/billing"
+    },
+    {
+      name: "Status",
+      path: "https://ai-tutor-x-pixio.instatus.com", // External link
+      external: true
     }
   ];
 
   return (
     <div className={cn("mr-2", className)}>
-      {/* <div className="w-full h-full absolute inset-x-0 top-0 flex items-center justify-center pointer-events-none"> */}
       {isDesktop && (
         <Tabs
           defaultValue={pathname}
@@ -57,28 +75,46 @@ export function NavbarMenu({
                 key={page.name}
                 value={page.path}
               >
-                <Link href={page.path}>{page.name}</Link>
+                {page.external ? (
+                  <a href={page.path} target="_blank" rel="noopener noreferrer">{page.name}</a>
+                ) : (
+                  <Link href={page.path}>{page.name}</Link>
+                )}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
       )}
-      {/* </div> */}
 
       {!isDesktop && (
         <ScrollArea>
           <div className="w-full flex flex-col h-full">
             {pages.map((page) => (
-              <Link
-                key={page.name}
-                href={page.path}
-                onClick={() => {
-                  if (!!closeSheet) closeSheet();
-                }}
-                className="p-2 hover:bg-gray-100/20 hover:underline"
-              >
-                {page.name}
-              </Link>
+              page.external ? (
+                <a
+                  key={page.name}
+                  href={page.path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    if (!!closeSheet) closeSheet();
+                  }}
+                  className="p-2 hover:bg-gray-100/20 hover:underline"
+                >
+                  {page.name}
+                </a>
+              ) : (
+                <Link
+                  key={page.name}
+                  href={page.path}
+                  onClick={() => {
+                    if (!!closeSheet) closeSheet();
+                  }}
+                  className="p-2 hover:bg-gray-100/20 hover:underline"
+                >
+                  {page.name}
+                </Link>
+              )
             ))}
           </div>
         </ScrollArea>

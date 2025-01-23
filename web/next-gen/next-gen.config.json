@@ -1,10 +1,10 @@
 {
-    "name": "Comfy Deploy",
-    "og:title": "Comfy Deploy | Stable Diffusion from your terminal to the world",
-    "og:description": "",
-    "author": "BennyKok",
-    "tagline": "Stable Diffusion from your terminal to the world",
-    "description": "From your comfyui workflow to production ready API, flexibility at the speed of thought",
+    "name": "Pixio API",
+    "og:title": "Pixio API | Build Your Next AI Media App",
+    "og:description": "Transform your media applications with powerful AI capabilities",
+    "author": "Pixio Team",
+    "tagline": "Build your next AI Media App",
+    "description": "Powerful and flexible API for AI-powered media manipulation, generation, and transformation. Create stunning visual experiences with just a few lines of code.",
     "pricingPlan": [
         {
             "name": "Free",
