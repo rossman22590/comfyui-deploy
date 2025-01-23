@@ -325,8 +325,8 @@ export default function AICreativeWorkflow() {
             <GradientButton primary href="/get-started">
               Start Creating
             </GradientButton>
-            <GradientButton href="https://calendly.com/techinschools/pixio-api-onboarding">
-              Book Demo
+            <GradientButton href="/demo">
+              Watch Demo
             </GradientButton>
           </motion.div>
         </motion.div>
@@ -334,27 +334,29 @@ export default function AICreativeWorkflow() {
 
       {/* Features Section */}
       <Section className="bg-white">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-4xl font-bold text-center mb-12 px-6"
-        >
-          Unleash Your Creativity
-        </motion.h2>
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-6">
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <FeatureCard {...feature} />
-            </motion.div>
-          ))}
+        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-bold text-center mb-12"
+          >
+            Unleash Your Creativity
+          </motion.h2>
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <FeatureCard {...feature} />
+              </motion.div>
+            ))}
+          </div>
         </div>
       </Section>
 
@@ -383,42 +385,44 @@ export default function AICreativeWorkflow() {
 
       {/* Showcase Section */}
       <Section className="bg-white">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-4xl font-bold text-center mb-12 px-6"
-        >
-          AI-Generated Masterpieces
-        </motion.h2>
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-6">
-          <ArtShowcase
-            src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608138715-image.png"
-            alt="AI-generated abstract art"
-          />
-          <ArtShowcase
-            src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608142907-image.jpg"
-            alt="AI-generated landscape"
-          />
-          <ArtShowcase
-            src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608166338-pixverse-317182365469952.mp4"
-            alt="AI-generated video clip"
-            type="video"
-          />
-          <ArtShowcase
-            src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608185328-video-user1091-runwaymlrossmytsi.org-asset2e490a12-51e5-4086-9381-e0e711449868.mp4"
-            alt="AI-generated video animation"
-            type="video"
-          />
-          <ArtShowcase
-            src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608189616-image.webp"
-            alt="AI-generated artwork"
-          />
-          <ArtShowcase
-            src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608206569-image.png"
-            alt="AI-generated digital art"
-          />
+        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-bold text-center mb-12"
+          >
+            AI-Generated Masterpieces
+          </motion.h2>
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <ArtShowcase
+              src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608138715-image.png"
+              alt="AI-generated abstract art"
+            />
+            <ArtShowcase
+              src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608142907-image.jpg"
+              alt="AI-generated landscape"
+            />
+            <ArtShowcase
+              src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608166338-pixverse-317182365469952.mp4"
+              alt="AI-generated video clip"
+              type="video"
+            />
+            <ArtShowcase
+              src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608185328-video-user1091-runwaymlrossmytsi.org-asset2e490a12-51e5-4086-9381-e0e711449868.mp4"
+              alt="AI-generated video animation"
+              type="video"
+            />
+            <ArtShowcase
+              src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608189616-image.webp"
+              alt="AI-generated artwork"
+            />
+            <ArtShowcase
+              src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608206569-image.png"
+              alt="AI-generated digital art"
+            />
+          </div>
         </div>
       </Section>
 
@@ -462,43 +466,42 @@ export default function AICreativeWorkflow() {
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white pt-12 pb-8 w-full">
-  <div className="w-full px-6 md:px-12 lg:px-24 max-w-7xl mx-auto" style={{ paddingLeft: '0 !important', paddingRight: '0 !important' }}>
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-      <div>
-        <h3 className="font-bold text-xl mb-4">AI Creative Studio</h3>
-        <p className="text-gray-400">Empowering creativity with AI</p>
-      </div>
-      <div>
-        <h4 className="font-semibold mb-4">Product</h4>
-        <ul className="space-y-2 text-gray-400">
-          <li><a href="#features">Features</a></li>
-          <li><a href="#pricing">Pricing</a></li>
-          <li><a href="#tutorials">Tutorials</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 className="font-semibold mb-4">Company</h4>
-        <ul className="space-y-2 text-gray-400">
-          <li><a href="#about">About</a></li>
-          <li><a href="#blog">Blog</a></li>
-          <li><a href="#careers">Careers</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 className="font-semibold mb-4">Legal</h4>
-        <ul className="space-y-2 text-gray-400">
-          <li><a href="#privacy">Privacy</a></li>
-          <li><a href="#terms">Terms</a></li>
-          <li><a href="#copyright">Copyright</a></li>
-        </ul>
-      </div>
-    </div>
-    <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
-      © {new Date().getFullYear()} AI Creative Studio. All rights reserved.
-    </div>
-  </div>
-</footer>
-
+        <div className="w-full px-6 md:px-12 lg:px-24 max-w-7xl mx-auto" style={{ paddingLeft: '0 !important', paddingRight: '0 !important' }}>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="font-bold text-xl mb-4">AI Creative Studio</h3>
+              <p className="text-gray-400">Empowering creativity with AI</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Product</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#tutorials">Tutorials</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#about">About</a></li>
+                <li><a href="#blog">Blog</a></li>
+                <li><a href="#careers">Careers</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#privacy">Privacy</a></li>
+                <li><a href="#terms">Terms</a></li>
+                <li><a href="#copyright">Copyright</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
+            © {new Date().getFullYear()} AI Creative Studio. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
