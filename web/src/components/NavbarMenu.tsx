@@ -53,7 +53,8 @@ export function NavbarMenu({
     },
     {
       name: "Manage Billing",
-      path: "/billing"
+      path: "https://billing.stripe.com/p/login/6oE6rUfvp9Zlc484gg"
+
     },
     {
       name: "Book Call",
