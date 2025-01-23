@@ -43,7 +43,7 @@ export function NavbarMenu({
     },
     {
       name: "Help",
-      path: "https://support.myapps.ai", // External link
+      path: "https://support.myapps.ai/api-reference/endpoint/get", // External link
       external: true
     },
     {
