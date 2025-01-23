@@ -72,10 +72,6 @@ function Section({ children, className = "" }: SectionProps) {
   return <section className={`py-20 w-full relative ${className}`}>{children}</section>;
 }
 
-/** 
- * Button with a subtle gradient background (when primary)
- * or a white outline (when not).
- */
 function GradientButton({
   children,
   primary = false,
@@ -109,9 +105,6 @@ function GradientButton({
   );
 }
 
-/** 
- * Single feature card with an icon, title, and description.
- */
 function FeatureCard({ title, description, icon }: FeatureCardProps) {
   return (
     <motion.div
@@ -136,9 +129,6 @@ function FeatureCard({ title, description, icon }: FeatureCardProps) {
   );
 }
 
-/**
- * Single step in the workflow process.
- */
 function WorkflowStep({ number, title, description }: WorkflowStepProps) {
   return (
     <motion.div className="flex items-start" variants={fadeInUp}>
@@ -157,9 +147,6 @@ function WorkflowStep({ number, title, description }: WorkflowStepProps) {
   );
 }
 
-/**
- * Displays either an image or a video in a 16:9 aspect ratio card.
- */
 function ArtShowcase({ src, alt, type = "image" }: ArtShowcaseProps) {
   return (
     <motion.div
@@ -201,7 +188,6 @@ function ArtShowcase({ src, alt, type = "image" }: ArtShowcaseProps) {
 
 /* ----------------------------------------------------------------------------
   BACKGROUND ANIMATION FOR HERO
-  Subtle swirling circles behind the Hero to add flair.
 ---------------------------------------------------------------------------- */
 function HeroBackgroundAnimation() {
   return (
@@ -303,15 +289,16 @@ export default function AICreativeWorkflow() {
 
   return (
     <div className="min-h-screen flex flex-col w-full bg-gray-50 text-gray-900">
-      {/* 
-        --------------------------------------------------
-        Hero Section (Full Width) w/ Animated Background
-        --------------------------------------------------
-      */}
+      <style jsx global>{`
+        .px-6 {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+        }
+      `}</style>
+      
+      {/* Hero Section */}
       <Section className="bg-gradient-to-br from-purple-50 via-blue-50 to-blue-100 flex flex-col items-center justify-center text-center overflow-hidden">
-        {/* Add swirling background effect */}
         <HeroBackgroundAnimation />
-
         <motion.div
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
@@ -338,18 +325,14 @@ export default function AICreativeWorkflow() {
             <GradientButton primary href="/get-started">
               Start Creating
             </GradientButton>
-            <GradientButton href="/demo">
-              Watch Demo
+            <GradientButton href="https://calendly.com/techinschools/pixio-api-onboarding">
+              Book Demo
             </GradientButton>
           </motion.div>
         </motion.div>
       </Section>
 
-      {/* 
-        --------------------------------------------------
-        Features (Full Width)
-        --------------------------------------------------
-      */}
+      {/* Features Section */}
       <Section className="bg-white">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -375,11 +358,7 @@ export default function AICreativeWorkflow() {
         </div>
       </Section>
 
-      {/* 
-        --------------------------------------------------
-        Workflow (Full Width)
-        --------------------------------------------------
-      */}
+      {/* Workflow Section */}
       <Section className="bg-gray-50">
         <motion.div
           initial="hidden"
@@ -402,11 +381,7 @@ export default function AICreativeWorkflow() {
         </motion.div>
       </Section>
 
-      {/* 
-        --------------------------------------------------
-        Showcase (Full Width)
-        --------------------------------------------------
-      */}
+      {/* Showcase Section */}
       <Section className="bg-white">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -447,11 +422,7 @@ export default function AICreativeWorkflow() {
         </div>
       </Section>
 
-      {/* 
-        --------------------------------------------------
-        Call to Action (Full Width)
-        --------------------------------------------------
-      */}
+      {/* Call to Action Section */}
       <Section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
         <div className="w-full px-6 text-center">
           <motion.h2
@@ -489,66 +460,45 @@ export default function AICreativeWorkflow() {
         </div>
       </Section>
 
-      {/* 
-        --------------------------------------------------
-        Footer (Full Width)
-        --------------------------------------------------
-      */}
+      {/* Footer */}
       <footer className="bg-gray-900 text-white pt-12 pb-8 w-full">
-        <div className="w-full px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-bold text-xl mb-4">AI Creative Studio</h3>
-              <p className="text-gray-400">Empowering creativity with AI</p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#features">Features</a>
-                </li>
-                <li>
-                  <a href="#pricing">Pricing</a>
-                </li>
-                <li>
-                  <a href="#tutorials">Tutorials</a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#about">About</a>
-                </li>
-                <li>
-                  <a href="#blog">Blog</a>
-                </li>
-                <li>
-                  <a href="#careers">Careers</a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#privacy">Privacy</a>
-                </li>
-                <li>
-                  <a href="#terms">Terms</a>
-                </li>
-                <li>
-                  <a href="#copyright">Copyright</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
-            © {new Date().getFullYear()} AI Creative Studio. All rights reserved.
-          </div>
-        </div>
-      </footer>
+  <div className="w-full px-6 md:px-12 lg:px-24 max-w-7xl mx-auto" style={{ paddingLeft: '0 !important', paddingRight: '0 !important' }}>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div>
+        <h3 className="font-bold text-xl mb-4">AI Creative Studio</h3>
+        <p className="text-gray-400">Empowering creativity with AI</p>
+      </div>
+      <div>
+        <h4 className="font-semibold mb-4">Product</h4>
+        <ul className="space-y-2 text-gray-400">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#tutorials">Tutorials</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 className="font-semibold mb-4">Company</h4>
+        <ul className="space-y-2 text-gray-400">
+          <li><a href="#about">About</a></li>
+          <li><a href="#blog">Blog</a></li>
+          <li><a href="#careers">Careers</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 className="font-semibold mb-4">Legal</h4>
+        <ul className="space-y-2 text-gray-400">
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="#terms">Terms</a></li>
+          <li><a href="#copyright">Copyright</a></li>
+        </ul>
+      </div>
+    </div>
+    <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
+      © {new Date().getFullYear()} AI Creative Studio. All rights reserved.
+    </div>
+  </div>
+</footer>
+
     </div>
   );
 }
