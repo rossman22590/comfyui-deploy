@@ -501,7 +501,7 @@ export default function AICreativeWorkflow() {
             variants={fadeInUp}
             className="text-xl md:text-2xl text-gray-700 mb-10 max-w-3xl mx-auto"
           >
-            Transform your ideas into stunning visuals and captivating videos
+            Transform your ideas into stunning visuals and captivating videos 
             with our AI-driven creative platform, powered by ComfyUI.
           </motion.p>
           <motion.div
@@ -512,7 +512,10 @@ export default function AICreativeWorkflow() {
               Start Creating
             </GradientButton>
             <GradientButton href="https://calendly.com/techinschools/pixio-api-onboarding?month=2025-01">
-              Book Demo
+              Watch Demo
+            </GradientButton>
+            <GradientButton href="https://pixio.myapps.ai">
+              Pixio
             </GradientButton>
           </motion.div>
         </motion.div>
