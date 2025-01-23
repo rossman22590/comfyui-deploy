@@ -151,7 +151,7 @@ export default function AboutPage() {
         />
         <motion.div variants={fadeInUp} className="max-w-4xl mx-auto text-center">
           <img
-            src="https://raw.githubusercontent.com/comfyanonymous/ComfyUI/main/screenshots/comfyui_screenshot.png"
+            src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737669323424-1c7c4e0b-2037-4cbc-992c-e94f9debe647.png"
             alt="ComfyUI Screenshot"
             className="rounded-lg shadow-lg mx-auto"
           />
