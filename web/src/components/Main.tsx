@@ -309,8 +309,8 @@ export default function AICreativeWorkflow() {
             <GradientButton primary href="/get-started">
               Start Creating
             </GradientButton>
-            <GradientButton href="/demo">
-              Watch Demo
+            <GradientButton href="https://calendly.com/techinschools/pixio-api-onboarding?month=2025-01">
+              Book Demo
             </GradientButton>
           </motion.div>
         </motion.div>
