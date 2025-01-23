@@ -802,7 +802,7 @@ export default function AICreativeWorkflow() {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
-            © {new Date().getFullYear()} AI Creative Studio. All rights reserved.
+            © {new Date().getFullYear()} Pixio API. All rights reserved.
           </div>
         </div>
       </footer>
