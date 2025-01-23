@@ -9,7 +9,13 @@ import {
   CameraIcon,
   CodeBracketIcon,
   CogIcon,
+  UserIcon,
+  UserGroupIcon,
+  CheckCircleIcon,
+  CloudArrowUpIcon,
 } from "@heroicons/react/24/outline";
+
+/* ---------------------------------- Types --------------------------------- */
 
 interface SectionProps {
   children: ReactNode;
@@ -41,6 +47,29 @@ interface ArtShowcaseProps {
   type?: "image" | "video";
 }
 
+interface UseCaseCardProps {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}
+
+interface PricingPlanProps {
+  title: string;
+  price: string;
+  features: string[];
+  ctaLink: string;
+  highlighted?: boolean;
+}
+
+interface TestimonialProps {
+  author: string;
+  role: string;
+  text: string;
+  avatarUrl: string;
+}
+
+/* ---------------------------- Animation Variants --------------------------- */
+
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: {
@@ -59,8 +88,14 @@ const stagger = {
   },
 };
 
+/* -------------------------------- Components ------------------------------- */
+
 function Section({ children, className = "" }: SectionProps) {
-  return <section className={`py-20 w-full relative ${className}`}>{children}</section>;
+  return (
+    <section className={`py-20 w-full relative ${className}`}>
+      {children}
+    </section>
+  );
 }
 
 function GradientButton({
@@ -74,7 +109,7 @@ function GradientButton({
       href={href}
       className={[
         "relative inline-flex items-center justify-center px-8 py-4 rounded-xl",
-        "text-lg font-semibold overflow-hidden no-underline",
+        "text-lg font-semibold overflow-hidden no-underline shadow-md",
         primary ? "text-white" : "text-gray-700",
         className,
       ].join(" ")}
@@ -99,9 +134,9 @@ function GradientButton({
 function FeatureCard({ title, description, icon }: FeatureCardProps) {
   return (
     <motion.div
-      className="group relative bg-white rounded-xl p-6 shadow-md 
-                 hover:shadow-xl transition-shadow duration-300"
+      className="group relative bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow duration-300"
       whileHover={{ y: -4 }}
+      variants={fadeInUp}
     >
       <div className="flex items-center mb-4">
         <div className="p-3 bg-purple-50 rounded-lg mr-4 flex items-center justify-center">
@@ -111,9 +146,7 @@ function FeatureCard({ title, description, icon }: FeatureCardProps) {
       </div>
       <p className="text-gray-600">{description}</p>
       <span
-        className="absolute inset-0 rounded-xl border-2 
-                   border-transparent group-hover:border-purple-100
-                   transition-colors"
+        className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-purple-100 transition-colors"
         aria-hidden="true"
       />
     </motion.div>
@@ -177,6 +210,87 @@ function ArtShowcase({ src, alt, type = "image" }: ArtShowcaseProps) {
   );
 }
 
+/* ---------------------------------- New Components --------------------------------- */
+
+function UseCaseCard({ icon, title, description }: UseCaseCardProps) {
+  return (
+    <motion.div
+      className="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow flex items-start space-x-4"
+      whileHover={{ y: -5 }}
+      variants={fadeInUp}
+    >
+      {/* Round circle icon */}
+      <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-purple-100 to-blue-100 rounded-full">
+        {icon}
+      </div>
+      <div>
+        <h4 className="text-xl font-semibold mb-2">{title}</h4>
+        <p className="text-gray-600">{description}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+function PricingPlan({
+  title,
+  price,
+  features,
+  ctaLink,
+  highlighted = false,
+}: PricingPlanProps) {
+  return (
+    <motion.div
+      className={`relative flex flex-col p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow ${
+        highlighted ? "bg-gradient-to-br from-purple-50 to-blue-50" : "bg-white"
+      }`}
+      whileHover={{ scale: 1.02 }}
+      variants={fadeInUp}
+    >
+      {highlighted && (
+        <div className="absolute top-2 right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
+          Most Popular
+        </div>
+      )}
+      <h3 className="text-2xl font-bold mb-4 text-gray-800">{title}</h3>
+      <p className="text-4xl font-extrabold text-gray-800 mb-4">{price}</p>
+      <ul className="mb-8 space-y-2">
+        {features.map((feature, index) => (
+          <li key={index} className="flex items-center space-x-2 text-gray-700">
+            <CheckCircleIcon className="w-5 h-5 text-purple-600" />
+            <span>{feature}</span>
+          </li>
+        ))}
+      </ul>
+      <GradientButton
+        href={ctaLink}
+        primary={highlighted}
+        className={highlighted ? "" : "bg-white text-gray-700"}
+      >
+        Get Started
+      </GradientButton>
+    </motion.div>
+  );
+}
+
+function Testimonial({ author, role, text, avatarUrl }: TestimonialProps) {
+  return (
+    <motion.div
+      className="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow flex flex-col items-center text-center"
+      whileHover={{ y: -5 }}
+      variants={fadeInUp}
+    >
+      <img
+        src={avatarUrl}
+        alt={author}
+        className="w-16 h-16 rounded-full mb-4 object-cover"
+      />
+      <blockquote className="text-gray-600 italic mb-4">“{text}”</blockquote>
+      <div className="font-semibold text-gray-800">{author}</div>
+      <div className="text-sm text-gray-500">{role}</div>
+    </motion.div>
+  );
+}
+
 function HeroBackgroundAnimation() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -204,12 +318,16 @@ function HeroBackgroundAnimation() {
   );
 }
 
+/* ----------------------------------- Main ---------------------------------- */
+
 export default function AICreativeWorkflow() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
+
+  /* ------------------ Content Data ------------------ */
 
   const features: FeatureCardProps[] = [
     {
@@ -272,6 +390,89 @@ export default function AICreativeWorkflow() {
     },
   ];
 
+  const useCases: UseCaseCardProps[] = [
+    {
+      icon: <UserIcon className="w-6 h-6 text-purple-600" />,
+      title: "Freelance Creators",
+      description:
+        "Expand your service offerings with AI-driven designs, branding assets, and immersive visuals.",
+    },
+    {
+      icon: <UserGroupIcon className="w-6 h-6 text-blue-600" />,
+      title: "Marketing Teams",
+      description:
+        "Quickly generate creative assets for campaigns, social media, and product launches.",
+    },
+    {
+      icon: <CloudArrowUpIcon className="w-6 h-6 text-indigo-600" />,
+      title: "Developers",
+      description:
+        "Easily integrate AI art pipelines into your apps or websites with our robust API and ComfyUI nodes.",
+    },
+  ];
+
+  const pricingPlans: PricingPlanProps[] = [
+    {
+      title: "Standard",
+      price: "$100/mo",
+      features: [
+        "AI Art Generation (Basic)",
+        "5 Machine Credits",
+        "Standard Image Enhancement",
+      ],
+      ctaLink: "#",
+    },
+    {
+      title: "Pro",
+      price: "$500/mo",
+      features: [
+        "AI Art Generation (Advanced)",
+        "50 Machine Credits",
+        "High-Resolution Image Enhancement",
+        "Priority Support",
+      ],
+      ctaLink: "#",
+      highlighted: true,
+    },
+    {
+      title: "Enterprise",
+      price: "Custom",
+      features: [
+        "Unlimited AI Art Generation",
+        "Customized Video Pipelines",
+        "High-Fidelity Image Enhancement",
+        "Dedicated Support & SLA",
+      ],
+      ctaLink: "#",
+    },
+  ];
+
+  const testimonials: TestimonialProps[] = [
+    {
+      author: "Sharon Jerman",
+      role: "Art Director",
+      text: "Pixio's AI helped me create mesmerizing brand visuals in a fraction of the time—it’s a total game-changer.",
+      avatarUrl:
+        "https://randomuser.me/api/portraits/women/64.jpg",
+    },
+    {
+      author: "Nick Kukaj",
+      role: "Freelance Creative",
+      text: "I love how easy it is to integrate AI into my workflow. My clients are stunned by the results!",
+      avatarUrl:
+        "https://randomuser.me/api/portraits/men/51.jpg",
+    },
+    {
+      author: "Jeremy White",
+      role: "Marketing Manager",
+      text: "Our campaigns have never looked better. The combination of speed and quality is unmatched.",
+      avatarUrl:
+        "https://randomuser.me/api/portraits/men/69.jpg",
+    },
+  ];
+
+  /* ------------------ Page Structure ------------------ */
+
   return (
     <div className="min-h-screen flex flex-col w-full bg-gray-50 text-gray-900">
       <style jsx global>{`
@@ -280,7 +481,8 @@ export default function AICreativeWorkflow() {
           padding-right: 0 !important;
         }
       `}</style>
-      
+
+      {/* ------------------------- Hero Section ------------------------- */}
       <Section className="bg-gradient-to-br from-purple-50 via-blue-50 to-blue-100 flex flex-col items-center justify-center text-center overflow-hidden">
         <HeroBackgroundAnimation />
         <motion.div
@@ -299,7 +501,7 @@ export default function AICreativeWorkflow() {
             variants={fadeInUp}
             className="text-xl md:text-2xl text-gray-700 mb-10 max-w-3xl mx-auto"
           >
-            Transform your ideas into stunning visuals and captivating videos 
+            Transform your ideas into stunning visuals and captivating videos
             with our AI-driven creative platform, powered by ComfyUI.
           </motion.p>
           <motion.div
@@ -316,6 +518,7 @@ export default function AICreativeWorkflow() {
         </motion.div>
       </Section>
 
+      {/* ------------------------- Features Section ------------------------- */}
       <Section className="bg-white">
         <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <motion.h2
@@ -327,22 +530,26 @@ export default function AICreativeWorkflow() {
           >
             Unleash Your Creativity
           </motion.h2>
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={stagger}
+            className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
             {features.map((feature, index) => (
-              <motion.div
+              <FeatureCard
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <FeatureCard {...feature} />
-              </motion.div>
+                icon={feature.icon}
+                title={feature.title}
+                description={feature.description}
+              />
             ))}
-          </div>
+          </motion.div>
         </div>
       </Section>
 
+      {/* ------------------------- How It Works Section ------------------------- */}
       <Section className="bg-gray-50">
         <motion.div
           initial="hidden"
@@ -365,6 +572,7 @@ export default function AICreativeWorkflow() {
         </motion.div>
       </Section>
 
+      {/* ------------------------- AI Showcase Section ------------------------- */}
       <Section className="bg-white">
         <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <motion.h2
@@ -376,7 +584,13 @@ export default function AICreativeWorkflow() {
           >
             AI-Generated Masterpieces
           </motion.h2>
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={stagger}
+            className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
             <ArtShowcase
               src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608138715-image.png"
               alt="AI-generated abstract art"
@@ -403,10 +617,94 @@ export default function AICreativeWorkflow() {
               src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608206569-image.png"
               alt="AI-generated digital art"
             />
-          </div>
+          </motion.div>
         </div>
       </Section>
 
+      {/* ------------------------- Use Cases Section ------------------------- */}
+      <Section className="bg-gray-50">
+        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-bold text-center mb-12"
+          >
+            Real-World Use Cases
+          </motion.h2>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={stagger}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          >
+            {useCases.map((useCase, index) => (
+              <UseCaseCard
+                key={index}
+                icon={useCase.icon}
+                title={useCase.title}
+                description={useCase.description}
+              />
+            ))}
+          </motion.div>
+        </div>
+      </Section>
+
+      {/* ------------------------- Pricing Section ------------------------- */}
+      <Section className="bg-white">
+        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-bold text-center mb-12"
+          >
+            Plans &amp; Pricing
+          </motion.h2>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={stagger}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          >
+            {pricingPlans.map((plan, index) => (
+              <PricingPlan key={index} {...plan} />
+            ))}
+          </motion.div>
+        </div>
+      </Section>
+
+      {/* ------------------------- Testimonials Section ------------------------- */}
+      <Section className="bg-gray-50">
+        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-bold text-center mb-12"
+          >
+            What Our Users Say
+          </motion.h2>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={stagger}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          >
+            {testimonials.map((testimonial, index) => (
+              <Testimonial key={index} {...testimonial} />
+            ))}
+          </motion.div>
+        </div>
+      </Section>
+
+      {/* ------------------------- Final CTA Section ------------------------- */}
       <Section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
         <div className="w-full px-6 text-center">
           <motion.h2
@@ -438,14 +736,18 @@ export default function AICreativeWorkflow() {
               href="/signup"
               className="bg-white text-purple-600 hover:bg-gray-200"
             >
-              Get Started for Now!
+              Get Started Now
             </GradientButton>
           </motion.div>
         </div>
       </Section>
 
+      {/* ------------------------- Footer ------------------------- */}
       <footer className="bg-gray-900 text-white pt-12 pb-8 w-full">
-        <div className="w-full px-6 md:px-12 lg:px-24 max-w-7xl mx-auto" style={{ paddingLeft: '0 !important', paddingRight: '0 !important' }}>
+        <div
+          className="w-full px-6 md:px-12 lg:px-24 max-w-7xl mx-auto"
+          style={{ paddingLeft: "0 !important", paddingRight: "0 !important" }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h3 className="font-bold text-xl mb-4">Pixio API</h3>
@@ -454,25 +756,45 @@ export default function AICreativeWorkflow() {
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="https://api.myapps.ai/">Features</a></li>
-                <li><a href="https://api.myapps.ai/">Pricing</a></li>
-                <li><a href="https://api.myapps.ai/">Tutorials</a></li>
+                <li>
+                  <a href="https://api.myapps.ai/">Features</a>
+                </li>
+                <li>
+                  <a href="https://api.myapps.ai/">Pricing</a>
+                </li>
+                <li>
+                  <a href="https://api.myapps.ai/">Tutorials</a>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="https://api.myapps.ai/">About</a></li>
-                <li><a href="https://support.myapps.ai/api-reference/endpoint/get">API Docs</a></li>
-                <li><a href="/examples">Workflows</a></li>
+                <li>
+                  <a href="https://api.myapps.ai/">About</a>
+                </li>
+                <li>
+                  <a href="https://support.myapps.ai/api-reference/endpoint/get">
+                    API Docs
+                  </a>
+                </li>
+                <li>
+                  <a href="/examples">Workflows</a>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="http://myapps.ai/privacy-policy/">Privacy</a></li>
-                <li><a href="https://myapps.ai/terms-condition/">Terms</a></li>
-                <li><a href="https://myapps.ai/terms-condition/">Copyright</a></li>
+                <li>
+                  <a href="http://myapps.ai/privacy-policy/">Privacy</a>
+                </li>
+                <li>
+                  <a href="https://myapps.ai/terms-condition/">Terms</a>
+                </li>
+                <li>
+                  <a href="https://myapps.ai/terms-condition/">Copyright</a>
+                </li>
               </ul>
             </div>
           </div>
