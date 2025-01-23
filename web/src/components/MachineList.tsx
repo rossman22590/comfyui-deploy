@@ -392,7 +392,7 @@ export function MachineList({
           />
           <InsertModal
             title="Custom Machine"
-            description="Add custom comfyui machines to your account."
+            description="Add custom comfyui machines to your account. This is how you get custom nodes and custom models into the Pixio API . If you face any issues please reach out to rcohen@mytsi.org"
             serverAction={addMachine}
             formSchema={addMachineSchema}
           />

@@ -1,3 +1,5 @@
+// File: src/app/(app)/page.tsx
+
 import Main from "@/components/Main";
 
 export default function Home() {

@@ -56,6 +56,10 @@ export function NavbarMenu({
       path: "/billing"
     },
     {
+      name: "Book Call",
+      path: "https://calendly.com/techinschools/pixio-api-onboarding"
+    },
+    {
       name: "Status",
       path: "https://ai-tutor-x-pixio.instatus.com", // External link
       external: true
