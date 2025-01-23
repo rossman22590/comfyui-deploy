@@ -453,7 +453,7 @@ export default function AICreativeWorkflow() {
       role: "Art Director",
       text: "Pixio's AI helped me create mesmerizing brand visuals in a fraction of the time—it’s a total game-changer.",
       avatarUrl:
-        "https://randomuser.me/api/portraits/women/64.jpg",
+        "https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737621302287-HgwvWLO7_400x400.jpg",
     },
     {
       author: "Nick Kukaj",
