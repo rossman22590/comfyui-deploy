@@ -246,7 +246,13 @@ export default function AboutPage() {
             Discover how Pixio API and ComfyUI can power your creative workflows,
             unlocking new possibilities in record time.
           </p>
-          <GradientButton href="/contact">Contact Us</GradientButton>
+          {/* 
+            ADD A WIDER CLASS, e.g. w-48, w-64, or min-w-[12rem]
+            Adjust as desired for your design 
+          */}
+          <GradientButton href="/contact" className="w-48">
+            Contact Us
+          </GradientButton>
         </motion.div>
       </Section>
     </motion.div>
