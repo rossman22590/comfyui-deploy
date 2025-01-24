@@ -219,11 +219,11 @@ export default function SupportedModelsPage() {
                     <div className="relative group cursor-pointer inline-block">
                       <span
                         onClick={() =>
-                          handleCopy("5875c52f59baca3a9372d68c43a3775e21846fe0")
+                          handleCopy("b9d9bcba1418711f13d7e432605f85303d900723")
                         }
                         className="text-blue-600"
                       >
-                        Hash 6fe0
+                        Hash 0723
                       </span>
                       {/* Tooltip: displays full hash on hover */}
                       <div
@@ -231,7 +231,7 @@ export default function SupportedModelsPage() {
                                    bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
                                    group-hover:opacity-100 transition-opacity w-max z-50"
                       >
-                        5875c52f59baca3a9372d68c43a3775e21846fe0
+                        b9d9bcba1418711f13d7e432605f85303d900723
                       </div>
                     </div>
                   </td>
