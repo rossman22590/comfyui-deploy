@@ -843,7 +843,7 @@ const run = await client.getRun(run_id);
       </Section>
 
       {/* ------------------------- Footer ------------------------- */}
-      <footer className="bg-gray-900 text-white pt-12 pb-8 w-full">
+      {/* <footer className="bg-gray-900 text-white pt-12 pb-8 w-full">
         <div
           className="w-full px-6 md:px-12 lg:px-24 max-w-7xl mx-auto"
           style={{ paddingLeft: "0 !important", paddingRight: "0 !important" }}
@@ -902,7 +902,7 @@ const run = await client.getRun(run_id);
             © {new Date().getFullYear()} Pixio API. All rights reserved.
           </div>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 }

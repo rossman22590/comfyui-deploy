@@ -45,6 +45,16 @@ const stagger = {
   },
 };
 
+/* Subtle background scale for sections */
+const backgroundScale = {
+  hidden: { scale: 0.95, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: { duration: 0.7, ease: "easeOut" },
+  },
+};
+
 /* -------------------------------------------------------------------------
    3. REUSABLE COMPONENTS
    ------------------------------------------------------------------------- */
@@ -52,12 +62,16 @@ const stagger = {
 /** Simple container for consistent spacing/style */
 function Section({ children, className = "", id }: SectionProps) {
   return (
-    <section
+    <motion.section
       id={id}
+      variants={backgroundScale}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
       className={`py-20 px-4 md:px-6 lg:px-24 w-full ${className}`}
     >
       {children}
-    </section>
+    </motion.section>
   );
 }
 
@@ -68,7 +82,7 @@ function SectionHeading({ title, subtitle }: SectionHeadingProps) {
       variants={fadeInUp}
       className="mb-10 text-center max-w-3xl mx-auto"
     >
-      <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800">
+      <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800 drop-shadow-sm">
         {title}
       </h2>
       {subtitle && (
@@ -87,12 +101,13 @@ function GradientButton({
   return (
     <motion.a
       href={href}
-      whileHover={{ scale: 1.05 }}
+      whileHover={{ scale: 1.05, backgroundPosition: "100% 50%" }}
       whileTap={{ scale: 0.95 }}
       className={`relative inline-flex items-center justify-center px-6 py-3 
         text-lg font-bold text-white rounded-md overflow-hidden
-        bg-gradient-to-r from-pink-600 to-purple-600 
-        no-underline shadow-md hover:shadow-lg ${className}`}
+        bg-gradient-to-r from-pink-600 to-purple-600 bg-[length:200%_200%]
+        bg-left-bottom transition-all duration-500
+        shadow-md hover:shadow-lg no-underline ${className}`}
     >
       {children}
     </motion.a>
@@ -108,9 +123,9 @@ export default function SupportedModelsPage() {
       initial="hidden"
       animate="visible"
       variants={stagger}
-      className="min-h-screen w-full bg-gray-50 text-gray-900"
+      className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-purple-50 to-white text-gray-900 overflow-x-hidden"
     >
-      {/* Optional global style override */}
+      {/* No horizontal scrolling on tables, all content fits on one page */}
       <style jsx global>{`
         .px-6 {
           padding-left: 0 !important;
@@ -118,15 +133,15 @@ export default function SupportedModelsPage() {
         }
       `}</style>
 
-      {/* HERO SECTION */}
-      <Section className="bg-gradient-to-r from-purple-100 to-blue-100 text-center">
+      {/* HERO SECTION WITH UPDATED GRADIENT */}
+      <Section className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 text-center">
         <motion.div variants={fadeInUp} className="max-w-3xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800 mb-6">
+          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800 mb-6 drop-shadow-sm">
             Supported Models &amp; ComfyUI Versions
           </h1>
           <p className="text-xl text-gray-600 mb-8">
             Check out which AI models and ComfyUI releases work seamlessly
-            with our Pixio API pipelines.
+            with our Pixio API pipelines—no extra scroll or clutter.
           </p>
           <GradientButton href="#details" className="w-48">
             See Details
@@ -134,145 +149,252 @@ export default function SupportedModelsPage() {
         </motion.div>
       </Section>
 
-      {/* DETAILS SECTION */}
+      {/* DETAILS SECTION WITH SMOOTH MOTION */}
       <Section id="details" className="bg-white">
         <SectionHeading
           title="Compatibility Overview"
           subtitle="Stay up to date with the latest versions we support."
         />
+
         <motion.div variants={stagger} className="max-w-5xl mx-auto">
-          {/* ComfyUI Versions Table */}
+          {/* COMFYUI VERSIONS TABLE */}
           <motion.div variants={fadeInUp} className="mb-12">
-            <h3 className="text-2xl font-bold mb-4 text-gray-800">
+            <h3 className="text-2xl font-bold mb-4 text-gray-800 drop-shadow-sm">
               ComfyUI Versions
             </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full bg-white rounded-lg shadow border border-gray-200">
-                <thead>
-                  <tr className="bg-gray-100 text-gray-700">
-                    <th className="px-4 py-2 text-left">Version / Hash</th>
-                    <th className="px-4 py-2 text-left">Supported</th>
-                    <th className="px-4 py-2 text-left">Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* Example Rows */}
-                  <tr className="border-b border-gray-200">
-                    <td className="px-4 py-3">v1.2.0</td>
-                    <td className="px-4 py-3">
-                      <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
-                    </td>
-                    <td className="px-4 py-3">
-                      Stable release. Fully tested with Pixio API.
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-200">
-                    <td className="px-4 py-3">v1.3.1</td>
-                    <td className="px-4 py-3">
-                      <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
-                    </td>
-                    <td className="px-4 py-3">
-                      Minor bug fixes—recommended upgrade for new pipelines.
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-200">
-                    <td className="px-4 py-3">v1.4.0</td>
-                    <td className="px-4 py-3">
-                      <XCircleIcon className="w-6 h-6 text-red-600 inline" />
-                    </td>
-                    <td className="px-4 py-3 text-red-500">
-                      Known compatibility issues. Not recommended.
-                    </td>
-                  </tr>
-
-                  {/* Example: Show short hash with hover for full hash */}
-                  <tr className="border-b border-gray-200">
-                    <td className="px-4 py-3">
-                      <div className="relative group cursor-help inline-block">
-                        Hash <span className="text-blue-600">6fe0</span>
-                        {/* Tooltip with full hash on hover */}
-                        <div
-                          className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1 
-                                     bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
-                                     group-hover:opacity-100 transition-opacity w-max z-10"
-                        >
-                          5875c52f59baca3a9372d68c43a3775e21846fe0
-                        </div>
+            <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+              <thead>
+                <tr className="bg-gray-100 text-gray-700">
+                  <th className="px-4 py-2 text-left">Version / Hash</th>
+                  <th className="px-4 py-2 text-left">Supported</th>
+                  <th className="px-4 py-2 text-left">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* We removed the rows for v1.2.0, v1.3.1, v1.4.0 */}
+                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="relative group cursor-help inline-block">
+                      Hash <span className="text-blue-600">6fe0</span>
+                      <div
+                        className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1 
+                                   bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
+                                   group-hover:opacity-100 transition-opacity w-max z-10"
+                      >
+                        5875c52f59baca3a9372d68c43a3775e21846fe0
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
-                    </td>
-                    <td className="px-4 py-3">
-                      Pixio has tested this exact commit hash in ComfyUI.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">
+                    Pixio has tested this exact commit hash in ComfyUI.
+                  </td>
+                </tr>
+
+                {/* Additional ComfyUI versions */}
+                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="relative group cursor-help inline-block">
+                      v1.2.5 <span className="text-blue-600">d3ad</span>
+                      <div
+                        className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1 
+                                   bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
+                                   group-hover:opacity-100 transition-opacity w-max z-10"
+                      >
+                        851bc33d3adffffcbb1122e765a498z13999d3ad
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">Stable hotfix version.</td>
+                </tr>
+                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="relative group cursor-help inline-block">
+                      v1.2.9 <span className="text-blue-600">ab12</span>
+                      <div
+                        className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1 
+                                   bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
+                                   group-hover:opacity-100 transition-opacity w-max z-10"
+                      >
+                        12abcd34ef5678abcd90ab12ef3456abcd7890ab
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">
+                    Offers performance improvements for style transfer nodes.
+                  </td>
+                </tr>
+                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="relative group cursor-help inline-block">
+                      v1.5.0 <span className="text-blue-600">beef</span>
+                      <div
+                        className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1 
+                                   bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
+                                   group-hover:opacity-100 transition-opacity w-max z-10"
+                      >
+                        beefcafea55f12345c9876beef4098abcd6543bee
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <XCircleIcon className="w-6 h-6 text-red-600 inline" />
+                  </td>
+                  <td className="px-4 py-3 text-red-500">
+                    Breaking changes in pipeline calls. Not supported.
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="relative group cursor-help inline-block">
+                      v1.5.2 <span className="text-blue-600">cafe</span>
+                      <div
+                        className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1 
+                                   bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
+                                   group-hover:opacity-100 transition-opacity w-max z-10"
+                      >
+                        99cafecafecafefeeddeadbeaf65676bebacafe
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">
+                    Experimental branch validated by internal QA.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </motion.div>
 
-          {/* Models Table */}
+          {/* MODELS TABLE */}
           <motion.div variants={fadeInUp}>
-            <h3 className="text-2xl font-bold mb-4 text-gray-800">Models</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full bg-white rounded-lg shadow border border-gray-200">
-                <thead>
-                  <tr className="bg-gray-100 text-gray-700">
-                    <th className="px-4 py-2 text-left">Model Name</th>
-                    <th className="px-4 py-2 text-left">Supported</th>
-                    <th className="px-4 py-2 text-left">Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* Example Rows */}
-                  <tr className="border-b border-gray-200">
-                    <td className="px-4 py-3">Stable Diffusion v1.5</td>
-                    <td className="px-4 py-3">
-                      <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
-                    </td>
-                    <td className="px-4 py-3">
-                      Most popular for high-quality image generation.
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-200">
-                    <td className="px-4 py-3">Stable Diffusion v2.1</td>
-                    <td className="px-4 py-3">
-                      <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
-                    </td>
-                    <td className="px-4 py-3">
-                      Enhanced upscaling and better detail in complex scenes.
-                    </td>
-                  </tr>
-                  <tr className="border-b border-gray-200">
-                    <td className="px-4 py-3">Stable DIffusion XL</td>
-                    <td className="px-4 py-3">
-                      <XCircleIcon className="w-6 h-6 text-red-600 inline" />
-                    </td>
-                    <td className="px-4 py-3 text-red-500">
-                      Not yet integrated with Pixio pipelines.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <h3 className="text-2xl font-bold mb-4 text-gray-800 drop-shadow-sm">
+              Models
+            </h3>
+            <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+              <thead>
+                <tr className="bg-gray-100 text-gray-700">
+                  <th className="px-4 py-2 text-left">Model Name</th>
+                  <th className="px-4 py-2 text-left">Supported</th>
+                  <th className="px-4 py-2 text-left">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Stable Diffusion v1.5</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">
+                    Most popular for high-quality image generation.
+                  </td>
+                </tr>
+                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Stable Diffusion v2.1</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">
+                    Enhanced upscaling and better detail in complex scenes.
+                  </td>
+                </tr>
+                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Stable Diffusion XL</td>
+                  <td className="px-4 py-3">
+                    <XCircleIcon className="w-6 h-6 text-red-600 inline" />
+                  </td>
+                  <td className="px-4 py-3 text-red-500">
+                    Not yet integrated with Pixio pipelines.
+                  </td>
+                </tr>
+                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Redwood Dream v0.9</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">
+                    Great for stylized environments and concept art.
+                  </td>
+                </tr>
+                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Luna LoRA v2.3</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">
+                    LoRA-based extension for quick fine-tuning. Works well with Pixio.
+                  </td>
+                </tr>
+                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">SciVis Ultra</td>
+                  <td className="px-4 py-3">
+                    <XCircleIcon className="w-6 h-6 text-red-600 inline" />
+                  </td>
+                  <td className="px-4 py-3 text-red-500">
+                    Requires custom node not yet deployed in Pixio.
+                  </td>
+                </tr>
+                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">ArtBrain Infinity</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">
+                    High complexity scenes and surreal styles. Beta test success.
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Llama v2 Visual</td>
+                  <td className="px-4 py-3">
+                    <XCircleIcon className="w-6 h-6 text-red-600 inline" />
+                  </td>
+                  <td className="px-4 py-3 text-red-500">
+                    Planned for Q4 release—no ETA.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </motion.div>
         </motion.div>
       </Section>
 
-      {/* FINAL CTA SECTION */}
-      <Section className="bg-gradient-to-r from-purple-100 to-blue-100 text-white text-center">
-        <motion.div variants={fadeInUp} className="max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Need More Info?</h2>
-          <p className="text-xl text-black-100 mb-6">
-            Reach out to our team for detailed integration guides, 
-            or to request support for additional models.
-          </p>
-          <GradientButton href="/contact" className="w-48">
-            Contact Us
-          </GradientButton>
-        </motion.div>
-      </Section>
+    {/* SDK Section */}
+    <Section className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 text-center">
+  <SectionHeading
+    title="Available SDKs"
+    subtitle="Start integrating Pixio into your own apps in minutes."
+  />
+  <motion.div
+    variants={fadeInUp}
+    className="max-w-4xl mx-auto text-center flex flex-col items-center"
+  >
+    <p className="text-lg mb-6 sm:px-8 text-black">
+      We currently provide first-class SDKs for popular frameworks.
+      Getting started is as simple as installing our package and calling
+      a few intuitive methods.
+    </p>
+    <GradientButton
+      href="https://github.com/YourOrganization/pixio-nextjs-sdk"
+      className="w-64"
+    >
+      Next.js SDK
+    </GradientButton>
+    <p className="mt-4 text-black">
+      <em>More SDKs coming soon...</em>
+    </p>
+  </motion.div>
+</Section>
+
     </motion.div>
   );
 }
