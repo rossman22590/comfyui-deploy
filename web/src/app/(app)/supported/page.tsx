@@ -79,7 +79,11 @@ function SectionHeading({ title, subtitle }: SectionHeadingProps) {
 }
 
 /** Gradient-styled call-to-action button */
-function GradientButton({ href = "#", children, className = "" }: GradientButtonProps) {
+function GradientButton({
+  href = "#",
+  children,
+  className = "",
+}: GradientButtonProps) {
   return (
     <motion.a
       href={href}
@@ -146,7 +150,7 @@ export default function SupportedModelsPage() {
               <table className="w-full bg-white rounded-lg shadow border border-gray-200">
                 <thead>
                   <tr className="bg-gray-100 text-gray-700">
-                    <th className="px-4 py-2 text-left">Version</th>
+                    <th className="px-4 py-2 text-left">Version / Hash</th>
                     <th className="px-4 py-2 text-left">Supported</th>
                     <th className="px-4 py-2 text-left">Notes</th>
                   </tr>
@@ -178,6 +182,29 @@ export default function SupportedModelsPage() {
                     </td>
                     <td className="px-4 py-3 text-red-500">
                       Known compatibility issues. Not recommended.
+                    </td>
+                  </tr>
+
+                  {/* Example: Show short hash with hover for full hash */}
+                  <tr className="border-b border-gray-200">
+                    <td className="px-4 py-3">
+                      <div className="relative group cursor-help inline-block">
+                        Hash <span className="text-blue-600">6fe0</span>
+                        {/* Tooltip with full hash on hover */}
+                        <div
+                          className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1 
+                                     bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
+                                     group-hover:opacity-100 transition-opacity w-max z-10"
+                        >
+                          5875c52f59baca3a9372d68c43a3775e21846fe0
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                    </td>
+                    <td className="px-4 py-3">
+                      Pixio has tested this exact commit hash in ComfyUI.
                     </td>
                   </tr>
                 </tbody>
