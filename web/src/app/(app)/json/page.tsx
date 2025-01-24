@@ -167,7 +167,15 @@ export default function MultiCustomModelBuilderPage() {
       initial="hidden"
       animate="visible"
       variants={stagger}
+      
     >
+           <style jsx global>{`
+        .px-6 {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+        }
+      `}</style>
+      
       {/* Page Heading */}
       <Section className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100">
         <SectionHeading
