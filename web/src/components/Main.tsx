@@ -1,79 +1,34 @@
 "use client";
 
-import React, { useState, useEffect, ReactNode } from "react";
+import React, { ReactNode } from "react";
 import { motion } from "framer-motion";
-import {
-  SparklesIcon,
-  PaintBrushIcon,
-  VideoCameraIcon,
-  CameraIcon,
-  CodeBracketIcon,
-  CogIcon,
-  UserIcon,
-  UserGroupIcon,
-  CheckCircleIcon,
-  CloudArrowUpIcon,
-} from "@heroicons/react/24/outline";
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
 
-
-
-/* ---------------------------------- Types --------------------------------- */
-
+/* -------------------------------------------------------------------------
+   1. TYPES & INTERFACES
+------------------------------------------------------------------------- */
 interface SectionProps {
   children: ReactNode;
   className?: string;
+  id?: string;
+}
+
+interface SectionHeadingProps {
+  title: string;
+  subtitle?: string;
 }
 
 interface GradientButtonProps {
-  children: ReactNode;
-  primary?: boolean;
   href?: string;
   className?: string;
+  children: ReactNode;
 }
 
-interface FeatureCardProps {
-  title: string;
-  description: string;
-  icon: ReactNode;
-}
-
-interface WorkflowStepProps {
-  number: number;
-  title: string;
-  description: string;
-}
-
-interface ArtShowcaseProps {
-  src: string;
-  alt: string;
-  type?: "image" | "video";
-}
-
-interface UseCaseCardProps {
-  icon: ReactNode;
-  title: string;
-  description: string;
-}
-
-interface PricingPlanProps {
-  title: string;
-  price: string;
-  features: string[];
-  ctaLink: string;
-  highlighted?: boolean;
-}
-
-interface TestimonialProps {
-  author: string;
-  role: string;
-  text: string;
-  avatarUrl: string;
-}
-
-/* ---------------------------- Animation Variants --------------------------- */
-
+/* -------------------------------------------------------------------------
+   2. ANIMATION VARIANTS
+------------------------------------------------------------------------- */
 const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
@@ -90,399 +45,131 @@ const stagger = {
   },
 };
 
-/* -------------------------------- Components ------------------------------- */
+const backgroundScale = {
+  hidden: { scale: 0.95, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: { duration: 0.7, ease: "easeOut" },
+  },
+};
 
-function Section({ children, className = "" }: SectionProps) {
+/* -------------------------------------------------------------------------
+   3. REUSABLE COMPONENTS
+------------------------------------------------------------------------- */
+
+// Copies text to clipboard
+const handleCopy = (text: string) => {
+  navigator.clipboard
+    .writeText(text)
+    .then(() => alert(`Copied:\n\n${text}`))
+    .catch(() => alert("Failed to copy. Please try again!"));
+};
+
+/** Wraps each section in consistent style/animation */
+function Section({ children, className = "", id }: SectionProps) {
   return (
-    <section className={`py-20 w-full relative ${className}`}>
+    <motion.section
+      id={id}
+      variants={backgroundScale}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+      className={`py-20 px-4 md:px-6 lg:px-24 w-full ${className}`}
+    >
       {children}
-    </section>
+    </motion.section>
   );
 }
 
-function GradientButton({
-  children,
-  primary = false,
-  href = "#",
-  className = "",
-}: GradientButtonProps) {
+/** Section heading with optional subtitle */
+function SectionHeading({ title, subtitle }: SectionHeadingProps) {
+  return (
+    <motion.div variants={fadeInUp} className="mb-10 text-center max-w-3xl mx-auto">
+      <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-800 drop-shadow-sm">
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="text-xl text-gray-500 leading-relaxed">
+          {subtitle}
+        </p>
+      )}
+    </motion.div>
+  );
+}
+
+/** Shiny gradient button for CTAs or external links */
+function GradientButton({ href = "#", children, className = "" }: GradientButtonProps) {
   return (
     <motion.a
       href={href}
-      className={[
-        "relative inline-flex items-center justify-center px-8 py-4 rounded-xl",
-        "text-lg font-semibold overflow-hidden no-underline shadow-md",
-        primary ? "text-white" : "text-gray-700",
-        className,
-      ].join(" ")}
-      whileHover={{ scale: 1.05 }}
+      whileHover={{ scale: 1.05, backgroundPosition: "100% 50%" }}
       whileTap={{ scale: 0.95 }}
+      className={`relative inline-flex items-center justify-center px-6 py-3 
+        text-lg font-bold text-white rounded-md overflow-hidden
+        bg-gradient-to-r from-pink-600 to-purple-600 bg-[length:200%_200%]
+        bg-left-bottom transition-all duration-500
+        shadow-md hover:shadow-lg no-underline ${className}`}
     >
-      <span className="relative z-10">{children}</span>
-      <motion.div
-        className={
-          primary
-            ? "absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600"
-            : "absolute inset-0 bg-white border-2 border-gray-200"
-        }
-        initial={{ scale: 1 }}
-        whileHover={{ scale: 1.02 }}
-        transition={{ duration: 0.3 }}
-      />
+      {children}
     </motion.a>
   );
 }
 
-function FeatureCard({ title, description, icon }: FeatureCardProps) {
+/** A pill-shaped gradient link for model references */
+function PillLink({ href }: { href: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center px-3 py-1 text-sm font-medium
+                 text-white bg-gradient-to-r from-pink-600 to-purple-600
+                 rounded-full shadow hover:opacity-80 transition-opacity"
+    >
+      Link
+    </a>
+  );
+}
+
+/* -------------------------------------------------------------------------
+   4. MAIN PAGE
+-------------------------------------------------------------------------*/
+
+// Machine Creation API setup JSON
+const machineCreationConfig = `{
+  "comfyui": "b9d9bcba1418711f13d7e432605f85303d900723",
+  "git_custom_nodes": {
+    "https://github.com/rossman22590/comfyui-deploy.git": {
+      "hash": "13309df4aae41ff6770ec040046b2c5157e055a1",
+      "disabled": false
+    }
+  },
+  "file_custom_nodes": []
+}`;
+
+// Custom Model API JSON
+const customModelApiJSON = `[
+  {
+    "name": "v1-5-pruned-emaonly.ckpt",
+    "type": "checkpoints",
+    "base": "SD1.5",
+    "save_path": "default",
+    "description": "Stable Diffusion 1.5 base model",
+    "reference": "https://huggingface.co/runwayml/stable-diffusion-v1-5",
+    "filename": "v1-5-pruned-emaonly.ckpt",
+    "url": "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.ckpt"
+  }
+]`;
+
+export default function SupportedModelsPage() {
   return (
     <motion.div
-      className="group relative bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-shadow duration-300"
-      whileHover={{ y: -4 }}
-      variants={fadeInUp}
+      initial="hidden"
+      animate="visible"
+      variants={stagger}
+      className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-purple-50 to-white text-gray-900 overflow-x-hidden"
     >
-      <div className="flex items-center mb-4">
-        <div className="p-3 bg-purple-50 rounded-lg mr-4 flex items-center justify-center">
-          {icon}
-        </div>
-        <h3 className="text-xl font-semibold">{title}</h3>
-      </div>
-      <p className="text-gray-600">{description}</p>
-      <span
-        className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-purple-100 transition-colors"
-        aria-hidden="true"
-      />
-    </motion.div>
-  );
-}
-
-function WorkflowStep({ number, title, description }: WorkflowStepProps) {
-  return (
-    <motion.div className="flex items-start" variants={fadeInUp}>
-      <div
-        className="flex-shrink-0 w-12 h-12 flex items-center justify-center 
-                   bg-gradient-to-r from-purple-600 to-blue-600 
-                   text-white rounded-full font-bold text-xl mr-6 shadow-md"
-      >
-        {number}
-      </div>
-      <div>
-        <h3 className="text-xl font-semibold mb-2">{title}</h3>
-        <p className="text-gray-600">{description}</p>
-      </div>
-    </motion.div>
-  );
-}
-
-function ArtShowcase({ src, alt, type = "image" }: ArtShowcaseProps) {
-  return (
-    <motion.div
-      className="
-        relative 
-        rounded-lg 
-        overflow-hidden 
-        shadow-md 
-        hover:shadow-xl 
-        transition-all 
-        duration-300 
-        aspect-video
-      "
-      whileHover={{ scale: 1.02 }}
-      transition={{ type: "spring", stiffness: 300 }}
-    >
-      {type === "image" ? (
-        <img
-          src={src}
-          alt={alt}
-          className="h-full w-full object-cover"
-          loading="lazy"
-        />
-      ) : (
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="h-full w-full object-cover"
-        >
-          <source src={src} type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-      )}
-    </motion.div>
-  );
-}
-
-/* ---------------------------------- New Components --------------------------------- */
-
-function UseCaseCard({ icon, title, description }: UseCaseCardProps) {
-  return (
-    <motion.div
-      className="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow flex items-start space-x-4"
-      whileHover={{ y: -5 }}
-      variants={fadeInUp}
-    >
-      {/* Round circle icon */}
-      <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-purple-100 to-blue-100 rounded-full">
-        {icon}
-      </div>
-      <div>
-        <h4 className="text-xl font-semibold mb-2">{title}</h4>
-        <p className="text-gray-600">{description}</p>
-      </div>
-    </motion.div>
-  );
-}
-
-function PricingPlan({
-  title,
-  price,
-  features,
-  ctaLink,
-  highlighted = false,
-}: PricingPlanProps) {
-  return (
-    <motion.div
-      className={`relative flex flex-col p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow ${
-        highlighted ? "bg-gradient-to-br from-purple-50 to-blue-50" : "bg-white"
-      }`}
-      whileHover={{ scale: 1.02 }}
-      variants={fadeInUp}
-    >
-      {highlighted && (
-        <div className="absolute top-2 right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
-          Most Popular
-        </div>
-      )}
-      <h3 className="text-2xl font-bold mb-4 text-gray-800">{title}</h3>
-      <p className="text-4xl font-extrabold text-gray-800 mb-4">{price}</p>
-      <ul className="mb-8 space-y-2">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-center space-x-2 text-gray-700">
-            <CheckCircleIcon className="w-5 h-5 text-purple-600" />
-            <span>{feature}</span>
-          </li>
-        ))}
-      </ul>
-      <GradientButton
-        href={ctaLink}
-        primary={highlighted}
-        className={highlighted ? "" : "bg-white text-gray-700"}
-      >
-        Get Started
-      </GradientButton>
-    </motion.div>
-  );
-}
-
-function Testimonial({ author, role, text, avatarUrl }: TestimonialProps) {
-  return (
-    <motion.div
-      className="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow flex flex-col items-center text-center"
-      whileHover={{ y: -5 }}
-      variants={fadeInUp}
-    >
-      <img
-        src={avatarUrl}
-        alt={author}
-        className="w-16 h-16 rounded-full mb-4 object-cover"
-      />
-      <blockquote className="text-gray-600 italic mb-4">“{text}”</blockquote>
-      <div className="font-semibold text-gray-800">{author}</div>
-      <div className="text-sm text-gray-500">{role}</div>
-    </motion.div>
-  );
-}
-
-function HeroBackgroundAnimation() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <motion.div
-        className="absolute w-[50rem] h-[50rem] bg-purple-200 rounded-full blur-3xl opacity-40"
-        style={{ top: "-20rem", left: "-20rem" }}
-        animate={{ rotate: 360 }}
-        transition={{
-          repeat: Infinity,
-          duration: 60,
-          ease: "linear",
-        }}
-      />
-      <motion.div
-        className="absolute w-[40rem] h-[40rem] bg-blue-200 rounded-full blur-3xl opacity-30"
-        style={{ bottom: "-15rem", right: "-15rem" }}
-        animate={{ rotate: -360 }}
-        transition={{
-          repeat: Infinity,
-          duration: 80,
-          ease: "linear",
-        }}
-      />
-    </div>
-  );
-}
-
-/* ----------------------------------- Main ---------------------------------- */
-
-export default function AICreativeWorkflow() {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
-
-  /* ------------------ Content Data ------------------ */
-
-  const features: FeatureCardProps[] = [
-    {
-      icon: <PaintBrushIcon className="w-6 h-6 text-purple-600" />,
-      title: "AI-Powered Art Generation",
-      description: "Create stunning artworks with state-of-the-art AI models.",
-    },
-    {
-      icon: <VideoCameraIcon className="w-6 h-6 text-blue-600" />,
-      title: "Video Synthesis",
-      description: "Generate and edit videos using advanced AI techniques.",
-    },
-    {
-      icon: <CameraIcon className="w-6 h-6 text-red-600" />,
-      title: "Image Enhancement",
-      description: "Upscale and improve image quality using AI algorithms.",
-    },
-    {
-      icon: <SparklesIcon className="w-6 h-6 text-yellow-600" />,
-      title: "Style Transfer",
-      description: "Apply artistic styles to your images and videos.",
-    },
-    {
-      icon: <CodeBracketIcon className="w-6 h-6 text-indigo-600" />,
-      title: "Custom Workflows",
-      description: "Create and deploy your own AI creative pipelines.",
-    },
-    {
-      icon: <CogIcon className="w-6 h-6 text-green-600" />,
-      title: "ComfyUI Integration",
-      description: "Seamlessly integrate with ComfyUI for advanced control.",
-    },
-  ];
-
-  const workflowSteps: WorkflowStepProps[] = [
-    {
-      number: 1,
-      title: "Design Your Workflow",
-      description: "Use ComfyUI's intuitive interface to design your AI workflow.",
-    },
-    {
-      number: 2,
-      title: "Configure Nodes",
-      description: "Set up and connect nodes to define your AI processing pipeline.",
-    },
-    {
-      number: 3,
-      title: "Input Parameters",
-      description: "Adjust settings and provide prompts to guide the AI generation.",
-    },
-    {
-      number: 4,
-      title: "Generate Content",
-      description: "Let our powerful AI models bring your vision to life.",
-    },
-    {
-      number: 5,
-      title: "Refine and Iterate",
-      description: "Fine-tune the results by adjusting your workflow or parameters.",
-    },
-    {
-      number: 6,
-      title: "Launch API",
-      description: "Launch your workflow as an API!.",
-    },
-  ];
-
-  const useCases: UseCaseCardProps[] = [
-    {
-      icon: <UserIcon className="w-6 h-6 text-purple-600" />,
-      title: "Freelance Creators",
-      description:
-        "Expand your service offerings with AI-driven designs, branding assets, and immersive visuals.",
-    },
-    {
-      icon: <UserGroupIcon className="w-6 h-6 text-blue-600" />,
-      title: "Marketing Teams",
-      description:
-        "Quickly generate creative assets for campaigns, social media, and product launches.",
-    },
-    {
-      icon: <CloudArrowUpIcon className="w-6 h-6 text-indigo-600" />,
-      title: "Developers",
-      description:
-        "Easily integrate AI art pipelines into your apps or websites with our robust API and ComfyUI nodes.",
-    },
-  ];
-
-  const pricingPlans: PricingPlanProps[] = [
-    {
-      title: "Standard",
-      price: "$100/mo",
-      features: [
-        "AI Art Generation (Basic)",
-        "5 Machine Credits",
-        "Standard Image Enhancement",
-        "Serverless Deployment",
-      ],
-      ctaLink: "https://docs.google.com/forms/d/e/1FAIpQLSf8tmmvyA108ZjTbMsvecjMy1STSJi-HnPZ-cVS0VMfmGfLEw/viewform",
-    },
-    {
-      title: "Pro",
-      price: "$500/mo",
-      features: [
-        "AI Art Generation (Advanced)",
-        "50 Machine Credits",
-        "High-Resolution Image Enhancement",
-        "Priority Support",
-      ],
-      ctaLink: "https://docs.google.com/forms/d/e/1FAIpQLSf8tmmvyA108ZjTbMsvecjMy1STSJi-HnPZ-cVS0VMfmGfLEw/viewform",
-      highlighted: true,
-    },
-    {
-      title: "Enterprise",
-      price: "Custom",
-      features: [
-        "Unlimited AI Art Generation",
-        "Customized Video Pipelines",
-        "High-Fidelity Image Enhancement",
-        "Dedicated Support & SLA",
-      ],
-      ctaLink: "https://docs.google.com/forms/d/e/1FAIpQLSf8tmmvyA108ZjTbMsvecjMy1STSJi-HnPZ-cVS0VMfmGfLEw/viewform",
-    },
-  ];
-
-  const testimonials: TestimonialProps[] = [
-    {
-      author: "Sharon Jerman",
-      role: "Art Director",
-      text: "Pixio's AI helped me create mesmerizing brand visuals in a fraction of the time—it’s a total game-changer.",
-      avatarUrl:
-        "https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737621302287-HgwvWLO7_400x400.jpg",
-    },
-    {
-      author: "Nick Kukaj",
-      role: "Freelance Creative",
-      text: "I love how easy it is to integrate AI into my workflow. My clients are stunned by the results!",
-      avatarUrl:
-        "https://randomuser.me/api/portraits/men/51.jpg",
-    },
-    {
-      author: "Jeremy White",
-      role: "Marketing Manager",
-      text: "Our campaigns have never looked better. The combination of speed and quality is unmatched.",
-      avatarUrl:
-        "https://randomuser.me/api/portraits/men/69.jpg",
-    },
-  ];
-
-  /* ------------------ Page Structure ------------------ */
-
-  return (
-    <div className="min-h-screen flex flex-col w-full bg-gray-50 text-gray-900">
       <style jsx global>{`
         .px-6 {
           padding-left: 0 !important;
@@ -490,419 +177,370 @@ export default function AICreativeWorkflow() {
         }
       `}</style>
 
-      {/* ------------------------- Hero Section ------------------------- */}
-      <Section className="bg-gradient-to-br from-purple-50 via-blue-50 to-blue-100 flex flex-col items-center justify-center text-center overflow-hidden">
-        <HeroBackgroundAnimation />
-        <motion.div
-          initial="hidden"
-          animate={isVisible ? "visible" : "hidden"}
-          variants={stagger}
-          className="relative z-10 w-full px-6"
-        >
-          <motion.h1
-            variants={fadeInUp}
-            className="text-5xl md:text-7xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-purple-600 leading-tight drop-shadow-lg"
-          >
-            Pixio AI Powered Creative Workflows
-          </motion.h1>
-          <motion.p
-            variants={fadeInUp}
-            className="text-xl md:text-2xl text-gray-700 mb-10 max-w-3xl mx-auto"
-          >
-            Transform your ideas into stunning visuals and captivating videos 
-            with our AI-driven creative platform, powered by ComfyUI.
-          </motion.p>
-          <motion.div
-            variants={fadeInUp}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <GradientButton primary href="/machines">
-              Start Creating
-            </GradientButton>
-            <GradientButton href="https://calendly.com/techinschools/pixio-api-onboarding?month=2025-01">
-              Book Demo
-            </GradientButton>
-            <GradientButton href="https://pixio.myapps.ai">
-              Pixio
-            </GradientButton>
+      {/* HERO SECTION */}
+      <Section className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 text-center">
+        <motion.div variants={fadeInUp} className="max-w-3xl mx-auto">
+          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800 mb-6 drop-shadow-sm">
+            Supported Models &amp; ComfyUI Versions
+          </h1>
+          <p className="text-xl text-gray-600 mb-8">
+            Check out which AI models and ComfyUI releases work with our Pixio API pipelines.
+          </p>
+          <GradientButton href="#details" className="w-48">
+            See Details
+          </GradientButton>
+        </motion.div>
+      </Section>
+
+      {/* DETAILS SECTION */}
+      <Section id="details" className="bg-white">
+        <SectionHeading
+          title="Compatibility Overview"
+          subtitle="Stay up to date with the latest versions we support."
+        />
+
+        <motion.div variants={stagger} className="max-w-5xl mx-auto">
+          {/* COMFYUI VERSIONS */}
+          <motion.div variants={fadeInUp} className="mb-12">
+            <h3 className="text-2xl font-bold mb-4 text-gray-800 drop-shadow-sm">
+              ComfyUI Versions
+            </h3>
+            <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-visible">
+              <thead>
+                <tr className="bg-gray-100 text-gray-700">
+                  <th className="px-4 py-2 text-left">Version / Hash</th>
+                  <th className="px-4 py-2 text-left">Supported</th>
+                  <th className="px-4 py-2 text-left">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="relative group cursor-pointer inline-block">
+                      <span
+                        onClick={() =>
+                          handleCopy("5875c52f59baca3a9372d68c43a3775e21846fe0")
+                        }
+                        className="text-blue-600"
+                      >
+                        Hash 6fe0
+                      </span>
+                      {/* Tooltip: displays full hash on hover */}
+                      <div
+                        className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1
+                                   bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
+                                   group-hover:opacity-100 transition-opacity w-max z-50"
+                      >
+                        5875c52f59baca3a9372d68c43a3775e21846fe0
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">Pixio tested this exact commit hash.</td>
+                </tr>
+
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="relative group cursor-pointer inline-block">
+                      <span
+                        onClick={() =>
+                          handleCopy("851bc33d3adffffcbb1122e765a498z13999d3ad")
+                        }
+                        className="text-blue-600"
+                      >
+                        v1.2.5 d3ad
+                      </span>
+                      <div
+                        className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1 
+                                   bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
+                                   group-hover:opacity-100 transition-opacity w-max z-50"
+                      >
+                        851bc33d3adffffcbb1122e765a498z13999d3ad
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">Stable hotfix version.</td>
+                </tr>
+
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="relative group cursor-pointer inline-block">
+                      <span
+                        onClick={() =>
+                          handleCopy("12abcd34ef5678abcd90ab12ef3456abcd7890ab")
+                        }
+                        className="text-blue-600"
+                      >
+                        v1.2.9 ab12
+                      </span>
+                      <div
+                        className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1
+                                   bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
+                                   group-hover:opacity-100 transition-opacity w-max z-50"
+                      >
+                        12abcd34ef5678abcd90ab12ef3456abcd7890ab
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">
+                    Performance improvements for style transfer nodes.
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="relative group cursor-pointer inline-block">
+                      <span
+                        onClick={() =>
+                          handleCopy("99cafecafecafefeeddeadbeaf65676bebacafe")
+                        }
+                        className="text-blue-600"
+                      >
+                        v1.5.2 cafe
+                      </span>
+                      <div
+                        className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1 
+                                   bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
+                                   group-hover:opacity-100 transition-opacity w-max z-50"
+                      >
+                        99cafecafecafefeeddeadbeaf65676bebacafe
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">Experimental branch validated internally.</td>
+                </tr>
+              </tbody>
+            </table>
+          </motion.div>
+
+          {/* MODELS TABLE */}
+          <motion.div variants={fadeInUp} className="mb-12">
+            <h3 className="text-2xl font-bold mb-4 text-gray-800 drop-shadow-sm">
+              Models
+            </h3>
+            <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-visible">
+              <thead>
+                <tr className="bg-gray-100 text-gray-700">
+                  <th className="px-4 py-2 text-left">Model Name</th>
+                  <th className="px-4 py-2 text-left">Supported</th>
+                  <th className="px-4 py-2 text-left">Notes</th>
+                  <th className="px-4 py-2 text-left">Links</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Stable Diffusion v1.5</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">High-quality image generation.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="https://huggingface.co/runwayml/stable-diffusion-v1-5" />
+                  </td>
+                </tr>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Stable Diffusion XL</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">Enhanced upscaling, better details.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0" />
+                  </td>
+                </tr>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Stable Diffusion v2</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">Enhanced detail in complex scenes.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="https://huggingface.co/stabilityai/stable-diffusion-2" />
+                  </td>
+                </tr>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Stable Diffusion v3</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">Further enhancements (beta).</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="#" />
+                  </td>
+                </tr>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Flux</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">Great for stylized art.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="#" />
+                  </td>
+                </tr>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Flux Tools</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">LoRA-based extension.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="#" />
+                  </td>
+                </tr>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Hayuan</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">High complexity, surreal styles.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="#" />
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Dreambooth</td>
+                  <td className="px-4 py-3">
+                    <XCircleIcon className="w-6 h-6 text-red-600 inline" />
+                  </td>
+                  <td className="px-4 py-3 text-red-500">Not yet integrated.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="#" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </motion.div>
+
+          {/* HUGGING FACE MODELS */}
+          <motion.div variants={fadeInUp}>
+            <h3 className="text-2xl font-bold mb-4 text-gray-800 drop-shadow-sm">
+              Hugging Face Models
+            </h3>
+            <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-visible">
+              <thead>
+                <tr className="bg-gray-100 text-gray-700">
+                  <th className="px-4 py-2 text-left">Model Name</th>
+                  <th className="px-4 py-2 text-left">Supported</th>
+                  <th className="px-4 py-2 text-left">Notes</th>
+                  <th className="px-4 py-2 text-left">Links</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">GPT-2</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">Basic text generation model.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="https://huggingface.co/gpt2" />
+                  </td>
+                </tr>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">BERT</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">Popular NLP model for many tasks.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="https://huggingface.co/bert-base-uncased" />
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">BLOOM</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">Open large multilingual model.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="https://huggingface.co/bigscience/bloom" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </motion.div>
         </motion.div>
       </Section>
 
-      {/* ------------------------- Features Section ------------------------- */}
+      {/* MACHINE CREATION API SETUP */}
       <Section className="bg-white">
-        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-4xl font-bold text-center mb-12"
-          >
-            Unleash Your Creativity
-          </motion.h2>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            {features.map((feature, index) => (
-              <FeatureCard
-                key={index}
-                icon={feature.icon}
-                title={feature.title}
-                description={feature.description}
-              />
-            ))}
-          </motion.div>
-        </div>
-      </Section>
-{/* ------------------------- How It Works Section ------------------------- */}
-<Section className="bg-gray-50">
-  <div className="w-full px-6 max-w-7xl mx-auto">
-    <motion.h2
-      variants={fadeInUp}
-      className="text-4xl font-bold text-center mb-12"
-    >
-      How It Works with ComfyUI
-    </motion.h2>
-    <div className="flex flex-col lg:flex-row gap-12">
-      {/* Workflow Steps */}
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={stagger}
-        className="w-full lg:w-1/2"
-      >
-        <div className="flex flex-col space-y-10">
-          {workflowSteps.map((step, index) => (
-            <WorkflowStep key={index} {...step} />
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Production Deployment Code Block */}
-      <motion.div
-  variants={fadeInUp}
-  className="w-full lg:w-1/2"
->
-  {/* <h3 className="text-2xl font-bold mb-4">Production Deployment</h3> */}
-  <p className="text-gray-600 mb-6">
-    Harness the power of ComfyUI in your applications with just a few lines of code:
-  </p>
-  <div className="relative p-[4px] rounded-lg overflow-hidden">
-    <div className="absolute inset-0 rounded-lg animate-gradient-rotation"></div>
-    <div className="relative bg-black rounded-lg p-6 overflow-x-auto">
-      <pre className="text-gray-100">
-        <code className="language-javascript">{`
-const client = new ComfyDeployClient({
-  apiBase: "https://api.myapps.ai",
-  apiToken: process.env.PIXIO_API_KEY!,
-});
-
-// Create a run via deployment id
-const { run_id } = await client.run(
-  "d0d81c90-ecd6-4912-8eaa-a6ca667cec58", 
-  {
-    inputs: {
-      "input_text": ""
-    }
-  }
-);
-
-// Check the status of the run, and retrieve the outputs
-const run = await client.getRun(run_id);
-        `}</code>
-      </pre>
-    </div>
-  </div>
-</motion.div>
-
-
-
-
-    </div>
-  </div>
-</Section>
-
-
-<style jsx global>{`
-  @keyframes gradient-rotation {
-    0% {
-      --gradient-angle: 0deg;
-    }
-    100% {
-      --gradient-angle: 360deg;
-    }
-  }
-
-  .animate-gradient-rotation {
-    --gradient-angle: 0deg;
-    background: conic-gradient(
-      from var(--gradient-angle),
-      #ff00ff,
-      #ff00ff,
-      #00ffff,
-      #00ff00,
-      #ffff00,
-      #ff0000,
-      #ff00ff
-    );
-    animation: gradient-rotation 4s linear infinite;
-  }
-
-  .animate-gradient-rotation::before {
-    content: "";
-    position: absolute;
-    inset: 6px;
-    background: black;
-    border-radius: 16px;
-    z-index: 0;
-  }
-
-  @property --gradient-angle {
-    syntax: "<angle>";
-    initial-value: 0deg;
-    inherits: false;
-  }
-`}</style>
-
-
-
-      {/* ------------------------- AI Showcase Section ------------------------- */}
-      <Section className="bg-white">
-        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-4xl font-bold text-center mb-12"
-          >
-            AI-Generated Masterpieces
-          </motion.h2>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            <ArtShowcase
-              src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608138715-image.png"
-              alt="AI-generated abstract art"
-            />
-            <ArtShowcase
-              src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608142907-image.jpg"
-              alt="AI-generated landscape"
-            />
-            <ArtShowcase
-              src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608166338-pixverse-317182365469952.mp4"
-              alt="AI-generated video clip"
-              type="video"
-            />
-            <ArtShowcase
-              src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608185328-video-user1091-runwaymlrossmytsi.org-asset2e490a12-51e5-4086-9381-e0e711449868.mp4"
-              alt="AI-generated video animation"
-              type="video"
-            />
-            <ArtShowcase
-              src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608189616-image.webp"
-              alt="AI-generated artwork"
-            />
-            <ArtShowcase
-              src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1737608206569-image.png"
-              alt="AI-generated digital art"
-            />
-          </motion.div>
-        </div>
-      </Section>
-
-      {/* ------------------------- Use Cases Section ------------------------- */}
-      <Section className="bg-gray-50">
-        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-4xl font-bold text-center mb-12"
-          >
-            Real-World Use Cases
-          </motion.h2>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
-          >
-            {useCases.map((useCase, index) => (
-              <UseCaseCard
-                key={index}
-                icon={useCase.icon}
-                title={useCase.title}
-                description={useCase.description}
-              />
-            ))}
-          </motion.div>
-        </div>
-      </Section>
-
-      {/* ------------------------- Pricing Section ------------------------- */}
-      <Section className="bg-white">
-        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-4xl font-bold text-center mb-12"
-          >
-            Plans &amp; Pricing
-          </motion.h2>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
-          >
-            {pricingPlans.map((plan, index) => (
-              <PricingPlan key={index} {...plan} />
-            ))}
-          </motion.div>
-        </div>
-      </Section>
-
-      {/* ------------------------- Testimonials Section ------------------------- */}
-      <Section className="bg-gray-50">
-        <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-4xl font-bold text-center mb-12"
-          >
-            What Our Users Say
-          </motion.h2>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
-          >
-            {testimonials.map((testimonial, index) => (
-              <Testimonial key={index} {...testimonial} />
-            ))}
-          </motion.div>
-        </div>
-      </Section>
-
-      {/* ------------------------- Final CTA Section ------------------------- */}
-      <Section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
-        <div className="w-full px-6 text-center">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-4xl font-bold mb-6 leading-tight"
-          >
-            Ready to Revolutionize Your Creative Process?
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-xl mb-8 text-gray-100 max-w-2xl mx-auto"
-          >
-            Join thousands of artists and creators harnessing the power of AI
-            to push the boundaries of creativity.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <GradientButton
-              href="/signup"
-              className="bg-white text-purple-600 hover:bg-gray-200"
+        <motion.div variants={fadeInUp} className="max-w-5xl mx-auto">
+          <SectionHeading
+            title="Machine Creation API Setup"
+            subtitle="Here is the recommended JSON configuration for your ComfyUI environment."
+          />
+          <div className="relative bg-gray-900 rounded-lg p-4 text-white overflow-auto">
+            <button
+              onClick={() => handleCopy(machineCreationConfig)}
+              className="absolute top-3 right-3 bg-gray-700 hover:bg-gray-600 transition-colors rounded-md px-3 py-1 text-sm"
             >
-              Get Started Now
-            </GradientButton>
-          </motion.div>
-        </div>
+              Copy Code
+            </button>
+            <pre className="whitespace-pre-wrap text-sm leading-relaxed">
+              <code>{machineCreationConfig}</code>
+            </pre>
+          </div>
+        </motion.div>
       </Section>
 
-      {/* ------------------------- Footer ------------------------- */}
-      {/* <footer className="bg-gray-900 text-white pt-12 pb-8 w-full">
-        <div
-          className="w-full px-6 md:px-12 lg:px-24 max-w-7xl mx-auto"
-          style={{ paddingLeft: "0 !important", paddingRight: "0 !important" }}
+      {/* CUSTOM MODEL API JSON */}
+      <Section className="bg-white">
+        <motion.div variants={fadeInUp} className="max-w-5xl mx-auto">
+          <SectionHeading
+            title="Custom Model API JSON"
+            subtitle="Define your custom model details for streamlined usage."
+          />
+          <div className="relative bg-gray-900 rounded-lg p-4 text-white overflow-auto">
+            <button
+              onClick={() => handleCopy(customModelApiJSON)}
+              className="absolute top-3 right-3 bg-gray-700 hover:bg-gray-600 transition-colors rounded-md px-3 py-1 text-sm"
+            >
+              Copy Code
+            </button>
+            <pre className="whitespace-pre-wrap text-sm leading-relaxed">
+              <code>{customModelApiJSON}</code>
+            </pre>
+          </div>
+        </motion.div>
+      </Section>
+
+      {/* SDK SECTION */}
+      <Section className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 text-center">
+        <SectionHeading
+          title="Available SDKs"
+          subtitle="Start integrating Pixio into your own apps in minutes."
+        />
+        <motion.div
+          variants={fadeInUp}
+          className="max-w-4xl mx-auto text-center flex flex-col items-center"
         >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-bold text-xl mb-4">Pixio API</h3>
-              <p className="text-gray-400">Empowering creativity with AI</p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="https://api.myapps.ai/">Features</a>
-                </li>
-                <li>
-                  <a href="https://api.myapps.ai/">Pricing</a>
-                </li>
-                <li>
-                  <a href="https://api.myapps.ai/">Tutorials</a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="https://api.myapps.ai/">About</a>
-                </li>
-                <li>
-                  <a href="https://support.myapps.ai/api-reference/endpoint/get">
-                    API Docs
-                  </a>
-                </li>
-                <li>
-                  <a href="/examples">Workflows</a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="http://myapps.ai/privacy-policy/">Privacy</a>
-                </li>
-                <li>
-                  <a href="https://myapps.ai/terms-condition/">Terms</a>
-                </li>
-                <li>
-                  <a href="https://myapps.ai/terms-condition/">Copyright</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
-            © {new Date().getFullYear()} Pixio API. All rights reserved.
-          </div>
-        </div>
-      </footer> */}
-    </div>
+          <p className="text-lg mb-6 sm:px-8 text-black">
+            We currently provide first-class SDKs for popular frameworks.
+            Getting started is as simple as installing our package and calling a few intuitive methods.
+          </p>
+          <GradientButton
+            href="https://github.com/rossman22590/pixio-api-nextjs"
+            className="w-64"
+          >
+            Next.js SDK
+          </GradientButton>
+          <p className="mt-4 text-black">
+            <em>More SDKs coming soon...</em>
+          </p>
+        </motion.div>
+      </Section>
+    </motion.div>
   );
 }

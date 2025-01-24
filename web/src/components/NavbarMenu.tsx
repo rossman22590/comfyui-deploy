@@ -98,6 +98,11 @@ export function NavbarMenu({
           path: "/supported",
           external: true,
         },
+        {
+          name: "JSON Builder",
+          path: "/json",
+          external: true,
+        },
       ],
     },
     {
