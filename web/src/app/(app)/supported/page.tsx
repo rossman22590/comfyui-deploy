@@ -58,12 +58,12 @@ const backgroundScale = {
    3. REUSABLE COMPONENTS
 ------------------------------------------------------------------------- */
 
-// Copies the full hash to clipboard
-const handleCopy = (hash: string) => {
+// Copies text to clipboard
+const handleCopy = (text: string) => {
   navigator.clipboard
-    .writeText(hash)
-    .then(() => alert(`Copied: ${hash}`))
-    .catch(() => alert("Failed to copy. Try again!"));
+    .writeText(text)
+    .then(() => alert(`Copied:\n\n${text}`))
+    .catch(() => alert("Failed to copy. Please try again!"));
 };
 
 /** Wraps each section in consistent style/animation */
@@ -116,15 +116,15 @@ function GradientButton({ href = "#", children, className = "" }: GradientButton
   );
 }
 
-/** Nicer pill-shaped link for model references */
+/** A pill-shaped gradient link for model references */
 function PillLink({ href }: { href: string }) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="ml-2 inline-flex items-center px-3 py-1 text-sm font-medium 
-                 text-white bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500
+      className="inline-flex items-center px-3 py-1 text-sm font-medium
+                 text-white bg-gradient-to-r from-pink-600 to-purple-600
                  rounded-full shadow hover:opacity-80 transition-opacity"
     >
       Link
@@ -135,6 +135,33 @@ function PillLink({ href }: { href: string }) {
 /* -------------------------------------------------------------------------
    4. MAIN PAGE
 -------------------------------------------------------------------------*/
+
+// Machine Creation API setup JSON
+const machineCreationConfig = `{
+  "comfyui": "b9d9bcba1418711f13d7e432605f85303d900723",
+  "git_custom_nodes": {
+    "https://github.com/rossman22590/comfyui-deploy.git": {
+      "hash": "13309df4aae41ff6770ec040046b2c5157e055a1",
+      "disabled": false
+    }
+  },
+  "file_custom_nodes": []
+}`;
+
+// Custom Model API JSON
+const customModelApiJSON = `[
+  {
+    "name": "v1-5-pruned-emaonly.ckpt",
+    "type": "checkpoints",
+    "base": "SD1.5",
+    "save_path": "default",
+    "description": "Stable Diffusion 1.5 base model",
+    "reference": "https://huggingface.co/runwayml/stable-diffusion-v1-5",
+    "filename": "v1-5-pruned-emaonly.ckpt",
+    "url": "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.ckpt"
+  }
+]`;
+
 export default function SupportedModelsPage() {
   return (
     <motion.div
@@ -173,12 +200,12 @@ export default function SupportedModelsPage() {
         />
 
         <motion.div variants={stagger} className="max-w-5xl mx-auto">
-          {/* COMFYUI VERSIONS TABLE */}
+          {/* COMFYUI VERSIONS */}
           <motion.div variants={fadeInUp} className="mb-12">
             <h3 className="text-2xl font-bold mb-4 text-gray-800 drop-shadow-sm">
               ComfyUI Versions
             </h3>
-            <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+            <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-visible">
               <thead>
                 <tr className="bg-gray-100 text-gray-700">
                   <th className="px-4 py-2 text-left">Version / Hash</th>
@@ -187,7 +214,6 @@ export default function SupportedModelsPage() {
                 </tr>
               </thead>
               <tbody>
-                {/* Example row */}
                 <tr className="border-b hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="relative group cursor-pointer inline-block">
@@ -199,11 +225,11 @@ export default function SupportedModelsPage() {
                       >
                         Hash 6fe0
                       </span>
-                      {/* Tooltip with full hash on hover */}
+                      {/* Tooltip: displays full hash on hover */}
                       <div
                         className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1
                                    bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
-                                   group-hover:opacity-100 transition-opacity w-max z-10"
+                                   group-hover:opacity-100 transition-opacity w-max z-50"
                       >
                         5875c52f59baca3a9372d68c43a3775e21846fe0
                       </div>
@@ -212,11 +238,9 @@ export default function SupportedModelsPage() {
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
-                  <td className="px-4 py-3">
-                    Pixio tested this exact commit hash.
-                  </td>
+                  <td className="px-4 py-3">Pixio tested this exact commit hash.</td>
                 </tr>
-                {/* Repeat for others */}
+
                 <tr className="border-b hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="relative group cursor-pointer inline-block">
@@ -230,8 +254,8 @@ export default function SupportedModelsPage() {
                       </span>
                       <div
                         className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1 
-                                   bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 
-                                   group-hover:opacity-100 transition-opacity w-max z-10"
+                                   bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
+                                   group-hover:opacity-100 transition-opacity w-max z-50"
                       >
                         851bc33d3adffffcbb1122e765a498z13999d3ad
                       </div>
@@ -242,6 +266,7 @@ export default function SupportedModelsPage() {
                   </td>
                   <td className="px-4 py-3">Stable hotfix version.</td>
                 </tr>
+
                 <tr className="border-b hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="relative group cursor-pointer inline-block">
@@ -256,7 +281,7 @@ export default function SupportedModelsPage() {
                       <div
                         className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1
                                    bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
-                                   group-hover:opacity-100 transition-opacity w-max z-10"
+                                   group-hover:opacity-100 transition-opacity w-max z-50"
                       >
                         12abcd34ef5678abcd90ab12ef3456abcd7890ab
                       </div>
@@ -266,9 +291,10 @@ export default function SupportedModelsPage() {
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
                   <td className="px-4 py-3">
-                    Performance improvements for style transfer.
+                    Performance improvements for style transfer nodes.
                   </td>
                 </tr>
+
                 <tr className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="relative group cursor-pointer inline-block">
@@ -283,7 +309,7 @@ export default function SupportedModelsPage() {
                       <div
                         className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1 
                                    bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
-                                   group-hover:opacity-100 transition-opacity w-max z-10"
+                                   group-hover:opacity-100 transition-opacity w-max z-50"
                       >
                         99cafecafecafefeeddeadbeaf65676bebacafe
                       </div>
@@ -303,142 +329,144 @@ export default function SupportedModelsPage() {
             <h3 className="text-2xl font-bold mb-4 text-gray-800 drop-shadow-sm">
               Models
             </h3>
-            <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+            <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-visible">
               <thead>
                 <tr className="bg-gray-100 text-gray-700">
                   <th className="px-4 py-2 text-left">Model Name</th>
                   <th className="px-4 py-2 text-left">Supported</th>
                   <th className="px-4 py-2 text-left">Notes</th>
+                  <th className="px-4 py-2 text-left">Links</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">
-                    Stable Diffusion v1.5
-                    <PillLink href="https://huggingface.co/runwayml/stable-diffusion-v1-5" />
-                  </td>
+                  <td className="px-4 py-3">Stable Diffusion v1.5</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
                   <td className="px-4 py-3">High-quality image generation.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="https://huggingface.co/runwayml/stable-diffusion-v1-5" />
+                  </td>
                 </tr>
                 <tr className="border-b hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">
-                    Stable Diffusion XL
-                    <PillLink href="https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0" />
-                  </td>
+                  <td className="px-4 py-3">Stable Diffusion XL</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
                   <td className="px-4 py-3">Enhanced upscaling, better details.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0" />
+                  </td>
                 </tr>
                 <tr className="border-b hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">
-                    Stable Diffusion v2
-                    <PillLink href="https://huggingface.co/stabilityai/stable-diffusion-2" />
-                  </td>
+                  <td className="px-4 py-3">Stable Diffusion v2</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
                   <td className="px-4 py-3">Enhanced detail in complex scenes.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="https://huggingface.co/stabilityai/stable-diffusion-2" />
+                  </td>
                 </tr>
                 <tr className="border-b hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">
-                    Stable Diffusion v3
-                    <PillLink href="#" />
-                  </td>
+                  <td className="px-4 py-3">Stable Diffusion v3</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
                   <td className="px-4 py-3">Further enhancements (beta).</td>
-                </tr>
-                <tr className="border-b hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
-                    Flux
                     <PillLink href="#" />
                   </td>
+                </tr>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Flux</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
                   <td className="px-4 py-3">Great for stylized art.</td>
-                </tr>
-                <tr className="border-b hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
-                    Flux Tools
                     <PillLink href="#" />
                   </td>
+                </tr>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Flux Tools</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
                   <td className="px-4 py-3">LoRA-based extension.</td>
-                </tr>
-                <tr className="border-b hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
-                    Hayuan
                     <PillLink href="#" />
                   </td>
+                </tr>
+                <tr className="border-b hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Hayuan</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
                   <td className="px-4 py-3">High complexity, surreal styles.</td>
-                </tr>
-                <tr className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
-                    Dreambooth
                     <PillLink href="#" />
                   </td>
+                </tr>
+                <tr className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Dreambooth</td>
                   <td className="px-4 py-3">
                     <XCircleIcon className="w-6 h-6 text-red-600 inline" />
                   </td>
                   <td className="px-4 py-3 text-red-500">Not yet integrated.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="#" />
+                  </td>
                 </tr>
               </tbody>
             </table>
           </motion.div>
 
-          {/* HUGGING FACE MODELS TABLE */}
+          {/* HUGGING FACE MODELS */}
           <motion.div variants={fadeInUp}>
             <h3 className="text-2xl font-bold mb-4 text-gray-800 drop-shadow-sm">
               Hugging Face Models
             </h3>
-            <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+            <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-visible">
               <thead>
                 <tr className="bg-gray-100 text-gray-700">
                   <th className="px-4 py-2 text-left">Model Name</th>
                   <th className="px-4 py-2 text-left">Supported</th>
                   <th className="px-4 py-2 text-left">Notes</th>
+                  <th className="px-4 py-2 text-left">Links</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">
-                    GPT-2
-                    <PillLink href="https://huggingface.co/gpt2" />
-                  </td>
+                  <td className="px-4 py-3">GPT-2</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
                   <td className="px-4 py-3">Basic text generation model.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="https://huggingface.co/gpt2" />
+                  </td>
                 </tr>
                 <tr className="border-b hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">
-                    BERT
-                    <PillLink href="https://huggingface.co/bert-base-uncased" />
-                  </td>
+                  <td className="px-4 py-3">BERT</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
                   <td className="px-4 py-3">Popular NLP model for many tasks.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="https://huggingface.co/bert-base-uncased" />
+                  </td>
                 </tr>
                 <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">
-                    BLOOM
-                    <PillLink href="https://huggingface.co/bigscience/bloom" />
-                  </td>
+                  <td className="px-4 py-3">BLOOM</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
                   <td className="px-4 py-3">Open large multilingual model.</td>
+                  <td className="px-4 py-3">
+                    <PillLink href="https://huggingface.co/bigscience/bloom" />
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -446,7 +474,49 @@ export default function SupportedModelsPage() {
         </motion.div>
       </Section>
 
-      {/* SDK Section */}
+      {/* MACHINE CREATION API SETUP */}
+      <Section className="bg-white">
+        <motion.div variants={fadeInUp} className="max-w-5xl mx-auto">
+          <SectionHeading
+            title="Machine Creation API Setup"
+            subtitle="Here is the recommended JSON configuration for your ComfyUI environment."
+          />
+          <div className="relative bg-gray-900 rounded-lg p-4 text-white overflow-auto">
+            <button
+              onClick={() => handleCopy(machineCreationConfig)}
+              className="absolute top-3 right-3 bg-gray-700 hover:bg-gray-600 transition-colors rounded-md px-3 py-1 text-sm"
+            >
+              Copy Code
+            </button>
+            <pre className="whitespace-pre-wrap text-sm leading-relaxed">
+              <code>{machineCreationConfig}</code>
+            </pre>
+          </div>
+        </motion.div>
+      </Section>
+
+      {/* CUSTOM MODEL API JSON */}
+      <Section className="bg-white">
+        <motion.div variants={fadeInUp} className="max-w-5xl mx-auto">
+          <SectionHeading
+            title="Custom Model API JSON"
+            subtitle="Define your custom model details for streamlined usage."
+          />
+          <div className="relative bg-gray-900 rounded-lg p-4 text-white overflow-auto">
+            <button
+              onClick={() => handleCopy(customModelApiJSON)}
+              className="absolute top-3 right-3 bg-gray-700 hover:bg-gray-600 transition-colors rounded-md px-3 py-1 text-sm"
+            >
+              Copy Code
+            </button>
+            <pre className="whitespace-pre-wrap text-sm leading-relaxed">
+              <code>{customModelApiJSON}</code>
+            </pre>
+          </div>
+        </motion.div>
+      </Section>
+
+      {/* SDK SECTION */}
       <Section className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 text-center">
         <SectionHeading
           title="Available SDKs"
