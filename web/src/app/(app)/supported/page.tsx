@@ -516,31 +516,40 @@ export default function SupportedModelsPage() {
         </motion.div>
       </Section>
 
-      {/* SDK SECTION */}
-      <Section className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 text-center">
-        <SectionHeading
-          title="Available SDKs"
-          subtitle="Start integrating Pixio into your own apps in minutes."
-        />
-        <motion.div
-          variants={fadeInUp}
-          className="max-w-4xl mx-auto text-center flex flex-col items-center"
-        >
-          <p className="text-lg mb-6 sm:px-8 text-black">
-            We currently provide first-class SDKs for popular frameworks.
-            Getting started is as simple as installing our package and calling a few intuitive methods.
-          </p>
-          <GradientButton
-            href="https://github.com/rossman22590/pixio-api-nextjs"
-            className="w-64"
-          >
-            Next.js SDK
-          </GradientButton>
-          <p className="mt-4 text-black">
-            <em>More SDKs coming soon...</em>
-          </p>
-        </motion.div>
-      </Section>
+{/* SDK SECTION */}
+<Section className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 text-center">
+  <SectionHeading
+    title="Available SDKs"
+    subtitle="Start integrating Pixio into your own apps in minutes."
+  />
+  <motion.div
+    variants={fadeInUp}
+    className="max-w-4xl mx-auto text-center flex flex-col items-center"
+  >
+    <p className="text-lg mb-6 sm:px-8 text-black">
+      We currently provide first-class SDKs for popular frameworks.
+      Getting started is as simple as installing our package and calling a few intuitive methods.
+    </p>
+    <div className="flex flex-col gap-4"> {/* Added this wrapper div with gap */}
+      <GradientButton
+        href="https://github.com/rossman22590/pixio-api-nextjs"
+        className="w-64"
+      >
+        Full Stack Next.js App
+      </GradientButton>
+      <GradientButton
+        href="https://github.com/rossman22590/comfydeploy-fullstack-demo"
+        className="w-64"
+      >
+        Next.js SDK
+      </GradientButton>
+    </div>
+    <p className="mt-4 text-black">
+      <em>More SDKs coming soon...</em>
+    </p>
+  </motion.div>
+</Section>
+
     </motion.div>
   );
 }
