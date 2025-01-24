@@ -270,7 +270,7 @@ export const deleteMachine = withServerPromise(
             },
             body: JSON.stringify({
               machine_id,
-              description: machine.name, // Adjust key as needed
+              description: machine.name, // Use "description" key for lookup
             }),
           });
 

@@ -141,7 +141,7 @@ const machineCreationConfig = `{
   "comfyui": "b9d9bcba1418711f13d7e432605f85303d900723",
   "git_custom_nodes": {
     "https://github.com/rossman22590/comfyui-deploy.git": {
-      "hash": "13309df4aae41ff6770ec040046b2c5157e055a1",
+      "hash": "2dbb2d9de0514406b0fd181aa1b0fa53c78b30fb",
       "disabled": false
     }
   },
