@@ -13,6 +13,7 @@ interface SubItem {
   name: string;
   path: string;
   external?: boolean;
+  newTab?: boolean;
 }
 
 /** Page interface with optional submenu */
@@ -20,6 +21,7 @@ interface Page {
   name: string;
   path: string;
   external?: boolean;
+  newTab?: boolean;
   submenu?: SubItem[];
 }
 
@@ -65,21 +67,25 @@ export function NavbarMenu({
       name: "Help",
       path: "https://support.myapps.ai/api-reference/endpoint/get",
       external: true,
+      newTab: false,
       submenu: [
         {
           name: "Status",
           path: "https://ai-tutor-x-pixio.instatus.com",
           external: true,
+          newTab: false,
         },
         {
           name: "Manage Billing",
           path: "https://billing.stripe.com/p/login/6oE6rUfvp9Zlc484gg",
           external: true,
+          newTab: false,
         },
         {
           name: "Documentation",
           path: "https://support.myapps.ai/api-reference/endpoint/get",
           external: true,
+          newTab: false,
         },
       ],
     },
@@ -87,44 +93,61 @@ export function NavbarMenu({
       name: "Models",
       path: "#",
       external: true,
+      newTab: false,
       submenu: [
         {
           name: "Civit AI",
           path: "https://civitai.com",
           external: true,
+          newTab: false,
         },
         {
           name: "Supported Models",
           path: "/supported",
           external: true,
+          newTab: false,
         },
         {
           name: "JSON Builder",
           path: "/json",
           external: true,
+          newTab: false,
         },
       ],
     },
     {
       name: "Book Call",
       path: "https://calendly.com/techinschools/pixio-api-onboarding",
+      newTab: false,
     },
     {
-      name: "API Demo",
-      path: "https://api-demo.myapps.ai",
+      name: "API Demos",
+      path: "#",
       external: true,
+      newTab: false,
+      submenu: [
+        {
+          name: "NextJs SDK",
+          path: "https://api-demo.myapps.ai",
+          external: true,
+          newTab: true,
+        },
+        {
+          name: "Full Stack App",
+          path: "https://pixio-api-fullstack-demo.vercel.app/",
+          external: true,
+          newTab: true,
+        },
+      ],
     },
   ];
 
-  /**
-   * Renders a single link or external anchor.
-   * If 'isSub' is true, we reduce vertical padding and size a bit.
-   */
   function renderLink(
     name: string,
     path: string,
     external?: boolean,
-    isSub?: boolean
+    isSub?: boolean,
+    newTab?: boolean
   ) {
     const classes = cn(
       "block w-full hover:bg-gray-100/20 hover:underline pointer-events-auto px-4",
@@ -134,24 +157,28 @@ export function NavbarMenu({
     if (external) {
       return (
         <a
-        href={path}
-        className={classes}
-        onClick={() => closeSheet?.()}
-      >
-        {name}
-      </a>
+          href={path}
+          className={classes}
+          onClick={() => closeSheet?.()}
+          target={newTab ? "_blank" : "_self"}
+          rel={newTab ? "noopener noreferrer" : undefined}
+        >
+          {name}
+        </a>
       );
     }
     return (
-      <Link href={path} className={classes} onClick={() => closeSheet?.()}>
+      <Link 
+        href={path} 
+        className={classes} 
+        onClick={() => closeSheet?.()}
+        target={newTab ? "_blank" : "_self"}
+      >
         {name}
       </Link>
     );
   }
 
-  /* -----------------------------------------------------------------
-     DESKTOP MENU with hover-based submenus
-  ------------------------------------------------------------------ */
   function DesktopTabs() {
     return (
       <Tabs defaultValue={pathname} className="w-fit flex pointer-events-auto">
@@ -167,14 +194,18 @@ export function NavbarMenu({
                   {page.external ? (
                     <a
                       href={page.path}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      target={page.newTab ? "_blank" : "_self"}
+                      rel={page.newTab ? "noopener noreferrer" : undefined}
                       className="pointer-events-auto"
                     >
                       {page.name}
                     </a>
                   ) : (
-                    <Link href={page.path} className="pointer-events-auto">
+                    <Link 
+                      href={page.path} 
+                      className="pointer-events-auto"
+                      target={page.newTab ? "_blank" : "_self"}
+                    >
                       {page.name}
                     </Link>
                   )}
@@ -201,7 +232,7 @@ export function NavbarMenu({
                         key={sub.name}
                         className="px-4 py-1 text-xs hover:bg-gray-100 cursor-pointer pointer-events-auto"
                       >
-                        {renderLink(sub.name, sub.path, sub.external)}
+                        {renderLink(sub.name, sub.path, sub.external, true, sub.newTab)}
                       </div>
                     ))}
                   </div>
@@ -214,9 +245,6 @@ export function NavbarMenu({
     );
   }
 
-  /* -----------------------------------------------------------------
-     MOBILE MENU: vertical list, no horizontal scroll
-  ------------------------------------------------------------------ */
   function MobileList() {
     return (
       <ScrollArea
@@ -231,11 +259,11 @@ export function NavbarMenu({
                 key={page.name}
                 className="border-b border-gray-100 last:border-b-0"
               >
-                {renderLink(page.name, page.path, page.external)}
+                {renderLink(page.name, page.path, page.external, false, page.newTab)}
                 {hasSub && (
                   <div className="flex flex-col">
                     {page.submenu?.map((sub) =>
-                      renderLink(sub.name, sub.path, sub.external, true)
+                      renderLink(sub.name, sub.path, sub.external, true, sub.newTab)
                     )}
                   </div>
                 )}
