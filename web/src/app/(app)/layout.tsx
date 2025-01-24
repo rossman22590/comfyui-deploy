@@ -40,32 +40,54 @@ export default function RootLayout({
   modal: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="w-full h-full">
+    <html lang="en" className="scroll-smooth min-h-screen bg-white">
+      {/* If you're injecting <head> stuff, do it here */}
       <ClerkProvider>
         <TooltipProvider>
+          {/* Conditionally render Plausible head tags */}
           {process.env.PLAUSIBLE_DOMAIN && (
             <head>
               <PlausibleProvider domain={process.env.PLAUSIBLE_DOMAIN} />
             </head>
           )}
           <PHProvider>
-            <body className={`${inter.className} w-full h-full`}>
+            {/* 
+              Use min-h-screen (not h-full) on <body> so the page can actually scroll.
+              Also remove the extra flex/fixed background containers that can interfere. 
+            */}
+            <body className={`${inter.className} min-h-screen flex flex-col relative`}>
               <PostHogPageView />
-              <div className="w-full h-full flex flex-col">
-                <div className="z-[-1] fixed inset-0 w-full h-full bg-white">
-                  <div className="absolute inset-0 w-full h-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
-                </div>
-                <div className="sticky top-0 w-full h-18 flex items-center justify-between gap-4 p-4 border-b border-gray-200 bg-white z-50">
-                  <Navbar />
-                </div>
-                <main className="flex-grow w-full">
-                  <div className="md:px-10 px-6 w-full min-h-[calc(100vh-73px)]">
-                    {children}
-                  </div>
-                </main>
-                <Toaster richColors />
-                {modal}
+
+              {/*
+                Place your background as absolutely positioned, behind the content.
+                -z-10 ensures it's *behind* everything else, but doesn't hijack scroll.
+              */}
+              <div className="absolute inset-0 -z-10 w-full h-full bg-white">
+                <div
+                  className="absolute inset-0 w-full h-full
+                  bg-[radial-gradient(#e5e7eb_1px,transparent_1px)]
+                  [background-size:16px_16px]
+                  [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]"
+                />
               </div>
+
+              {/*
+                Now your navbar can be sticky since the parent is scrollable 
+                and there's no fixed container interfering.
+              */}
+              <div className="sticky top-0 w-full h-18 flex items-center justify-between gap-4 p-4 border-b border-gray-200 bg-white z-50">
+                <Navbar />
+              </div>
+
+              <main className="flex-grow w-full">
+                <div className="md:px-10 px-6 w-full min-h-[calc(100vh-73px)]">
+                  {children}
+                </div>
+              </main>
+
+              <Toaster richColors />
+              {modal}
+
               <ChatbotWidget />
             </body>
           </PHProvider>

@@ -426,6 +426,7 @@ export default function AICreativeWorkflow() {
         "AI Art Generation (Basic)",
         "5 Machine Credits",
         "Standard Image Enhancement",
+        "Serverless Deployment",
       ],
       ctaLink: "https://docs.google.com/forms/d/e/1FAIpQLSf8tmmvyA108ZjTbMsvecjMy1STSJi-HnPZ-cVS0VMfmGfLEw/viewform",
     },
