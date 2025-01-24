@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, ChangeEvent } from "react";
 import { motion } from "framer-motion";
 
 /* -------------------------------------------------------------------------
@@ -34,14 +34,14 @@ const backgroundScale = {
 };
 
 /** Helper to copy text to clipboard */
-const copyToClipboard = async (text: string) => {
+async function copyToClipboard(text: string) {
   try {
     await navigator.clipboard.writeText(text);
     alert(`Copied:\n\n${text}`);
   } catch {
     alert("Failed to copy. Please try again!");
   }
-};
+}
 
 /* -------------------------------------------------------------------------
    2. REUSABLE COMPONENTS
@@ -110,29 +110,56 @@ function SectionHeading({ title, subtitle }: SectionHeadingProps) {
 }
 
 /* -------------------------------------------------------------------------
-   3. MAIN: CUSTOM MODEL BUILDER PAGE
+   3. DEFINITIONS FOR OUR MODELS
 -------------------------------------------------------------------------*/
+type ModelEntry = {
+  url: string;
+  base: string;
+  name: string;
+  type: string;
+  filename: string;
+  reference: string;
+  save_path: string;
+  description: string;
+};
 
-export default function CustomModelBuilderPage() {
-  const [modelData, setModelData] = useState({
-    name: "",
-    type: "",
-    base: "",
-    save_path: "",
-    description: "",
-    reference: "",
-    filename: "",
-    url: "",
-  });
+const EMPTY_MODEL: ModelEntry = {
+  url: "",
+  base: "",
+  name: "",
+  type: "",
+  filename: "",
+  reference: "",
+  save_path: "",
+  description: "",
+};
 
-  // Format the final JSON
-  const formattedJSON = JSON.stringify([modelData], null, 2);
+/* -------------------------------------------------------------------------
+   4. MAIN: CUSTOM MODEL BUILDER PAGE
+-------------------------------------------------------------------------*/
+export default function MultiCustomModelBuilderPage() {
+  const [models, setModels] = useState<ModelEntry[]>([ { ...EMPTY_MODEL } ]);
 
-  // Update state with form inputs
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // Handle changes for each model in the array
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    index: number
+  ) => {
     const { name, value } = e.target;
-    setModelData((prev) => ({ ...prev, [name]: value }));
+    setModels((prev) => {
+      const updated = [...prev];
+      (updated[index] as any)[name] = value;
+      return updated;
+    });
   };
+
+  // Add a new, empty model entry
+  const handleAddModel = () => {
+    setModels((prev) => [...prev, { ...EMPTY_MODEL }]);
+  };
+
+  // Final JSON (formatted) of all models
+  const modelsJSON = JSON.stringify(models, null, 2);
 
   return (
     <motion.div
@@ -144,8 +171,8 @@ export default function CustomModelBuilderPage() {
       {/* Page Heading */}
       <Section className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100">
         <SectionHeading
-          title="Custom Model JSON Builder"
-          subtitle="Fill out the fields below to generate a formatted JSON snippet."
+          title="Multi-Model JSON Builder"
+          subtitle="Fill out the fields below for each model you want to include."
         />
       </Section>
 
@@ -155,127 +182,144 @@ export default function CustomModelBuilderPage() {
           <h3 className="text-xl font-semibold mb-4 text-gray-700">
             Enter Model Details
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={modelData.name}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="ex: v1-5-pruned-emaonly.ckpt"
-              />
-            </div>
 
-            {/* Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Type
-              </label>
-              <input
-                type="text"
-                name="type"
-                value={modelData.type}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="ex: checkpoints"
-              />
-            </div>
+          {models.map((model, idx) => (
+            <div
+              key={idx}
+              className="mb-8 border-b border-gray-200 pb-6 last:border-none last:pb-0"
+            >
+              <h4 className="font-semibold text-gray-600 text-lg mb-4">
+                Model #{idx + 1}
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={model.name}
+                    onChange={(e) => handleChange(e, idx)}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    placeholder="ex: v1-5-pruned-emaonly.ckpt"
+                  />
+                </div>
+                {/* Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Type
+                  </label>
+                  <input
+                    type="text"
+                    name="type"
+                    value={model.type}
+                    onChange={(e) => handleChange(e, idx)}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    placeholder="ex: checkpoints"
+                  />
+                </div>
 
-            {/* Base */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Base
-              </label>
-              <input
-                type="text"
-                name="base"
-                value={modelData.base}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="ex: SD1.5"
-              />
-            </div>
+                {/* Base */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Base
+                  </label>
+                  <input
+                    type="text"
+                    name="base"
+                    value={model.base}
+                    onChange={(e) => handleChange(e, idx)}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    placeholder="ex: SD1.5"
+                  />
+                </div>
+                {/* Save Path */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Save Path
+                  </label>
+                  <input
+                    type="text"
+                    name="save_path"
+                    value={model.save_path}
+                    onChange={(e) => handleChange(e, idx)}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    placeholder="ex: default"
+                  />
+                </div>
 
-            {/* Save Path */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Save Path
-              </label>
-              <input
-                type="text"
-                name="save_path"
-                value={modelData.save_path}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="ex: default"
-              />
-            </div>
+                {/* Description */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    value={model.description}
+                    onChange={(e) => handleChange(e, idx)}
+                    rows={2}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    placeholder="ex: Stable Diffusion 1.5 base model"
+                  />
+                </div>
 
-            {/* Description */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                name="description"
-                value={modelData.description}
-                onChange={handleChange}
-                rows={2}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="ex: Stable Diffusion 1.5 base model"
-              />
-            </div>
+                {/* Reference */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Reference URL
+                  </label>
+                  <input
+                    type="text"
+                    name="reference"
+                    value={model.reference}
+                    onChange={(e) => handleChange(e, idx)}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    placeholder="ex: https://huggingface.co/runwayml/stable-diffusion-v1-5"
+                  />
+                </div>
 
-            {/* Reference */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reference URL
-              </label>
-              <input
-                type="text"
-                name="reference"
-                value={modelData.reference}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="ex: https://huggingface.co/runwayml/stable-diffusion-v1-5"
-              />
-            </div>
+                {/* Filename */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Filename
+                  </label>
+                  <input
+                    type="text"
+                    name="filename"
+                    value={model.filename}
+                    onChange={(e) => handleChange(e, idx)}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    placeholder="ex: v1-5-pruned-emaonly.ckpt"
+                  />
+                </div>
 
-            {/* Filename */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Filename
-              </label>
-              <input
-                type="text"
-                name="filename"
-                value={modelData.filename}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="ex: v1-5-pruned-emaonly.ckpt"
-              />
+                {/* URL */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Download URL
+                  </label>
+                  <input
+                    type="text"
+                    name="url"
+                    value={model.url}
+                    onChange={(e) => handleChange(e, idx)}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    placeholder="ex: https://huggingface.co/.../file.ckpt"
+                  />
+                </div>
+              </div>
             </div>
+          ))}
 
-            {/* URL */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Download URL
-              </label>
-              <input
-                type="text"
-                name="url"
-                value={modelData.url}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="ex: https://huggingface.co/.../file.ckpt"
-              />
-            </div>
-          </div>
+          {/* Button to add a new model */}
+          <GradientButton
+            onClick={handleAddModel}
+            className="mt-4 px-4 py-2 text-sm"
+          >
+            + Add Another Model
+          </GradientButton>
         </div>
       </Section>
 
@@ -284,13 +328,13 @@ export default function CustomModelBuilderPage() {
         <div className="max-w-5xl mx-auto">
           <div className="bg-gray-900 text-white p-4 rounded-md relative overflow-auto">
             <GradientButton
-              onClick={() => copyToClipboard(formattedJSON)}
+              onClick={() => copyToClipboard(modelsJSON)}
               className="absolute top-3 right-3 text-sm px-3 py-1"
             >
               Copy JSON
             </GradientButton>
             <pre className="whitespace-pre-wrap text-sm leading-relaxed mt-8">
-              <code>{formattedJSON}</code>
+              <code>{modelsJSON}</code>
             </pre>
           </div>
         </div>
