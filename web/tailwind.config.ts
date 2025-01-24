@@ -81,6 +81,16 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        'gradient-x': {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center',
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center',
+          },
+        },
         "background-shine": {
           from: {
             backgroundPosition: "0 0",
@@ -94,6 +104,7 @@ const config: Config = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "background-shine": "background-shine 2s linear infinite",
+        'gradient-x': 'gradient-x 15s ease infinite',
       },
       boxShadow: {
         glow: "0 0 4px rgb(0 0 0 / 0.1)",
@@ -114,4 +125,5 @@ const config: Config = {
   },
   plugins: [require("tailwindcss-animate"), typographyPlugin, headlessuiPlugin],
 };
+
 export default config;

@@ -15,6 +15,8 @@ import {
   CloudArrowUpIcon,
 } from "@heroicons/react/24/outline";
 
+
+
 /* ---------------------------------- Types --------------------------------- */
 
 interface SectionProps {
@@ -388,6 +390,11 @@ export default function AICreativeWorkflow() {
       title: "Refine and Iterate",
       description: "Fine-tune the results by adjusting your workflow or parameters.",
     },
+    {
+      number: 6,
+      title: "Launch API",
+      description: "Launch your workflow as an API!.",
+    },
   ];
 
   const useCases: UseCaseCardProps[] = [
@@ -551,29 +558,118 @@ export default function AICreativeWorkflow() {
           </motion.div>
         </div>
       </Section>
+{/* ------------------------- How It Works Section ------------------------- */}
+<Section className="bg-gray-50">
+  <div className="w-full px-6 max-w-7xl mx-auto">
+    <motion.h2
+      variants={fadeInUp}
+      className="text-4xl font-bold text-center mb-12"
+    >
+      How It Works with ComfyUI
+    </motion.h2>
+    <div className="flex flex-col lg:flex-row gap-12">
+      {/* Workflow Steps */}
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={stagger}
+        className="w-full lg:w-1/2"
+      >
+        <div className="flex flex-col space-y-10">
+          {workflowSteps.map((step, index) => (
+            <WorkflowStep key={index} {...step} />
+          ))}
+        </div>
+      </motion.div>
 
-      {/* ------------------------- How It Works Section ------------------------- */}
-      <Section className="bg-gray-50">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={stagger}
-          className="w-full px-6 max-w-2xl mx-auto"
-        >
-          <motion.h2
-            variants={fadeInUp}
-            className="text-4xl font-bold text-center mb-12"
-          >
-            How It Works with ComfyUI
-          </motion.h2>
-          <div className="flex flex-col space-y-10">
-            {workflowSteps.map((step, index) => (
-              <WorkflowStep key={index} {...step} />
-            ))}
-          </div>
-        </motion.div>
-      </Section>
+      {/* Production Deployment Code Block */}
+      <motion.div
+  variants={fadeInUp}
+  className="w-full lg:w-1/2"
+>
+  {/* <h3 className="text-2xl font-bold mb-4">Production Deployment</h3> */}
+  <p className="text-gray-600 mb-6">
+    Harness the power of ComfyUI in your applications with just a few lines of code:
+  </p>
+  <div className="relative p-[4px] rounded-lg overflow-hidden">
+    <div className="absolute inset-0 rounded-lg animate-gradient-rotation"></div>
+    <div className="relative bg-black rounded-lg p-6 overflow-x-auto">
+      <pre className="text-gray-100">
+        <code className="language-javascript">{`
+const client = new ComfyDeployClient({
+  apiBase: "https://api.myapps.ai",
+  apiToken: process.env.PIXIO_API_KEY!,
+});
+
+// Create a run via deployment id
+const { run_id } = await client.run(
+  "d0d81c90-ecd6-4912-8eaa-a6ca667cec58", 
+  {
+    inputs: {
+      "input_text": ""
+    }
+  }
+);
+
+// Check the status of the run, and retrieve the outputs
+const run = await client.getRun(run_id);
+        `}</code>
+      </pre>
+    </div>
+  </div>
+</motion.div>
+
+
+
+
+    </div>
+  </div>
+</Section>
+
+
+<style jsx global>{`
+  @keyframes gradient-rotation {
+    0% {
+      --gradient-angle: 0deg;
+    }
+    100% {
+      --gradient-angle: 360deg;
+    }
+  }
+
+  .animate-gradient-rotation {
+    --gradient-angle: 0deg;
+    background: conic-gradient(
+      from var(--gradient-angle),
+      #ff00ff,
+      #ff00ff,
+      #00ffff,
+      #00ff00,
+      #ffff00,
+      #ff0000,
+      #ff00ff
+    );
+    animation: gradient-rotation 4s linear infinite;
+  }
+
+  .animate-gradient-rotation::before {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    background: black;
+    border-radius: 16px;
+    z-index: 0;
+  }
+
+  @property --gradient-angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+`}</style>
+
+
 
       {/* ------------------------- AI Showcase Section ------------------------- */}
       <Section className="bg-white">
