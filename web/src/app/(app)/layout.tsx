@@ -55,7 +55,7 @@ export default function RootLayout({
                 <div className="z-[-1] fixed inset-0 w-full h-full bg-white">
                   <div className="absolute inset-0 w-full h-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
                 </div>
-                <div className="sticky top-0 w-full h-18 flex items-center justify-between gap-4 p-4 border-b border-gray-200">
+                <div className="sticky top-0 w-full h-18 flex items-center justify-between gap-4 p-4 border-b border-gray-200 bg-white z-50">
                   <Navbar />
                 </div>
                 <main className="flex-grow w-full">
