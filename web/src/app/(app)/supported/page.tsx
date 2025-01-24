@@ -532,13 +532,13 @@ export default function SupportedModelsPage() {
     </p>
     <div className="flex flex-col gap-4"> {/* Added this wrapper div with gap */}
       <GradientButton
-        href="https://github.com/rossman22590/pixio-api-nextjs"
+        href="https://github.com/rossman22590/comfydeploy-fullstack-demo"
         className="w-64"
       >
         Full Stack Next.js App
       </GradientButton>
       <GradientButton
-        href="https://github.com/rossman22590/comfydeploy-fullstack-demo"
+        href="https://github.com/rossman22590/pixio-api-nextjs"
         className="w-64"
       >
         Next.js SDK
