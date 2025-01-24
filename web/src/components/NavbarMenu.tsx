@@ -89,11 +89,6 @@ export function NavbarMenu({
       external: true,
       submenu: [
         {
-          name: "Base Models",
-          path: "https://ai-tutor-x-pixio.instatus.com",
-          external: true,
-        },
-        {
           name: "Civit AI",
           path: "https://civitai.com",
           external: true,
