@@ -134,14 +134,12 @@ export function NavbarMenu({
     if (external) {
       return (
         <a
-          href={path}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={classes}
-          onClick={() => closeSheet?.()}
-        >
-          {name}
-        </a>
+        href={path}
+        className={classes}
+        onClick={() => closeSheet?.()}
+      >
+        {name}
+      </a>
       );
     }
     return (
