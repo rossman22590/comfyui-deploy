@@ -234,10 +234,10 @@ export default function SupportedModelsPage() {
       </Section>
 
       {/* FINAL CTA SECTION */}
-      <Section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-center">
+      <Section className="bg-gradient-to-r from-purple-100 to-blue-100 text-white text-center">
         <motion.div variants={fadeInUp} className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Need More Info?</h2>
-          <p className="text-xl text-gray-100 mb-6">
+          <p className="text-xl text-black-100 mb-6">
             Reach out to our team for detailed integration guides, 
             or to request support for additional models.
           </p>
