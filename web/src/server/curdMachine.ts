@@ -246,33 +246,84 @@ export const updateMachine = withServerPromise(
 
 export const deleteMachine = withServerPromise(
   async (machine_id: string): Promise<{ message: string }> => {
-    const machine = await db.query.machinesTable.findFirst({
-      where: eq(machinesTable.id, machine_id),
-    });
+    try {
+      console.log("Deleting machine with ID:", machine_id);
 
-    if (machine?.type === "comfy-deploy-serverless") {
-      // Call remote builder to stop the app on modal
-      const result = await fetch(`${process.env.MODAL_BUILDER_URL!}/stop-app`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          machine_id: machine_id,
-        }),
+      const machine = await db.query.machinesTable.findFirst({
+        where: eq(machinesTable.id, machine_id),
       });
 
-      if (!result.ok) {
-        const error_log = await result.text();
-        throw new Error(`Error: ${result.statusText} ${error_log}`);
+      if (!machine) {
+        throw new Error(`Machine with ID ${machine_id} not found.`);
       }
-    }
 
-    await db.delete(machinesTable).where(eq(machinesTable.id, machine_id));
-    revalidatePath("/machines");
-    return { message: "Machine Deleted" };
+      if (machine.type === "comfy-deploy-serverless") {
+        console.log("Stopping serverless machine via modal builder...");
+
+        const result = await fetch(`${process.env.MODAL_BUILDER_URL!}/stop-app`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            machine_id,
+            description: machine.name, // Use the correct key
+          }),
+        });
+
+        if (!result.ok) {
+          const responseText = await result.text();
+          throw new Error(`Stop App Error: ${responseText}`);
+        }
+      }
+
+      console.log("Deleting machine from database...");
+      await db.delete(machinesTable).where(eq(machinesTable.id, machine_id));
+      console.log("Machine deleted successfully.");
+
+      revalidatePath("/machines");
+      return { message: "Machine Deleted" };
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error in deleteMachine:", error.message);
+        throw new Error(`Internal Server Error: ${error.message}`);
+      }
+      console.error("Unexpected error in deleteMachine:", error);
+      throw new Error("Internal Server Error: Unknown error occurred.");
+    }
   }
 );
+
+
+// export const deleteMachine = withServerPromise(
+//   async (machine_id: string): Promise<{ message: string }> => {
+//     const machine = await db.query.machinesTable.findFirst({
+//       where: eq(machinesTable.id, machine_id),
+//     });
+
+//     if (machine?.type === "comfy-deploy-serverless") {
+//       // Call remote builder to stop the app on modal
+//       const result = await fetch(`${process.env.MODAL_BUILDER_URL!}/stop-app`, {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({
+//           machine_id: machine_id,
+//         }),
+//       });
+
+//       if (!result.ok) {
+//         const error_log = await result.text();
+//         throw new Error(`Error: ${result.statusText} ${error_log}`);
+//       }
+//     }
+
+//     await db.delete(machinesTable).where(eq(machinesTable.id, machine_id));
+//     revalidatePath("/machines");
+//     return { message: "Machine Deleted" };
+//   }
+// );
 
 export const disableMachine = withServerPromise(
   async (machine_id: string): Promise<{ message: string }> => {
