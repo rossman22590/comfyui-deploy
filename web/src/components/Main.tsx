@@ -122,7 +122,7 @@ function GradientButton({
       <motion.div
         className={
           primary
-            ? "absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600"
+            ? "absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600"
             : "absolute inset-0 bg-white border-2 border-gray-200"
         }
         initial={{ scale: 1 }}
@@ -501,7 +501,7 @@ export default function AICreativeWorkflow() {
         >
           <motion.h1
             variants={fadeInUp}
-            className="text-5xl md:text-7xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 leading-tight drop-shadow-lg"
+            className="text-5xl md:text-7xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-purple-600 leading-tight drop-shadow-lg"
           >
             Pixio AI Powered Creative Workflows
           </motion.h1>

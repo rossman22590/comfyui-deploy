@@ -103,7 +103,7 @@ function GradientButton({ href = "#", children, className = "" }: GradientButton
       whileTap={{ scale: 0.95 }}
       className={`relative inline-flex items-center justify-center px-6 py-3 
         text-lg font-bold text-white rounded-md overflow-hidden
-        bg-gradient-to-r from-purple-600 to-blue-600 
+        bg-gradient-to-r from-pink-600 to-purple-600 
         no-underline shadow-md hover:shadow-lg ${className}`}
     >
       {children}
@@ -252,12 +252,12 @@ export default function AboutPage() {
       </Section>
 
       {/* FINAL CTA SECTION */}
-      <Section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-center">
+      <Section className="bg-gradient-to-r from-purple-100 to-blue-100 text-center">
         <motion.div variants={fadeInUp} className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to Build Your Pipeline?
           </h2>
-          <p className="text-xl text-gray-100 mb-6">
+          <p className="text-xl text-black-100 mb-6">
             Discover how Pixio API and ComfyUI can power your creative workflows,
             unlocking new possibilities in record time.
           </p>

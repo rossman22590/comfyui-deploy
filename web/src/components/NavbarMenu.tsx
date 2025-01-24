@@ -99,8 +99,8 @@ export function NavbarMenu({
           external: true,
         },
         {
-          name: "Common Workflows",
-          path: "https://support.myapps.ai/api-reference/endpoint/get",
+          name: "Supported Models",
+          path: "/supported",
           external: true,
         },
       ],
