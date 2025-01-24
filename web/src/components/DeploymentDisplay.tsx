@@ -120,7 +120,7 @@ export function DeploymentDisplay({
               <div>
                 Copy and paste the ComfyDeployClient form&nbsp;
                 <a
-                  href="https://github.com/BennyKok/comfyui-deploy-next-example/blob/main/src/lib/comfy-deploy.ts"
+                  href="https://github.com/rossman22590/pixio-api-nextjs"
                   className="text-blue-500 hover:underline"
                   target="_blank"
                   rel="noreferrer"

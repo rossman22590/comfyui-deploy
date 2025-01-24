@@ -14,10 +14,10 @@ export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
   gpu: (schema) => schema.gpu.default("T4"),
   snapshot: (schema) =>
     schema.snapshot.default({
-      comfyui: "d0165d819afe76bd4e6bdd710eb5f3e571b6a804",
+      comfyui: "b9d9bcba1418711f13d7e432605f85303d900723",
       git_custom_nodes: {
         "https://github.com/rossman22590/comfyui-deploy.git": {
-          hash: "13309df4aae41ff6770ec040046b2c5157e055a1",
+          hash: "b0428c8350dd9f05c1ba5feeae0a005d8912bc87",
           disabled: false,
         },
       },
