@@ -232,26 +232,7 @@ export default function SupportedModelsPage() {
                     Offers performance improvements for style transfer nodes.
                   </td>
                 </tr>
-                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="relative group cursor-help inline-block">
-                      v1.5.0 <span className="text-blue-600">beef</span>
-                      <div
-                        className="absolute bottom-0 left-0 transform translate-y-full mt-1 px-2 py-1 
-                                   bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
-                                   group-hover:opacity-100 transition-opacity w-max z-10"
-                      >
-                        beefcafea55f12345c9876beef4098abcd6543bee
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <XCircleIcon className="w-6 h-6 text-red-600 inline" />
-                  </td>
-                  <td className="px-4 py-3 text-red-500">
-                    Breaking changes in pipeline calls. Not supported.
-                  </td>
-                </tr>
+               
                 <tr className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="relative group cursor-help inline-block">
@@ -300,7 +281,16 @@ export default function SupportedModelsPage() {
                   </td>
                 </tr>
                 <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">Stable Diffusion v2.1</td>
+                  <td className="px-4 py-3">Stable Diffusion XL</td>
+                  <td className="px-4 py-3">
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
+                  </td>
+                  <td className="px-4 py-3">
+                    Enhanced upscaling and better detail in complex scenes.
+                  </td>
+                </tr>
+                 <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Stable Diffusion v2 </td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
@@ -309,16 +299,16 @@ export default function SupportedModelsPage() {
                   </td>
                 </tr>
                 <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">Stable Diffusion XL</td>
+                  <td className="px-4 py-3">Stable Diffusion v3 </td>
                   <td className="px-4 py-3">
-                    <XCircleIcon className="w-6 h-6 text-red-600 inline" />
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
-                  <td className="px-4 py-3 text-red-500">
-                    Not yet integrated with Pixio pipelines.
+                  <td className="px-4 py-3">
+                    Enhanced upscaling and better detail in complex scenes.
                   </td>
                 </tr>
                 <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">Redwood Dream v0.9</td>
+                  <td className="px-4 py-3">Flux</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
@@ -327,7 +317,7 @@ export default function SupportedModelsPage() {
                   </td>
                 </tr>
                 <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">Luna LoRA v2.3</td>
+                  <td className="px-4 py-3">Flux Tools</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
@@ -335,17 +325,9 @@ export default function SupportedModelsPage() {
                     LoRA-based extension for quick fine-tuning. Works well with Pixio.
                   </td>
                 </tr>
+
                 <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">SciVis Ultra</td>
-                  <td className="px-4 py-3">
-                    <XCircleIcon className="w-6 h-6 text-red-600 inline" />
-                  </td>
-                  <td className="px-4 py-3 text-red-500">
-                    Requires custom node not yet deployed in Pixio.
-                  </td>
-                </tr>
-                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">ArtBrain Infinity</td>
+                  <td className="px-4 py-3">Hayuan</td>
                   <td className="px-4 py-3">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 inline" />
                   </td>
@@ -353,13 +335,14 @@ export default function SupportedModelsPage() {
                     High complexity scenes and surreal styles. Beta test success.
                   </td>
                 </tr>
-                <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3">Llama v2 Visual</td>
+              
+                <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">Dreambooth</td>
                   <td className="px-4 py-3">
                     <XCircleIcon className="w-6 h-6 text-red-600 inline" />
                   </td>
                   <td className="px-4 py-3 text-red-500">
-                    Planned for Q4 release—no ETA.
+                    Not yet integrated with Pixio pipelines.
                   </td>
                 </tr>
               </tbody>
@@ -384,7 +367,7 @@ export default function SupportedModelsPage() {
       a few intuitive methods.
     </p>
     <GradientButton
-      href="https://github.com/YourOrganization/pixio-nextjs-sdk"
+      href="https://github.com/rossman22590/pixio-api-nextjs"
       className="w-64"
     >
       Next.js SDK
