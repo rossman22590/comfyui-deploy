@@ -249,6 +249,7 @@ export const deleteMachine = withServerPromise(
     try {
       console.log("Deleting machine with ID:", machine_id);
 
+      // Fetch the machine details
       const machine = await db.query.machinesTable.findFirst({
         where: eq(machinesTable.id, machine_id),
       });
@@ -257,30 +258,39 @@ export const deleteMachine = withServerPromise(
         throw new Error(`Machine with ID ${machine_id} not found.`);
       }
 
+      // Handle serverless-specific logic
       if (machine.type === "comfy-deploy-serverless") {
-        console.log("Stopping serverless machine via modal builder...");
+        try {
+          console.log("Stopping serverless machine via modal builder...");
 
-        const result = await fetch(`${process.env.MODAL_BUILDER_URL!}/stop-app`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            machine_id,
-            description: machine.name, // Use the correct key
-          }),
-        });
+          const result = await fetch(`${process.env.MODAL_BUILDER_URL!}/stop-app`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              machine_id,
+              description: machine.name, // Adjust key as needed
+            }),
+          });
 
-        if (!result.ok) {
           const responseText = await result.text();
-          throw new Error(`Stop App Error: ${responseText}`);
+          if (!result.ok) {
+            console.warn(`Stop App failed: ${responseText}`);
+          } else {
+            console.log("Stop App succeeded:", responseText);
+          }
+        } catch (apiError) {
+          console.warn("Error calling Stop App API:", apiError);
         }
       }
 
+      // Proceed with database deletion
       console.log("Deleting machine from database...");
       await db.delete(machinesTable).where(eq(machinesTable.id, machine_id));
       console.log("Machine deleted successfully.");
 
+      // Revalidate cache
       revalidatePath("/machines");
       return { message: "Machine Deleted" };
     } catch (error) {
@@ -293,6 +303,7 @@ export const deleteMachine = withServerPromise(
     }
   }
 );
+
 
 
 // export const deleteMachine = withServerPromise(
