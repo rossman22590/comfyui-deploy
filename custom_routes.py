@@ -386,6 +386,9 @@ def apply_inputs_to_workflow(workflow_api: Any, inputs: Any, sid: str = None):
                 if value["class_type"] == "ComfyUIDeployExternalFaceModel":
                     value["inputs"]["face_model_url"] = new_value
 
+                if value["class_type"] == "ComfyUIDeployExternalAudio":
+                    value["inputs"]["audio_file"] = new_value
+
 
 def send_prompt(sid: str, inputs: StreamingPrompt):
     # workflow_api = inputs.workflow_api
@@ -1279,6 +1282,8 @@ async def send_json_override(self, event, data, sid=None):
     if event == "execution_start":
         if prompt_id in prompt_metadata:
             prompt_metadata[prompt_id].start_time = time.perf_counter()
+            
+        logger.info("Executing prompt: " + prompt_id)
             
         asyncio.create_task(update_run(prompt_id, Status.RUNNING))
         
