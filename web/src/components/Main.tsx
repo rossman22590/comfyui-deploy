@@ -65,7 +65,7 @@ export default async function Main() {
               className="text-sm"
               href="https://github.com/BennyKok/comfyui-deploy"
             >
-              ✨ Open Source on Github
+              ✨ Pixio API
             </Section.Announcement>
 
             <Section.Title className="text-left">
