@@ -298,7 +298,7 @@ export default function ClientMain() {
         }
       `}</style>
       
-      {/* HERO SECTION - Full width gradient background and centered container */}
+      {/* HEADER SECTION - Full width gradient background */}
       <Section className="w-full bg-gradient-to-br from-purple-50 via-blue-50 to-blue-100 flex flex-col items-center justify-center text-center overflow-hidden relative">
         <HeroBackgroundAnimation />
         <div className="w-full">
@@ -322,7 +322,7 @@ export default function ClientMain() {
       
       {/* FEATURES SECTION */}
       <Section className="w-full bg-white">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-4xl font-bold text-center mb-12">
             Unleash Your Creativity
           </motion.h2>
@@ -336,7 +336,7 @@ export default function ClientMain() {
       
       {/* HOW IT WORKS SECTION */}
       <Section className="w-full bg-gray-50">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 variants={fadeInUp} className="text-4xl font-bold text-center mb-12">
             How It Works with ComfyUI
           </motion.h2>
@@ -377,7 +377,7 @@ const run = await client.getRun(run_id);
       
       {/* AI SHOWCASE SECTION */}
       <Section className="w-full bg-white">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-4xl font-bold text-center mb-12">
             AI-Generated Masterpieces
           </motion.h2>
@@ -394,7 +394,7 @@ const run = await client.getRun(run_id);
       
       {/* USE CASES SECTION */}
       <Section className="w-full bg-gray-50">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-4xl font-bold text-center mb-12">
             Real-World Use Cases
           </motion.h2>
@@ -408,7 +408,7 @@ const run = await client.getRun(run_id);
       
       {/* PRICING SECTION */}
       <Section className="w-full bg-white">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-4xl font-bold text-center mb-12">
             Plans &amp; Pricing
           </motion.h2>
@@ -422,7 +422,7 @@ const run = await client.getRun(run_id);
       
       {/* TESTIMONIALS SECTION */}
       <Section className="w-full bg-gray-50">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-4xl font-bold text-center mb-12">
             What Our Users Say
           </motion.h2>
@@ -436,7 +436,7 @@ const run = await client.getRun(run_id);
       
       {/* FINAL CTA SECTION */}
       <Section className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white">
-        <div className="w-full max-w-5xl mx-auto px-4 flex flex-col items-center">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-4xl font-bold mb-6 leading-tight text-center">
             Ready to Revolutionize Your Creative Process?
           </motion.h2>
