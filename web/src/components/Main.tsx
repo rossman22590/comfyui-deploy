@@ -63,7 +63,7 @@ export default async function Main() {
           <div className="flex flex-col justify-center gap-2">
             <Section.Announcement
               className="text-sm"
-              href="https://github.com/BennyKok/comfyui-deploy"
+              href="https://api.myapps.ai/machines"
             >
               ✨ Pixio API
             </Section.Announcement>
