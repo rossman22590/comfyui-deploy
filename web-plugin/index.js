@@ -1635,7 +1635,7 @@ function getData(environment) {
   if (!data) {
     if (deployOption == "cloud")
       return {
-        endpoint: "https://www.comfydeploy.com",
+        endpoint: "https://api.myapps.ai",
         apiKey: "",
       };
     else
