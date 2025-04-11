@@ -1198,7 +1198,7 @@ async function deployWorkflow() {
       <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">${loadingIcon}</div>
       <iframe 
       style="z-index: 10; min-width: 600px; max-width: 1024px; min-height: 600px; border: none; background-color: transparent;"
-      src="https://comfyworkflows.com/dependency-graph?deps=${encodeURIComponent(
+      src="https://www.comfydeploy.com/dependency-graph?deps=${encodeURIComponent(
         JSON.stringify(deps),
       )}" />`,
       // createDynamicUIHtml(deps),
