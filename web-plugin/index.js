@@ -1032,6 +1032,15 @@ async function deployWorkflow() {
     console.log(text);
     app.graph.beforeChange();
     var node = LiteGraph.createNode("ComfyDeploy");
+    
+    // Clear any old cached ComfyDeploy data when creating a new node
+    try {
+      localStorage.removeItem("comfyui_deploy_node_data");
+      console.log("Cleared previous ComfyDeploy node data from localStorage");
+    } catch (err) {
+      console.error("Error clearing localStorage:", err);
+    }
+    
     node.configure({
       widgets_values: [text],
     });
@@ -1274,15 +1283,21 @@ async function deployWorkflow() {
 
     deployMetaNode.widgets[1].value = data.workflow_id;
     deployMetaNode.widgets[2].value = data.version;
+    
+    // Make sure all properties are correctly set
+    deployMetaNode.properties.workflow_name = workflow_name;
     deployMetaNode.properties.workflow_id = data.workflow_id;
     deployMetaNode.properties.version = data.version;
+
+    // Make sure graph is updated
+    graph.change();
 
     // Save ComfyDeploy node data to localStorage for persistence
     try {
       const nodeData = {
-        workflow_name: deployMetaNode.properties.workflow_name,
-        workflow_id: deployMetaNode.properties.workflow_id,
-        version: deployMetaNode.properties.version
+        workflow_name: workflow_name, // Use the workflow_name directly to ensure it's captured
+        workflow_id: data.workflow_id,
+        version: data.version
       };
       localStorage.setItem("comfyui_deploy_node_data", JSON.stringify(nodeData));
       console.log("Saved ComfyDeploy node data to localStorage for persistence");
@@ -1298,6 +1313,11 @@ async function deployWorkflow() {
     } catch (err) {
       console.error("Error saving ComfyDeploy node data to localStorage:", err);
     }
+
+    // Show success message to the user
+    infoDialog.show(
+      `<span style="color:green;">Deployed successfully!</span>  <a style="color:white;" target="_blank" href=${endpoint}/workflows/${data.workflow_id}>-> View here</a> <br/> <br/> Workflow ID: ${data.workflow_id} <br/> Workflow Name: ${workflow_name} <br/> Workflow Version: ${data.version} <br/>`,
+    );
 
     // // Refresh the workflows list in the sidebar
     // const sidebarEl = document.querySelector(
