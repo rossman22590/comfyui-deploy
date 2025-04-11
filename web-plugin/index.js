@@ -635,7 +635,7 @@ const ext = {
           "string",
           inputName,
           /* value=*/ "",
-          () => {},
+          () => { },
           { serialize: true },
         );
 
@@ -917,10 +917,10 @@ function createDynamicUIHtml(data) {
           <h3 style="font-size: 14px; font-weight: semibold; margin-bottom: 8px;">Missing Nodes</h3>
           <p style="font-size: 12px;">These nodes are not found with any matching custom_nodes in the ComfyUI Manager Database</p>
           ${data.missing_nodes
-            .map((node) => {
-              return `<p style="font-size: 14px; color: #d69e2e;">${node}</p>`;
-            })
-            .join("")}
+        .map((node) => {
+          return `<p style="font-size: 14px; color: #d69e2e;">${node}</p>`;
+        })
+        .join("")}
       </div>
   `;
   }
@@ -928,17 +928,14 @@ function createDynamicUIHtml(data) {
   Object.values(data.custom_nodes).forEach((node) => {
     html += `
           <div style="border-bottom: 1px solid #e2e8f0; padding-top: 16px;">
-              <a href="${
-                node.url
-              }" target="_blank" style="font-size: 18px; font-weight: semibold; color: white; text-decoration: none;">${
-                node.name
-              }</a>
+              <a href="${node.url
+      }" target="_blank" style="font-size: 18px; font-weight: semibold; color: white; text-decoration: none;">${node.name
+      }</a>
               <p style="font-size: 14px; color: #4b5563;">${node.hash}</p>
-              ${
-                node.warning
-                  ? `<p style="font-size: 14px; color: #d69e2e;">${node.warning}</p>`
-                  : ""
-              }
+              ${node.warning
+        ? `<p style="font-size: 14px; color: #d69e2e;">${node.warning}</p>`
+        : ""
+      }
           </div>
       `;
   });
@@ -952,9 +949,8 @@ function createDynamicUIHtml(data) {
   Object.entries(data.models).forEach(([section, items]) => {
     html += `
     <div style="border-bottom: 1px solid #e2e8f0; padding-top: 8px; padding-bottom: 8px;">
-        <h3 style="font-size: 18px; font-weight: semibold; margin-bottom: 8px;">${
-          section.charAt(0).toUpperCase() + section.slice(1)
-        }</h3>`;
+        <h3 style="font-size: 18px; font-weight: semibold; margin-bottom: 8px;">${section.charAt(0).toUpperCase() + section.slice(1)
+      }</h3>`;
     items.forEach((item) => {
       html += `<p style="font-size: 14px; color: ${textColor};">${item.name}</p>`;
     });
@@ -970,9 +966,8 @@ function createDynamicUIHtml(data) {
   Object.entries(data.files).forEach(([section, items]) => {
     html += `
     <div style="border-bottom: 1px solid #e2e8f0; padding-top: 8px; padding-bottom: 8px;">
-        <h3 style="font-size: 18px; font-weight: semibold; margin-bottom: 8px;">${
-          section.charAt(0).toUpperCase() + section.slice(1)
-        }</h3>`;
+        <h3 style="font-size: 18px; font-weight: semibold; margin-bottom: 8px;">${section.charAt(0).toUpperCase() + section.slice(1)
+      }</h3>`;
     items.forEach((item) => {
       html += `<p style="font-size: 14px; color: ${textColor};">${item.name}</p>`;
     });
@@ -1182,38 +1177,20 @@ async function deployWorkflow() {
       <div>
         You will need to create a cloud machine with the following configuration on ComfyDeploy
         <ol style="text-align: left; margin-top: 10px;">
-            <li>Review the dependencies listed in the graph</li>
+            <li>Review the dependencies listed in the graph below</li>
             <li>Create a new cloud machine with the required configuration</li>
             <li>Install missing models and check missing files</li>
             <li>Deploy your workflow to the newly created machine</li>
         </ol>
       </div>
-      <!-- CORS fix: replaced iframe with button -->
-      <!-- Original iframe was:
       <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">${loadingIcon}</div>
       <iframe 
-        style="z-index: 10; min-width: 600px; max-width: 1024px; min-height: 600px; border: none; background-color: transparent;"
-        src="https://api.myapps.ai/dependency-graph?deps=${encodeURIComponent(
-          JSON.stringify(deps),
-        )}" />
-      -->
-      <button id="view-deps-btn" style="padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; width: 100%;">
-        View Dependencies in New Window
-      </button>
-      `,
+      style="z-index: 10; min-width: 600px; max-width: 1024px; min-height: 600px; border: none; background-color: transparent;"
+      src="https://www.comfydeploy.com/dependency-graph?deps=${encodeURIComponent(
+        JSON.stringify(deps),
+      )}" />`,
       // createDynamicUIHtml(deps),
     );
-
-    // Set up click handler for the button
-    setTimeout(() => {
-      const viewDepsBtn = document.getElementById("view-deps-btn");
-      if (viewDepsBtn) {
-        viewDepsBtn.onclick = () => {
-          window.open(`https://api.myapps.ai/dependency-graph?deps=${encodeURIComponent(JSON.stringify(deps))}`, "_blank");
-        };
-      }
-    }, 100);
-
     if (!depsOk) return;
 
     console.log(deps);
@@ -1305,19 +1282,9 @@ function refreshWorkflowsList(el) {
   const workflowsList = el.querySelector("#workflows-list");
   const workflowsLoading = el.querySelector("#workflows-loading");
 
-  if (!workflowsList || !workflowsLoading) return;
-
   workflowsLoading.style.display = "flex";
   workflowsList.style.display = "none";
   workflowsList.innerHTML = "";
-
-  // Skip API call entirely if client isn't available
-  if (!client || !client.workflows || typeof client.workflows.getAll !== 'function') {
-    workflowsLoading.style.display = "none";
-    workflowsList.style.display = "block";
-    workflowsList.innerHTML = "<li style='color: #bdbdbd;'>Workflows not available</li>";
-    return;
-  }
 
   client.workflows
     .getAll({
@@ -1335,6 +1302,13 @@ function refreshWorkflowsList(el) {
       }
 
       result.forEach((workflow) => {
+        const li = document.createElement("li");
+        li.style.marginBottom = "15px";
+        li.style.padding = "15px";
+        li.style.backgroundColor = "#2a2a2a";
+        li.style.borderRadius = "8px";
+        li.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+
         const lastRun = workflow.runs[0];
         const lastRunStatus = lastRun ? lastRun.status : "No runs";
         const statusColor =
@@ -1346,31 +1320,31 @@ function refreshWorkflowsList(el) {
 
         const timeAgo = getTimeAgo(new Date(workflow.updatedAt));
 
-        workflowsList.innerHTML += `
-          <li style="margin-bottom: 15px; padding: 15px; background-color: #2a2a2a; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <strong style="font-size: 18px; color: #e0e0e0;">${workflow.name}</strong>
-              </div>
-              <span style="font-size: 12px; color: ${statusColor}; margin-left: 10px;">Last run: ${lastRunStatus}</span>
+        li.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <strong style="font-size: 18px; color: #e0e0e0;">${workflow.name}</strong>
             </div>
-            <div style="font-size: 14px; color: #bdbdbd; margin-bottom: 10px;">Last updated ${timeAgo}</div>
-            <div style="display: flex; gap: 10px;">
-              <button class="open-cloud-btn" style="padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Open in Cloud</button>
-              <button class="load-api-btn" style="padding: 5px 10px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">Load Workflow</button>
-            </div>
-          </li>
+            <span style="font-size: 12px; color: ${statusColor}; margin-left: 10px;">Last run: ${lastRunStatus}</span>
+          </div>
+          <div style="font-size: 14px; color: #bdbdbd; margin-bottom: 10px;">Last updated ${timeAgo}</div>
+          <div style="display: flex; gap: 10px;">
+            <button class="open-cloud-btn" style="padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Open in Cloud</button>
+            <button class="load-api-btn" style="padding: 5px 10px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">Load Workflow</button>
+          </div>
         `;
 
-        const openCloudBtn = workflowsList.querySelector(".open-cloud-btn");
+        const openCloudBtn = li.querySelector(".open-cloud-btn");
         openCloudBtn.onclick = () =>
           window.open(
             `${getData().endpoint}/workflows/${workflow.id}?workspace=true`,
             "_blank",
           );
 
-        const loadApiBtn = workflowsList.querySelector(".load-api-btn");
+        const loadApiBtn = li.querySelector(".load-api-btn");
         loadApiBtn.onclick = () => loadWorkflowApi(workflow.versions[0].id);
+
+        workflowsList.appendChild(li);
       });
     })
     .catch((error) => {
@@ -1381,6 +1355,572 @@ function refreshWorkflowsList(el) {
         "<li style='color: #F44336;'>Error fetching workflows</li>";
     });
 }
+
+function addButton() {
+  const menu = document.querySelector(".comfy-menu");
+
+  const deploy = document.createElement("button");
+  deploy.id = "deploy-button";
+  deploy.style.position = "relative";
+  deploy.style.display = "block";
+  deploy.innerHTML = "<div id='button-title'>Deploy</div>";
+  deploy.onclick = async () => {
+    await deployWorkflow();
+  };
+
+  const config = document.createElement("img");
+  // config.style.padding = "0px 10px";
+  config.style.height = "100%";
+  config.style.position = "absolute";
+  config.style.right = "10px";
+  config.style.top = "0px";
+
+  // set aspect ratio to square
+  config.style.width = "20px";
+  config.src =
+    "https://api.iconify.design/material-symbols-light:settings.svg?color=%23888888";
+  config.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    configDialog.show();
+  };
+
+  deploy.append(config);
+
+  deploy.style.order = "99";
+
+  menu.append(deploy);
+}
+
+app.registerExtension(ext);
+
+export class InfoDialog extends ComfyDialog {
+  constructor() {
+    super();
+    this.element.classList.add("comfy-normal-modal");
+    this.element.style.paddingBottom = "20px";
+  }
+
+  button = undefined;
+
+  createButtons() {
+    this.button = $el("button", {
+      type: "button",
+      textContent: "Close",
+      onclick: () => this.close(),
+    });
+    return [this.button];
+  }
+
+  close() {
+    this.element.style.display = "none";
+  }
+
+  show(html) {
+    this.textElement.style["white-space"] = "normal";
+    this.textElement.style.color = "white";
+    this.textElement.style.marginTop = "0px";
+    if (typeof html === "string") {
+      this.textElement.innerHTML = html;
+    } else {
+      this.textElement.replaceChildren(html);
+    }
+    this.element.style.display = "flex";
+    this.element.style.zIndex = 1001;
+  }
+
+  showMessage(title, message) {
+    this.show(`
+      <div style="width: 100%; max-width: 600px; display: flex; gap: 18px; flex-direction: column; overflow: unset">
+        <h3 style="margin: 0px;">${title}</h3>
+        <label>
+          ${message}
+        </label>
+        </div>
+      `);
+  }
+
+  showLoading(title, message) {
+    this.show(`
+      <div style="width: 400px; display: flex; gap: 18px; flex-direction: column; overflow: unset">
+        <h3 style="margin: 0px; display: flex; align-items: center; justify-content: center;">${title} ${loadingIcon}</h3>
+        <label>
+          ${message}
+        </label>
+        </div>
+      `);
+  }
+}
+
+export class LoadingDialog extends ComfyDialog {
+  constructor() {
+    super();
+    this.element.classList.add("comfy-normal-modal");
+    // this.element.style.paddingBottom = "20px";
+  }
+
+  createButtons() {
+    return [];
+  }
+
+  close() {
+    this.element.style.display = "none";
+  }
+
+  show(html) {
+    this.textElement.style["white-space"] = "normal";
+    this.textElement.style.color = "white";
+    this.textElement.style.marginTop = "0px";
+    if (typeof html === "string") {
+      this.textElement.innerHTML = html;
+    } else {
+      this.textElement.replaceChildren(html);
+    }
+    this.element.style.display = "flex";
+    this.element.style.zIndex = 1001;
+  }
+
+  loadingIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="#888888" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg>`;
+
+  showLoading(title, message) {
+    this.show(`
+      <div style="width: 400px; display: flex; gap: 18px; flex-direction: column; overflow: unset">
+        <h3 style="margin: 0px; display: flex; align-items: center; justify-content: center; gap: 12px;">${title} ${this.loadingIcon
+      }</h3>
+          ${message
+        ? `<label style="max-width: 100%; white-space: pre-wrap; word-wrap: break-word;">${message}</label>`
+        : ""
+      }
+        </div>
+      `);
+  }
+}
+
+export class InputDialog extends InfoDialog {
+  callback = undefined;
+
+  constructor() {
+    super();
+  }
+
+  createButtons() {
+    return [
+      $el(
+        "div",
+        {
+          type: "div",
+          style: {
+            display: "flex",
+            gap: "6px",
+            justifyContent: "flex-end",
+            width: "100%",
+          },
+        },
+        [
+          $el("button", {
+            type: "button",
+            textContent: "Close",
+            onclick: () => {
+              this.callback?.(undefined);
+              this.close();
+            },
+          }),
+          $el("button", {
+            type: "button",
+            textContent: "Save",
+            onclick: () => {
+              const input = this.textElement.querySelector("#input").value;
+              if (input.trim() === "") {
+                showError("Input validation", "Input cannot be empty");
+              } else {
+                this.callback?.(input);
+                this.close();
+                this.textElement.querySelector("#input").value = "";
+              }
+            },
+          }),
+        ],
+      ),
+    ];
+  }
+
+  input(title, message) {
+    return new Promise((resolve, reject) => {
+      this.callback = resolve;
+      this.show(`
+      <div style="width: 400px; display: flex; gap: 18px; flex-direction: column; overflow: unset">
+        <h3 style="margin: 0px;">${title}</h3>
+        <label>
+          ${message}
+          <input id="input" style="margin-top: 8px; width: 100%; height:40px; padding: 0px 6px; box-sizing: border-box; outline-offset: -1px;">
+        </label>
+        </div>
+      `);
+    });
+  }
+}
+
+export class ConfirmDialog extends InfoDialog {
+  callback = undefined;
+
+  constructor() {
+    super();
+  }
+
+  createButtons() {
+    return [
+      $el(
+        "div",
+        {
+          type: "div",
+          style: {
+            display: "flex",
+            gap: "6px",
+            justifyContent: "flex-end",
+            width: "100%",
+          },
+        },
+        [
+          $el("button", {
+            type: "button",
+            textContent: "Close",
+            onclick: () => {
+              this.callback?.(false);
+              this.close();
+            },
+          }),
+          $el("button", {
+            type: "button",
+            textContent: "Confirm",
+            style: {
+              color: "green",
+            },
+            onclick: () => {
+              this.callback?.(true);
+              this.close();
+            },
+          }),
+        ],
+      ),
+    ];
+  }
+
+  confirm(title, message) {
+    return new Promise((resolve, reject) => {
+      this.callback = resolve;
+      this.show(`
+      <div style="width: 100%; max-width: 600px; display: flex; gap: 18px; flex-direction: column; overflow: unset; position: relative;">
+        <h3 style="margin: 0px;">${title}</h3>
+        ${message}
+        </div>
+      `);
+    });
+  }
+}
+
+export const inputDialog = new InputDialog();
+export const loadingDialog = new LoadingDialog();
+export const infoDialog = new InfoDialog();
+export const confirmDialog = new ConfirmDialog();
+
+/**
+ * Retrieves deployment data from local storage or defaults.
+ * @param {string} [environment] - The environment to get the data for.
+ * @returns {{endpoint: string, apiKey: string, displayName: string, environment?: string}} The deployment data.
+ */
+function getData(environment) {
+  const deployOption =
+    environment || localStorage.getItem("comfy_deploy_env") || "cloud";
+  const data = localStorage.getItem("comfy_deploy_env_data_" + deployOption);
+  if (!data) {
+    if (deployOption == "cloud")
+      return {
+        endpoint: "https://www.comfydeploy.com",
+        apiKey: "",
+      };
+    else
+      return {
+        endpoint: "http://localhost:3000",
+        apiKey: "",
+      };
+  }
+  return {
+    ...JSON.parse(data),
+    environment: deployOption,
+  };
+}
+
+/**
+ * Retrieves deployment data from local storage or defaults.
+ * @param {{endpoint: string, apiKey: string, displayName: string, environment?: string}} [data] - The environment to get the data for.
+ */
+function saveData(data) {
+  localStorage.setItem(
+    "comfy_deploy_env_data_" + data.environment,
+    JSON.stringify(data),
+  );
+}
+
+export class ConfigDialog extends ComfyDialog {
+  container = null;
+  poll = null;
+  timeout = null;
+
+  constructor() {
+    super();
+    this.element.classList.add("comfy-normal-modal");
+    this.element.style.paddingBottom = "20px";
+
+    this.container = document.createElement("div");
+    this.element.querySelector(".comfy-modal-content").prepend(this.container);
+  }
+
+  createButtons() {
+    return [
+      $el(
+        "div",
+        {
+          type: "div",
+          style: {
+            display: "flex",
+            gap: "6px",
+            justifyContent: "flex-end",
+            width: "100%",
+          },
+          onclick: () => {
+            this.save();
+            this.close();
+          },
+        },
+        [
+          $el("button", {
+            type: "button",
+            textContent: "Close",
+            onclick: () => this.close(),
+          }),
+          $el("button", {
+            type: "button",
+            textContent: "Save",
+            onclick: () => {
+              this.save();
+              this.close();
+            },
+          }),
+        ],
+      ),
+    ];
+  }
+
+  close() {
+    this.element.style.display = "none";
+    clearInterval(this.poll);
+    clearTimeout(this.timeout);
+  }
+
+  save(api_key, displayName) {
+    const deployOption = this.container.querySelector("#deployOption").value;
+    localStorage.setItem("comfy_deploy_env", deployOption);
+
+    const endpoint = this.container.querySelector("#endpoint").value;
+    const apiKey = api_key ?? this.container.querySelector("#apiKey").value;
+
+    if (!displayName) {
+      if (apiKey != getData().apiKey) {
+        displayName = "Custom";
+      } else {
+        displayName = getData().displayName;
+      }
+    }
+
+    saveData({
+      endpoint,
+      apiKey,
+      displayName,
+      environment: deployOption,
+    });
+  }
+
+  show() {
+    this.container.style.color = "white";
+
+    const data = getData();
+
+    this.container.innerHTML = `
+    <div style="width: 400px; display: flex; gap: 18px; flex-direction: column;">
+    <h3 style="margin: 0px;">Comfy Deploy Config</h3>
+    <label style="color: white; width: 100%;">
+      <select id="deployOption" style="margin: 8px 0px; width: 100%; height:30px; box-sizing: border-box;" >
+        <option value="cloud" ${data.environment === "cloud" ? "selected" : ""}>Cloud</option>
+        <option value="local" ${data.environment === "local" ? "selected" : ""}>Local</option>
+      </select>
+    </label>
+      <label style="color: white; width: 100%;">
+        Endpoint:
+        <input id="endpoint" style="margin-top: 8px; width: 100%; height:40px; box-sizing: border-box; padding: 0px 6px;" type="text" value="${data.endpoint
+      }">
+      </label>
+      <div style="color: white;">
+        API Key: User / Org <button style="font-size: 18px;">${data.displayName ?? ""
+      }</button>
+        <input id="apiKey" style="margin-top: 8px; width: 100%; height:40px; box-sizing: border-box; padding: 0px 6px;" type="password" value="${data.apiKey
+      }">
+        <button id="loginButton" style="margin-top: 8px; width: 100%; height:40px; box-sizing: border-box; padding: 0px 6px;">
+          ${data.apiKey ? "Re-login with ComfyDeploy" : "Login with ComfyDeploy"
+      }
+        </button>
+      </div>
+      </div>
+    `;
+
+    const button = this.container.querySelector("#loginButton");
+    button.onclick = () => {
+      this.save();
+      const data = getData();
+
+      const uuid =
+        Math.random().toString(36).substring(2, 15) +
+        Math.random().toString(36).substring(2, 15);
+      window.open(data.endpoint + "/auth-request/" + uuid, "_blank");
+
+      this.timeout = setTimeout(() => {
+        clearInterval(poll);
+        infoDialog.showMessage(
+          "Timeout",
+          "Wait too long for the response, please try re-login",
+        );
+      }, 30000); // Stop polling after 30 seconds
+
+      this.poll = setInterval(() => {
+        fetch(data.endpoint + "/api/auth-response/" + uuid)
+          .then((response) => response.json())
+          .then(async (json) => {
+            if (json.api_key) {
+              this.save(json.api_key, json.name);
+              this.close();
+              this.container.querySelector("#apiKey").value = json.api_key;
+              // infoDialog.show();
+              clearInterval(this.poll);
+              clearTimeout(this.timeout);
+              // Refresh dialog
+              const a = await confirmDialog.confirm(
+                "Authenticated",
+                `<div>You will be able to upload workflow to <button style="font-size: 18px; width: fit;">${json.name}</button></div>`,
+              );
+              configDialog.show();
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            clearInterval(this.poll);
+            clearTimeout(this.timeout);
+            infoDialog.showMessage("Error", error);
+          });
+      }, 2000);
+    };
+
+    const apiKeyInput = this.container.querySelector("#apiKey");
+    apiKeyInput.addEventListener("paste", (e) => {
+      e.stopPropagation();
+    });
+
+    const deployOption = this.container.querySelector("#deployOption");
+    const container = this.container;
+    deployOption.addEventListener("change", function () {
+      const selectedOption = this.value;
+      const data = getData(selectedOption);
+      localStorage.setItem("comfy_deploy_env", selectedOption);
+
+      container.querySelector("#endpoint").value = data.endpoint;
+      container.querySelector("#apiKey").value = data.apiKey;
+    });
+
+    this.element.style.display = "flex";
+    this.element.style.zIndex = 1001;
+  }
+}
+
+export const configDialog = new ConfigDialog();
+
+const currentOrigin = window.location.origin;
+const client = new ComfyDeploy({
+  bearerAuth: getData().apiKey,
+  serverURL: `${currentOrigin}/comfydeploy/api/`,
+});
+
+app.extensionManager.registerSidebarTab({
+  id: "search",
+  icon: "pi pi-cloud-upload",
+  title: "Deploy",
+  tooltip: "Deploy and Configure",
+  type: "custom",
+  render: (el) => {
+    el.innerHTML = `
+      <div style="padding: 20px;">
+        <h3>Comfy Deploy</h3>
+        <div id="deploy-container" style="margin-bottom: 20px;"></div>
+        <div id="workflows-container">
+          <h4>Your Workflows</h4>
+          <div id="workflows-loading" style="display: flex; justify-content: center; align-items: center; height: 100px;">
+            ${loadingIcon}
+          </div>
+          <ul id="workflows-list" style="list-style-type: none; padding: 0; display: none;"></ul>
+        </div>
+        <div id="config-container"></div>
+      </div>
+    `;
+
+    // Add deploy button
+    const deployContainer = el.querySelector("#deploy-container");
+    const deployButton = document.createElement("button");
+    deployButton.id = "sidebar-deploy-button";
+    deployButton.style.display = "flex";
+    deployButton.style.alignItems = "center";
+    deployButton.style.justifyContent = "center";
+    deployButton.style.width = "100%";
+    deployButton.style.marginBottom = "10px";
+    deployButton.style.padding = "10px";
+    deployButton.style.fontSize = "16px";
+    deployButton.style.fontWeight = "bold";
+    deployButton.style.backgroundColor = "#4CAF50";
+    deployButton.style.color = "white";
+    deployButton.style.border = "none";
+    deployButton.style.borderRadius = "5px";
+    deployButton.style.cursor = "pointer";
+    deployButton.innerHTML = `<i class="pi pi-cloud-upload" style="margin-right: 8px;"></i><div id='sidebar-button-title'>Deploy</div>`;
+    deployButton.onclick = async () => {
+      await deployWorkflow();
+      // Refresh the workflows list after deployment
+      refreshWorkflowsList(el);
+    };
+    deployContainer.appendChild(deployButton);
+
+    // Add config button
+    const configContainer = el.querySelector("#config-container");
+    const configButton = document.createElement("button");
+    configButton.style.display = "flex";
+    configButton.style.alignItems = "center";
+    configButton.style.justifyContent = "center";
+    configButton.style.width = "100%";
+    configButton.style.padding = "8px";
+    configButton.style.fontSize = "14px";
+    configButton.style.backgroundColor = "#f0f0f0";
+    configButton.style.color = "#333";
+    configButton.style.border = "1px solid #ccc";
+    configButton.style.borderRadius = "5px";
+    configButton.style.cursor = "pointer";
+    configButton.innerHTML = `<i class="pi pi-cog" style="margin-right: 8px;"></i>Configure`;
+    configButton.onclick = () => {
+      configDialog.show();
+    };
+    deployContainer.appendChild(configButton);
+
+    // Fetch and display workflows
+    const workflowsList = el.querySelector("#workflows-list");
+    const workflowsLoading = el.querySelector("#workflows-loading");
+
+    refreshWorkflowsList(el);
+  },
+});
 
 function getTimeAgo(date) {
   const seconds = Math.floor((new Date() - date) / 1000);
@@ -1599,8 +2139,8 @@ function createMenuRightButton(config) {
     <span class="p-button-label">${config.label}</span>
   `
   button.onclick = () => {
-    const eventData = typeof config.eventData === 'function' ? 
-      config.eventData() : 
+    const eventData = typeof config.eventData === 'function' ?
+      config.eventData() :
       config.eventData || {}
     sendEventToCD(config.event, eventData)
   }
