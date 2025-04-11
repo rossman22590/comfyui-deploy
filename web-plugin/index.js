@@ -1,8 +1,44 @@
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
-import { ComfyWidgets, LGraphNode } from "./widgets.js";
+// import { LGraphNode } from "../../scripts/widgets.js";
+LGraphNode = LiteGraph.LGraphNode;
+import { ComfyDialog, $el } from "../../scripts/ui.js";
+
 import { generateDependencyGraph } from "https://esm.sh/comfyui-json@0.1.25";
 import { ComfyDeploy } from "https://esm.sh/comfydeploy@2.0.0-beta.69";
+
+const styles = `
+.comfydeploy-menu-item {
+    background: linear-gradient(to right, rgba(74, 144, 226, 0.9), rgba(103, 178, 111, 0.9)) !important;
+    color: white !important;
+    position: relative !important;
+    padding-left: 20px !important;
+}
+
+.comfydeploy-menu-item:hover {
+    filter: brightness(1.1) !important;
+    cursor: pointer !important;
+}
+
+.comfydeploy-menu-item::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background-image: url('https://www.comfydeploy.com/icon.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+`;
+
+// Add stylesheet to document
+const styleSheet = document.createElement("style");
+styleSheet.textContent = styles;
+document.head.appendChild(styleSheet);
 
 const loadingIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="#888888" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg>`;
 
@@ -12,6 +48,14 @@ function sendEventToCD(event, data) {
     data: data,
   };
   window.parent.postMessage(JSON.stringify(message), "*");
+}
+
+function sendDirectEventToCD(event, data) {
+  const message = {
+    type: event,
+    data: data,
+  };
+  window.parent.postMessage(message, "*");
 }
 
 function dispatchAPIEventData(data) {
@@ -83,10 +127,191 @@ function dispatchAPIEventData(data) {
   }
 }
 
+const context = {
+  selectedWorkflowInfo: null,
+};
+// let selectedWorkflowInfo = {
+//   workflow_id: "05da8f2b-63af-4c0c-86dd-08d01ec512b7",
+//   machine_id: "45ac5f85-b7b6-436f-8d97-2383b25485f3",
+//   native_run_api_endpoint: "http://localhost:3011/api/run",
+// };
+
+async function getSelectedWorkflowInfo() {
+  const workflow_info_promise = new Promise((resolve) => {
+    try {
+      const handleMessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message.type === "workflow_info") {
+            resolve(message.data);
+            window.removeEventListener("message", handleMessage);
+          }
+        } catch (error) {
+          console.error(error);
+          resolve(undefined);
+        }
+      };
+      window.addEventListener("message", handleMessage);
+      sendEventToCD("workflow_info");
+    } catch (error) {
+      console.error(error);
+      resolve(undefined);
+    }
+  });
+
+  return workflow_info_promise;
+}
+
+function setSelectedWorkflowInfo(info) {
+  context.selectedWorkflowInfo = info;
+}
+
+const VALID_TYPES = [
+  "STRING",
+  "combo",
+  "number",
+  "toggle",
+  "BOOLEAN",
+  "text",
+  "string",
+];
+
+function hideWidget(node, widget, suffix = "") {
+  if (widget.type?.startsWith(CONVERTED_TYPE)) return;
+  widget.origType = widget.type;
+  widget.origComputeSize = widget.computeSize;
+  widget.origSerializeValue = widget.serializeValue;
+  widget.computeSize = () => [0, -4];
+  widget.type = CONVERTED_TYPE + suffix;
+  widget.serializeValue = () => {
+    if (!node.inputs) {
+      return void 0;
+    }
+    let node_input = node.inputs.find((i) => i.widget?.name === widget.name);
+    if (!node_input || !node_input.link) {
+      return void 0;
+    }
+    return widget.origSerializeValue
+      ? widget.origSerializeValue()
+      : widget.value;
+  };
+  if (widget.linkedWidgets) {
+    for (const w of widget.linkedWidgets) {
+      hideWidget(node, w, ":" + widget.name);
+    }
+  }
+}
+
+function getWidgetType(config) {
+  let type = config[0];
+  if (type instanceof Array) {
+    type = "COMBO";
+  }
+  return { type };
+}
+
+const GET_CONFIG = Symbol();
+
+function convertToInput(node, widget, config) {
+  console.log(node);
+  if (node.type == "LoadImage") {
+    var inputNode = LiteGraph.createNode("ComfyUIDeployExternalImage");
+    console.log(widget);
+
+    const currentOutputsLinks = node.outputs[0].links;
+
+    // const index = node.inputs.findIndex((x) => x.name == widget.name);
+    // console.log(node.widgets_values, index);
+    // inputNode.configure({
+    //   widgets_values: ["input_text", widget.value],
+    // });
+    inputNode.pos = node.pos;
+    inputNode.id = ++app.graph.last_node_id;
+    // inputNode.pos[0] += node.size[0] + 40;
+    node.pos[0] -= inputNode.size[0] + 20;
+    console.log(inputNode);
+    console.log(app.graph);
+    app.graph.add(inputNode);
+
+    const links = app.graph.links;
+
+    console.log(currentOutputsLinks);
+
+    for (let i = 0; i < currentOutputsLinks.length; i++) {
+      const link = currentOutputsLinks[i];
+      const llink = links[link];
+      console.log(links[link]);
+      setTimeout(
+        () => inputNode.connect(0, llink.target_id, llink.target_slot),
+        100,
+      );
+    }
+
+    node.connect(0, inputNode, 0);
+
+    return null;
+  }
+
+  hideWidget(node, widget);
+  const { type } = getWidgetType(config);
+  const sz = node.size;
+  const inputIsOptional = !!widget.options?.inputIsOptional;
+  const input = node.addInput(widget.name, type, {
+    widget: { name: widget.name, [GET_CONFIG]: () => config },
+    ...(inputIsOptional ? { shape: LiteGraph.SlotShape.HollowCircle } : {}),
+  });
+  for (const widget2 of node.widgets) {
+    widget2.last_y += LiteGraph.NODE_SLOT_HEIGHT;
+  }
+  node.setSize([Math.max(sz[0], node.size[0]), Math.max(sz[1], node.size[1])]);
+
+  if (type == "STRING") {
+    var inputNode = LiteGraph.createNode("ComfyUIDeployExternalText");
+    console.log(widget);
+    const index = node.inputs.findIndex((x) => x.name == widget.name);
+    console.log(node.widgets_values, index);
+    inputNode.configure({
+      widgets_values: ["input_text", widget.value],
+    });
+    inputNode.id = ++app.graph.last_node_id;
+    inputNode.pos = node.pos;
+    inputNode.pos[0] -= node.size[0] + 40;
+    console.log(inputNode);
+    console.log(app.graph);
+    app.graph.add(inputNode);
+    inputNode.connect(0, node, index);
+  }
+
+  return input;
+}
+
+const CONVERTED_TYPE = "converted-widget";
+
+function getConfig(widgetName) {
+  const { nodeData } = this.constructor;
+  return (
+    nodeData?.input?.required?.[widgetName] ??
+    nodeData?.input?.optional?.[widgetName]
+  );
+}
+
+function isConvertibleWidget(widget, config) {
+  return (
+    (VALID_TYPES.includes(widget.type) || VALID_TYPES.includes(config[0])) &&
+    !widget.options?.forceInput
+  );
+}
+
+var __defProp = Object.defineProperty;
+var __name = (target, value) =>
+  __defProp(target, "name", { value, configurable: true });
+
 /** @typedef {import('../../../web/types/comfy.js').ComfyExtension} ComfyExtension*/
 /** @type {ComfyExtension} */
 const ext = {
   name: "BennyKok.ComfyUIDeploy",
+
+  native_mode: false,
 
   init(app) {
     addButton();
@@ -97,16 +322,17 @@ const ext = {
     const org_display = queryParams.get("org_display");
     const origin = queryParams.get("origin");
     const workspace_mode = queryParams.get("workspace_mode");
+    this.native_mode = queryParams.get("native_mode") === "true";
 
     if (workspace_mode) {
       document.querySelector(".comfy-menu").style.display = "none";
 
       sendEventToCD("cd_plugin_onInit");
 
-      app.queuePrompt = ((originalFunction) => async () => {
-        // const prompt = await app.graphToPrompt();
-        sendEventToCD("cd_plugin_onQueuePromptTrigger");
-      })(app.queuePrompt);
+      // app.queuePrompt = ((originalFunction) => async () => {
+      //   // const prompt = await app.graphToPrompt();
+      //   sendEventToCD("cd_plugin_onQueuePromptTrigger");
+      // })(app.queuePrompt);
 
       // // Intercept the onkeydown event
       // window.addEventListener(
@@ -190,6 +416,125 @@ const ext = {
     }
   },
 
+  async beforeRegisterNodeDef(nodeType, nodeData, app2) {
+    const origGetExtraMenuOptions = nodeType.prototype.getExtraMenuOptions;
+    nodeType.prototype.getExtraMenuOptions = function (_, options) {
+      const r = origGetExtraMenuOptions
+        ? origGetExtraMenuOptions.apply(this, arguments)
+        : void 0;
+      if (this.widgets) {
+        let toInput = [];
+        let toWidget = [];
+        for (const w of this.widgets) {
+          if (w.options?.forceInput) {
+            continue;
+          }
+          if (w.type === CONVERTED_TYPE) {
+            toWidget.push({
+              content: `Convert ${w.name} to widget`,
+              callback: /* @__PURE__ */ __name(
+                () => convertToWidget(this, w),
+                "callback",
+              ),
+            });
+          } else {
+            const config = getConfig.call(this, w.name) ?? [
+              w.type,
+              w.options || {},
+            ];
+            if (isConvertibleWidget(w, config)) {
+              toInput.push({
+                content: `Convert ${w.name} to external input`,
+                callback: /* @__PURE__ */ __name(
+                  () => convertToInput(this, w, config),
+                  "callback",
+                ),
+                className: "comfydeploy-menu-item",
+              });
+            }
+          }
+        }
+        if (toInput.length) {
+          if (true) {
+            options.push();
+
+            let optionIndex = options.findIndex((o) => o.content === "Outputs");
+            if (optionIndex === -1) optionIndex = options.length;
+            else optionIndex++;
+            options.splice(
+              0,
+              0,
+              // {
+              //   content: "[ComfyDeploy] Convert to External Input",
+              //   submenu: {
+              //     options: toInput,
+              //   },
+              //   className: "comfydeploy-menu-item"
+              // },
+              ...toInput,
+              null,
+            );
+          } else {
+            options.push(...toInput, null);
+          }
+        }
+        // if (toWidget.length) {
+        //   if (useConversionSubmenusSetting.value) {
+        //     options.push({
+        //       content: "Convert Input to Widget",
+        //       submenu: {
+        //         options: toWidget,
+        //       },
+        //     });
+        //   } else {
+        //     options.push(...toWidget, null);
+        //   }
+        // }
+      }
+      return r;
+    };
+
+    if (
+      nodeData?.input?.optional?.default_value_url?.[1]?.image_preview === true
+    ) {
+      nodeData.input.optional.default_value_url = ["IMAGEPREVIEW"];
+      console.log(nodeData.input.optional.default_value_url);
+    }
+
+    // const origonNodeCreated = nodeType.prototype.onNodeCreated;
+    // nodeType.prototype.onNodeCreated = function () {
+    //   const r = origonNodeCreated
+    //     ? origonNodeCreated.apply(this, arguments)
+    //     : void 0;
+
+    //   if (!this.widgets) {
+    //     return;
+    //   }
+
+    //   console.log(this.widgets);
+
+    //   this.widgets.forEach(element => {
+    //     if (element.type != "customtext") return
+
+    //     console.log(element.element);
+
+    //     const parent = element.element.parentElement
+
+    //     console.log(element.element.parentElement)
+    //     const btn = document.createElement("button");
+    //     // const div = document.createElement("div");
+    //     // parent.removeChild(element.element)
+    //     // div.appendChild(element.element)
+    //     // parent.appendChild(div)
+    //     // element.element = div
+    //     // console.log(element.element);
+    //     // btn.style = element.element.style
+    //   });
+
+    //   return r
+    // };
+  },
+
   registerCustomNodes() {
     /** @type {LGraphNode}*/
     class ComfyDeploy extends LGraphNode {
@@ -198,51 +543,59 @@ const ext = {
         this.color = LGraphCanvas.node_colors.yellow.color;
         this.bgcolor = LGraphCanvas.node_colors.yellow.bgcolor;
         this.groupcolor = LGraphCanvas.node_colors.yellow.groupcolor;
-        if (!this.properties) {
-          this.properties = {};
-          this.properties.workflow_name = "";
-          this.properties.workflow_id = "";
-          this.properties.version = "";
-        }
 
-        ComfyWidgets.STRING(
-          this,
+        this.properties = this.properties || {};
+        this.properties.workflow_name = this.properties.workflow_name || "";
+        this.properties.workflow_id = this.properties.workflow_id || "";
+        this.properties.version = this.properties.version || "";
+
+        this.addWidget(
+          "text",
           "workflow_name",
-          ["", { default: this.properties.workflow_name, multiline: false }],
-          app,
+          this.properties.workflow_name,
+          (v) => {
+            this.properties.workflow_name = v;
+          },
+          { multiline: false },
         );
 
-        ComfyWidgets.STRING(
-          this,
+        this.addWidget(
+          "text",
           "workflow_id",
-          ["", { default: this.properties.workflow_id, multiline: false }],
-          app,
+          this.properties.workflow_id,
+          (v) => {
+            this.properties.workflow_id = v;
+          },
+          { multiline: false },
         );
 
-        ComfyWidgets.STRING(
-          this,
+        this.addWidget(
+          "text",
           "version",
-          ["", { default: this.properties.version, multiline: false }],
-          app,
+          this.properties.version,
+          (v) => {
+            this.properties.version = v;
+          },
+          { multiline: false },
         );
-
-        // this.widgets.forEach((w) => {
-        //   // w.computeSize = () => [200,10]
-        //   w.computedHeight = 2;
-        // })
 
         this.widgets_start_y = 10;
-        this.setSize(this.computeSize());
-
-        // const config = {  };
-
-        // console.log(this);
         this.serialize_widgets = true;
         this.isVirtualNode = true;
+        
+        // Ensure the node size is set correctly
+        this.size = this.computeSize();
+        this.setDirtyCanvas(true, true);
       }
 
-      // Add method to handle serialization (saving)
+      onExecute() {
+        // This method is called when the node is executed
+        // You can add any necessary logic here
+      }
+
       onSerialize(o) {
+        // This method is called when the node is being serialized
+        // Ensure all necessary data is saved
         if (!o.properties) {
           o.properties = {};
         }
@@ -251,29 +604,111 @@ const ext = {
         o.properties.version = this.properties.version;
       }
 
-      // Add method to handle configuration (loading)
       onConfigure(o) {
+        // This method is called when the node is being configured (e.g., when loading a saved graph)
+        // Ensure all necessary data is restored
         if (o.properties) {
           this.properties = { ...this.properties, ...o.properties };
-          this.widgets[0].value = this.properties.workflow_name || "";
-          this.widgets[1].value = this.properties.workflow_id || "";
-          this.widgets[2].value = this.properties.version || "1";
+          
+          // Update widget values if they exist
+          if (this.widgets && this.widgets.length >= 3) {
+            this.widgets[0].value = this.properties.workflow_name || "";
+            this.widgets[1].value = this.properties.workflow_id || "";
+            this.widgets[2].value = this.properties.version || "1";
+          }
+          
+          // Force a redraw of the canvas
+          if (app && app.graph) {
+            app.graph.setDirtyCanvas(true, true);
+          }
         }
       }
     }
 
-    // Load default visibility
-
+    // Register the node type with additional settings for proper serialization
     LiteGraph.registerNodeType(
       "ComfyDeploy",
       Object.assign(ComfyDeploy, {
-        title_mode: LiteGraph.NORMAL_TITLE,
         title: "Comfy Deploy",
+        title_mode: LiteGraph.NORMAL_TITLE,
         collapsable: true,
+        serialize_widgets: true,  // Make sure widgets are serialized
       }),
     );
 
     ComfyDeploy.category = "deploy";
+  },
+
+  getCustomWidgets() {
+    return {
+      IMAGEPREVIEW(node, inputName, inputData) {
+        // Find or create the URL input widget
+        const urlWidget = node.addWidget(
+          "string",
+          inputName,
+          /* value=*/ "",
+          () => { },
+          { serialize: true },
+        );
+
+        const buttonWidget = node.addWidget(
+          "button",
+          "Open Assets Browser",
+          /* value=*/ "",
+          () => {
+            sendEventToCD("assets", {
+              node: node.id,
+              inputName: inputName,
+            });
+            // console.log("load image");
+          },
+          { serialize: false },
+        );
+
+        console.log(node.widgets);
+
+        console.log("urlWidget", urlWidget);
+
+        // Add image preview functionality
+        function showImage(url) {
+          const img = new Image();
+          img.onload = () => {
+            node.imgs = [img];
+            app.graph.setDirtyCanvas(true);
+            node.setSizeForImage?.();
+          };
+          img.onerror = () => {
+            node.imgs = [];
+            app.graph.setDirtyCanvas(true);
+          };
+          img.src = url;
+        }
+
+        // Set up URL widget value handling
+        let default_value = urlWidget.value;
+        Object.defineProperty(urlWidget, "value", {
+          set: function (value) {
+            this._real_value = value;
+            // Preview image when URL changes
+            if (value) {
+              showImage(value);
+            }
+          },
+          get: function () {
+            return this._real_value || default_value;
+          },
+        });
+
+        // Show initial image if URL exists
+        requestAnimationFrame(() => {
+          if (urlWidget.value) {
+            showImage(urlWidget.value);
+          }
+        });
+
+        return { widget: urlWidget };
+      },
+    };
   },
 
   async setup() {
@@ -290,6 +725,17 @@ const ext = {
           // This part of the code would depend on how the ComfyUI expects to receive and process the workflow data
           // For demonstration, let's assume there's a loadWorkflow method in the ComfyUI API
           if (comfyUIWorkflow && app && app.loadGraphData) {
+            try {
+              await window["app"].ui.settings.setSettingValueAsync(
+                "Comfy.Validation.Workflows",
+                false,
+              );
+            } catch (error) {
+              console.warning(
+                "Error setting validation to false, is fine to ignore this",
+                error,
+              );
+            }
             console.log("loadGraphData");
             app.loadGraphData(comfyUIWorkflow);
           }
@@ -300,13 +746,39 @@ const ext = {
           sendEventToCD("cd_plugin_onDeployChanges", prompt);
         } else if (message.type === "queue_prompt") {
           const prompt = await app.graphToPrompt();
-          api.handlePromptGenerated(prompt);
+          if (typeof api.handlePromptGenerated === "function") {
+            api.handlePromptGenerated(prompt);
+          } else {
+            console.warn("api.handlePromptGenerated is not a function");
+          }
           sendEventToCD("cd_plugin_onQueuePrompt", prompt);
+        } else if (message.type === "configure_queue_buttons") {
+          addQueueButtons(message.data);
+        } else if (message.type === "configure_menu_right_buttons") {
+          addMenuRightButtons(message.data);
         } else if (message.type === "get_prompt") {
           const prompt = await app.graphToPrompt();
           sendEventToCD("cd_plugin_onGetPrompt", prompt);
         } else if (message.type === "event") {
           dispatchAPIEventData(message.data);
+        } else if (message.type === "update_widget") {
+          // New handler for updating widget values
+          const { nodeId, widgetName, value } = message.data;
+          const node = app.graph.getNodeById(nodeId);
+
+          if (!node) {
+            console.warn(`Node with ID ${nodeId} not found`);
+            return;
+          }
+
+          const widget = node.widgets?.find((w) => w.name === widgetName);
+          if (!widget) {
+            console.warn(`Widget ${widgetName} not found in node ${nodeId}`);
+            return;
+          }
+
+          widget.value = value;
+          app.graph.setDirtyCanvas(true);
         } else if (message.type === "add_node") {
           console.log("add node", message.data);
           app.graph.beforeChange();
@@ -323,6 +795,58 @@ const ext = {
 
           app.graph.add(node);
           app.graph.afterChange();
+        } else if (message.type === "zoom_to_node") {
+          const nodeId = message.data.nodeId;
+          const position = message.data.position;
+
+          const node = app.graph.getNodeById(nodeId);
+          if (!node) return;
+
+          const canvas = app.canvas;
+          const targetScale = 1;
+          const targetOffsetX =
+            canvas.canvas.width / 4 - position[0] - node.size[0] / 2;
+          const targetOffsetY =
+            canvas.canvas.height / 4 - position[1] - node.size[1] / 2;
+
+          const startScale = canvas.ds.scale;
+          const startOffsetX = canvas.ds.offset[0];
+          const startOffsetY = canvas.ds.offset[1];
+
+          const duration = 400; // Animation duration in milliseconds
+          const startTime = Date.now();
+
+          function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+          }
+
+          function lerp(start, end, t) {
+            return start * (1 - t) + end * t;
+          }
+
+          function animate() {
+            const currentTime = Date.now();
+            const elapsedTime = currentTime - startTime;
+            const t = Math.min(elapsedTime / duration, 1);
+
+            const easedT = easeOutCubic(t);
+
+            const currentScale = lerp(startScale, targetScale, easedT);
+            const currentOffsetX = lerp(startOffsetX, targetOffsetX, easedT);
+            const currentOffsetY = lerp(startOffsetY, targetOffsetY, easedT);
+
+            canvas.setZoom(currentScale);
+            canvas.ds.offset = [currentOffsetX, currentOffsetY];
+            canvas.draw(true, true);
+
+            if (t < 1) {
+              requestAnimationFrame(animate);
+            }
+          }
+
+          animate();
+        } else if (message.type === "workflow_info") {
+          setSelectedWorkflowInfo(message.data);
         }
         // else if (message.type === "refresh") {
         //   sendEventToCD("cd_plugin_onRefresh");
@@ -341,6 +865,25 @@ const ext = {
 
       //   }
     });
+
+    if (this.native_mode) {
+      // console.log("native mode", window, window.app);
+      try {
+        await app.ui.settings.setSettingValueAsync("Comfy.UseNewMenu", "Top");
+        await app.ui.settings.setSettingValueAsync(
+          "Comfy.Sidebar.Size",
+          "small",
+        );
+        await app.ui.settings.setSettingValueAsync(
+          "Comfy.Sidebar.Location",
+          "right",
+        );
+        localStorage.setItem("Comfy.MenuPosition.Docked", "true");
+        console.log("native mode manmanman");
+      } catch (error) {
+        console.error("Error setting validation to false", error);
+      }
+    }
 
     app.graph.onAfterChange = ((originalFunction) =>
       async function () {
@@ -448,6 +991,7 @@ function createDynamicUIHtml(data) {
   return html;
 }
 
+// Modify the existing deployWorkflow function
 async function deployWorkflow() {
   const deploy = document.getElementById("deploy-button");
 
@@ -594,30 +1138,30 @@ async function deployWorkflow() {
         console.log(hash);
         return hash.file_hash;
       },
-      handleFileUpload: async (file, hash, prevhash) => {
-        console.log("Uploading ", file);
-        loadingDialog.showLoading("Uploading file", file);
-        try {
-          const { download_url } = await fetch(`/comfyui-deploy/upload-file`, {
-            method: "POST",
-            body: JSON.stringify({
-              file_path: file,
-              token: apiKey,
-              url: endpoint + "/api/upload-url",
-            }),
-          })
-            .then((x) => x.json())
-            .catch(() => {
-              loadingDialog.close();
-              confirmDialog.confirm("Error", "Unable to upload file " + file);
-            });
-          loadingDialog.showLoading("Uploaded file", file);
-          console.log(download_url);
-          return download_url;
-        } catch (error) {
-          return undefined;
-        }
-      },
+      //   handleFileUpload: async (file, hash, prevhash) => {
+      //     console.log("Uploading ", file);
+      //     loadingDialog.showLoading("Uploading file", file);
+      //     try {
+      //       const { download_url } = await fetch(`/comfyui-deploy/upload-file`, {
+      //         method: "POST",
+      //         body: JSON.stringify({
+      //           file_path: file,
+      //           token: apiKey,
+      //           url: endpoint + "/api/upload-url",
+      //         }),
+      //       })
+      //         .then((x) => x.json())
+      //         .catch(() => {
+      //           loadingDialog.close();
+      //           confirmDialog.confirm("Error", "Unable to upload file " + file);
+      //         });
+      //       loadingDialog.showLoading("Uploaded file", file);
+      //       console.log(download_url);
+      //       return download_url;
+      //     } catch (error) {
+      //       return undefined;
+      //     }
+      //   },
       existingDependencies: existing_workflow.dependencies,
     });
 
@@ -642,10 +1186,19 @@ async function deployWorkflow() {
       "Check dependencies",
       // JSON.stringify(deps, null, 2),
       `
+      <div>
+        You will need to create a cloud machine with the following configuration on ComfyDeploy
+        <ol style="text-align: left; margin-top: 10px;">
+            <li>Review the dependencies listed in the graph below</li>
+            <li>Create a new cloud machine with the required configuration</li>
+            <li>Install missing models and check missing files</li>
+            <li>Deploy your workflow to the newly created machine</li>
+        </ol>
+      </div>
       <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">${loadingIcon}</div>
       <iframe 
       style="z-index: 10; min-width: 600px; max-width: 1024px; min-height: 600px; border: none; background-color: transparent;"
-      src="https://www.comfydeploy.com/dependency-graph?deps=${encodeURIComponent(
+      src="https://api.myapps.ai/dependency-graph?deps=${encodeURIComponent(
         JSON.stringify(deps),
       )}" />`,
       // createDynamicUIHtml(deps),
@@ -711,6 +1264,14 @@ async function deployWorkflow() {
       `<span style="color:green;">Deployed successfully!</span>  <a style="color:white;" target="_blank" href=${endpoint}/workflows/${data.workflow_id}>-> View here</a> <br/> <br/> Workflow ID: ${data.workflow_id} <br/> Workflow Name: ${workflow_name} <br/> Workflow Version: ${data.version} <br/>`,
     );
 
+    // // Refresh the workflows list in the sidebar
+    // const sidebarEl = document.querySelector(
+    //   '.comfy-sidebar-tab[data-id="search"]',
+    // );
+    // if (sidebarEl) {
+    //   refreshWorkflowsList(sidebarEl);
+    // }
+
     setTimeout(() => {
       title.textContent = "Deploy";
       title.style.color = "white";
@@ -726,6 +1287,85 @@ async function deployWorkflow() {
       title.style.color = "white";
     }, 1000);
   }
+}
+
+// Add this function to refresh the workflows list
+function refreshWorkflowsList(el) {
+  const workflowsList = el.querySelector("#workflows-list");
+  const workflowsLoading = el.querySelector("#workflows-loading");
+
+  workflowsLoading.style.display = "flex";
+  workflowsList.style.display = "none";
+  workflowsList.innerHTML = "";
+
+  client.workflows
+    .getAll({
+      page: "1",
+      pageSize: "10",
+    })
+    .then((result) => {
+      workflowsLoading.style.display = "none";
+      workflowsList.style.display = "block";
+
+      if (result.length === 0) {
+        workflowsList.innerHTML =
+          "<li style='color: #bdbdbd;'>No workflows found</li>";
+        return;
+      }
+
+      result.forEach((workflow) => {
+        const li = document.createElement("li");
+        li.style.marginBottom = "15px";
+        li.style.padding = "15px";
+        li.style.backgroundColor = "#2a2a2a";
+        li.style.borderRadius = "8px";
+        li.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+
+        const lastRun = workflow.runs[0];
+        const lastRunStatus = lastRun ? lastRun.status : "No runs";
+        const statusColor =
+          lastRunStatus === "success"
+            ? "#4CAF50"
+            : lastRunStatus === "error"
+              ? "#F44336"
+              : "#FFC107";
+
+        const timeAgo = getTimeAgo(new Date(workflow.updatedAt));
+
+        li.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <strong style="font-size: 18px; color: #e0e0e0;">${workflow.name}</strong>
+            </div>
+            <span style="font-size: 12px; color: ${statusColor}; margin-left: 10px;">Last run: ${lastRunStatus}</span>
+          </div>
+          <div style="font-size: 14px; color: #bdbdbd; margin-bottom: 10px;">Last updated ${timeAgo}</div>
+          <div style="display: flex; gap: 10px;">
+            <button class="open-cloud-btn" style="padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Open in Cloud</button>
+            <button class="load-api-btn" style="padding: 5px 10px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">Load Workflow</button>
+          </div>
+        `;
+
+        const openCloudBtn = li.querySelector(".open-cloud-btn");
+        openCloudBtn.onclick = () =>
+          window.open(
+            `${getData().endpoint}/workflows/${workflow.id}?workspace=true`,
+            "_blank",
+          );
+
+        const loadApiBtn = li.querySelector(".load-api-btn");
+        loadApiBtn.onclick = () => loadWorkflowApi(workflow.versions[0].id);
+
+        workflowsList.appendChild(li);
+      });
+    })
+    .catch((error) => {
+      console.error("Error fetching workflows:", error);
+      workflowsLoading.style.display = "none";
+      workflowsList.style.display = "block";
+      workflowsList.innerHTML =
+        "<li style='color: #F44336;'>Error fetching workflows</li>";
+    });
 }
 
 function addButton() {
@@ -765,8 +1405,6 @@ function addButton() {
 }
 
 app.registerExtension(ext);
-
-import { ComfyDialog, $el } from "../../scripts/ui.js";
 
 export class InfoDialog extends ComfyDialog {
   constructor() {
@@ -926,7 +1564,7 @@ export class InputDialog extends InfoDialog {
         <h3 style="margin: 0px;">${title}</h3>
         <label>
           ${message}
-          <input id="input" style="margin-top: 8px; width: 100%; height:40px; box-sizing: border-box; padding: 0px 6px;">
+          <input id="input" style="margin-top: 8px; width: 100%; height:40px; padding: 0px 6px; box-sizing: border-box; outline-offset: -1px;">
         </label>
         </div>
       `);
@@ -1009,7 +1647,7 @@ function getData(environment) {
   if (!data) {
     if (deployOption == "cloud")
       return {
-        endpoint: "https://www.comfydeploy.com",
+        endpoint: "https://api.myapps.ai",
         apiKey: "",
       };
     else
@@ -1121,7 +1759,7 @@ export class ConfigDialog extends ComfyDialog {
 
     this.container.innerHTML = `
     <div style="width: 400px; display: flex; gap: 18px; flex-direction: column;">
-    <h3 style="margin: 0px;">Comfy Deploy Config</h3>
+    <h3 style="margin: 0px;">Pixio API Config</h3>
     <label style="color: white; width: 100%;">
       <select id="deployOption" style="margin: 8px 0px; width: 100%; height:30px; box-sizing: border-box;" >
         <option value="cloud" ${data.environment === "cloud" ? "selected" : ""}>Cloud</option>
@@ -1139,7 +1777,7 @@ export class ConfigDialog extends ComfyDialog {
         <input id="apiKey" style="margin-top: 8px; width: 100%; height:40px; box-sizing: border-box; padding: 0px 6px;" type="password" value="${data.apiKey
       }">
         <button id="loginButton" style="margin-top: 8px; width: 100%; height:40px; box-sizing: border-box; padding: 0px 6px;">
-          ${data.apiKey ? "Re-login with ComfyDeploy" : "Login with ComfyDeploy"
+          ${data.apiKey ? "Re-login with Pixio" : "Login with Pixio"
       }
         </button>
       </div>
@@ -1215,14 +1853,12 @@ export class ConfigDialog extends ComfyDialog {
 
 export const configDialog = new ConfigDialog();
 
-// Add ComfyDeploy client setup and API URL configuration
 const currentOrigin = window.location.origin;
 const client = new ComfyDeploy({
   bearerAuth: getData().apiKey,
   serverURL: `${currentOrigin}/comfydeploy/api/`,
 });
 
-// Register the deploy tab in sidebar
 app.extensionManager.registerSidebarTab({
   id: "search",
   icon: "pi pi-cloud-upload",
@@ -1232,7 +1868,7 @@ app.extensionManager.registerSidebarTab({
   render: (el) => {
     el.innerHTML = `
       <div style="padding: 20px;">
-        <h3>Comfy Deploy</h3>
+        <h3>Pixio Deploy</h3>
         <div id="deploy-container" style="margin-bottom: 20px;"></div>
         <div id="workflows-container">
           <h4>Your Workflows</h4>
@@ -1263,8 +1899,8 @@ app.extensionManager.registerSidebarTab({
     deployButton.style.borderRadius = "5px";
     deployButton.style.cursor = "pointer";
     deployButton.innerHTML = `<i class="pi pi-cloud-upload" style="margin-right: 8px;"></i><div id='sidebar-button-title'>Deploy</div>`;
-    deployButton.onclick = async () => {
-      await deployWorkflow();
+    deployButton.onclick = () => {
+      deployWorkflow();
       // Refresh the workflows list after deployment
       refreshWorkflowsList(el);
     };
@@ -1291,90 +1927,12 @@ app.extensionManager.registerSidebarTab({
     deployContainer.appendChild(configButton);
 
     // Fetch and display workflows
+    const workflowsList = el.querySelector("#workflows-list");
+    const workflowsLoading = el.querySelector("#workflows-loading");
+
     refreshWorkflowsList(el);
   },
 });
-
-// Add this function to refresh the workflows list
-function refreshWorkflowsList(el) {
-  const workflowsList = el.querySelector("#workflows-list");
-  const workflowsLoading = el.querySelector("#workflows-loading");
-
-  if (!workflowsList || !workflowsLoading) return;
-
-  workflowsLoading.style.display = "flex";
-  workflowsList.style.display = "none";
-  workflowsList.innerHTML = "";
-
-  client.workflows
-    .getAll({
-      page: "1",
-      pageSize: "10",
-    })
-    .then((result) => {
-      workflowsLoading.style.display = "none";
-      workflowsList.style.display = "block";
-
-      if (result.length === 0) {
-        workflowsList.innerHTML =
-          "<li style='color: #bdbdbd;'>No workflows found</li>";
-        return;
-      }
-
-      result.forEach((workflow) => {
-        const li = document.createElement("li");
-        li.style.marginBottom = "15px";
-        li.style.padding = "15px";
-        li.style.backgroundColor = "#2a2a2a";
-        li.style.borderRadius = "8px";
-        li.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-
-        const lastRun = workflow.runs[0];
-        const lastRunStatus = lastRun ? lastRun.status : "No runs";
-        const statusColor =
-          lastRunStatus === "success"
-            ? "#4CAF50"
-            : lastRunStatus === "error"
-              ? "#F44336"
-              : "#FFC107";
-
-        const timeAgo = getTimeAgo(new Date(workflow.updatedAt));
-
-        li.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              <strong style="font-size: 18px; color: #e0e0e0;">${workflow.name}</strong>
-            </div>
-            <span style="font-size: 12px; color: ${statusColor}; margin-left: 10px;">Last run: ${lastRunStatus}</span>
-          </div>
-          <div style="font-size: 14px; color: #bdbdbd; margin-bottom: 10px;">Last updated ${timeAgo}</div>
-          <div style="display: flex; gap: 10px;">
-            <button class="open-cloud-btn" style="padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Open in Cloud</button>
-            <button class="load-api-btn" style="padding: 5px 10px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">Load Workflow</button>
-          </div>
-        `;
-
-        const openCloudBtn = li.querySelector(".open-cloud-btn");
-        openCloudBtn.onclick = () =>
-          window.open(
-            `${getData().endpoint}/workflows/${workflow.id}?workspace=true`,
-            "_blank",
-          );
-
-        const loadApiBtn = li.querySelector(".load-api-btn");
-        loadApiBtn.onclick = () => loadWorkflowApi(workflow.versions[0].id);
-
-        workflowsList.appendChild(li);
-      });
-    })
-    .catch((error) => {
-      console.error("Error fetching workflows:", error);
-      workflowsLoading.style.display = "none";
-      workflowsList.style.display = "block";
-      workflowsList.innerHTML =
-        "<li style='color: #F44336;'>Error fetching workflows</li>";
-    });
-}
 
 function getTimeAgo(date) {
   const seconds = Math.floor((new Date() - date) / 1000);
@@ -1398,23 +1956,52 @@ async function loadWorkflowApi(versionId) {
     });
     // Implement the logic to load the workflow API into the ComfyUI interface
     console.log("Workflow API loaded:", response);
+    await window["app"].ui.settings.setSettingValueAsync(
+      "Comfy.Validation.Workflows",
+      false,
+    );
     app.loadGraphData(response.workflow);
     // You might want to update the UI or trigger some action in ComfyUI here
   } catch (error) {
     console.error("Error loading workflow API:", error);
     // Show an error message to the user
-    infoDialog.showMessage("Error", "Failed to load workflow: " + error.message);
   }
 }
 
-// Add utility functions for sending direct events to ComfyDeploy
-function sendDirectEventToCD(event, data) {
-  const message = {
-    type: event,
-    data: data,
-  };
-  window.parent.postMessage(message, "*");
-}
+const orginal_fetch_api = api.fetchApi;
+api.fetchApi = async (route, options) => {
+  console.log("Fetch API called with args:", route, options, ext.native_mode);
+
+  if (route.startsWith("/prompt") && ext.native_mode) {
+    const info = await getSelectedWorkflowInfo();
+    console.log("info", info);
+    if (info) {
+      const body = JSON.parse(options.body);
+
+      const data = {
+        client_id: body.client_id,
+        workflow_api_json: body.prompt,
+        workflow: body?.extra_data?.extra_pnginfo?.workflow,
+        is_native_run: true,
+        machine_id: info.machine_id,
+        workflow_id: info.workflow_id,
+        native_run_api_endpoint: info.native_run_api_endpoint,
+        gpu_event_id: info.gpu_event_id,
+      };
+
+      return await fetch("/comfyui-deploy/run", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${info.cd_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+    }
+  }
+
+  return await orginal_fetch_api.call(api, route, options);
+};
 
 // Intercept window drag and drop events
 const originalDropHandler = document.ondrop;
@@ -1493,3 +2080,82 @@ document.ondragover = (e) => {
     originalDragOverHandler(e);
   }
 };
+
+// Function to create a single button
+function createQueueButton(config) {
+  const button = document.createElement("button");
+  button.id = `cd-button-${config.id}`;
+  button.className =
+    "p-button p-component p-button-icon-only p-button-secondary p-button-text";
+  button.innerHTML = `
+    <span class="p-button-icon pi ${config.icon}"></span>
+    <span class="p-button-label">&nbsp;</span>
+  `;
+  button.onclick = () => {
+    const eventData =
+      typeof config.eventData === "function"
+        ? config.eventData()
+        : config.eventData || {};
+    sendEventToCD(config.event, eventData);
+  };
+  button.setAttribute("data-pd-tooltip", config.tooltip);
+  return button;
+}
+
+// Function to add buttons to queue group
+function addQueueButtons(buttonConfigs = DEFAULT_BUTTONS) {
+  const queueButtonGroup = document.querySelector(".queue-button-group.flex");
+  if (!queueButtonGroup) return;
+
+  // Remove any existing CD buttons
+  const existingButtons =
+    queueButtonGroup.querySelectorAll('[id^="cd-button-"]');
+  existingButtons.forEach((button) => button.remove());
+
+  // Add new buttons
+  buttonConfigs.forEach((config) => {
+    const button = createQueueButton(config);
+    queueButtonGroup.appendChild(button);
+  });
+}
+
+// Function to add butons to the menu right 
+function addMenuRightButtons(buttonConfigs) {
+  const menuRightButtons = document.querySelector('.comfyui-menu-right .flex')
+
+  if (!menuRightButtons) return
+
+  // Remove any existing CD buttons
+  const existingButtons = document.querySelectorAll('.comfyui-menu-right [id^="cd-button-"]')
+  for (const button of existingButtons) {
+    button.remove()
+  }
+
+  const container = document.createElement('div')
+  container.className = 'comfyui-button-group mx-2'
+
+  for (const config of buttonConfigs) {
+    const button = createMenuRightButton(config)
+    container.appendChild(button)
+  }
+
+  menuRightButtons.appendChild(container)
+}
+
+function createMenuRightButton(config) {
+  const button = document.createElement('button')
+  button.id = `cd-button-${config.id}`
+  button.className = `p-button p-component p-button-secondary p-button-md ${config.btnClasses}`
+  button.innerHTML = `
+    <span class="p-button-icon pi ${config.icon}"></span>
+    <span class="p-button-label">${config.label}</span>
+  `
+  button.onclick = () => {
+    const eventData = typeof config.eventData === 'function' ?
+      config.eventData() :
+      config.eventData || {}
+    sendEventToCD(config.event, eventData)
+  }
+  button.setAttribute('data-pd-tooltip', config.tooltip)
+  return button
+}
