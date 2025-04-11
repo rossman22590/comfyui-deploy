@@ -22,63 +22,72 @@ const exampleWorkflows: exampleWorkflow[] = [
   {
     title: "Txt2Img SDXL",
     description: "The basic workflow, type a prompt and generate images based on that.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-txt2img-sdxl',
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-txt2img-sdxl',
     image: {
-      src: '/example-workflows/txt2img.webp',
+      src: '/example-workflows/txt2img.png',
       alt: 'IPAdapter workflow',
     }
   },
   {
     title: "Txt2Img LCM SDXL",
     description: "Images in a couple of seconds, increase the speed of each generation using LCM Lora.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-lcm-sdxl',
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-lcm-text2img',
     image: {
-      src: '/example-workflows/txt2img-lcm.webp',
+      src: '/example-workflows/txt2img-lcm.png',
       alt: 'txt2img LCM SDXL',
     }
   },
   {
-    title: "IPAdapter SDXL",
-    description: "Load images and use them as reference for new generations.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-ip-adapter-sdxl',
+    title: "IPAdapter FaceID",
+    description: "Load image and use it  as reference for new consistant generations.",
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-ipadapter-example',
     image: {
-      src: '/example-workflows/ipadapter.webp',
+      src: '/example-workflows/ipadapter.png',
+      alt: 'IPAdapter workflow',
+    }
+  },
+    {
+    title: "AI Influencer",
+    description: "Load image and use it  as reference for new consistant generations.",
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-instant-id',
+    image: {
+      src: '/example-workflows/influencer.png',
       alt: 'IPAdapter workflow',
     }
   },
   {
     title: "Upscale and Add Detail SDXL",
     description: "Upscale and Add Details to your creations.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-upscale-and-add-detail-sdxl',
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-upscaler',
     image: {
-      src: '/example-workflows/upscale.webp',
+      src: '/example-workflows/upscale.png',
       alt: 'Upscale and Add Detail SDXL',
     }
   },
   {
     title: "Txt2Img SDXL Turbo",
     description: "Try SDXL turbo and generate images since 1 step in seconds.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-txt2img-sdxl-turbo',
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-txt2img-sdxl-turbo',
     image: {
-      src: '/example-workflows/txt2img-sdxl-turbo.webp',
+      src: '/example-workflows/txt2img-sdxl-turbo.png',
       alt: 'Txt2Img SDXL Turbo',
     }
   },
   {
     title: "Img2Img SDXL Controlnet",
     description: "This workflow uses canny. Generate lines of you original image and create variations.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-img2-img-sdxl-controlnet',
+    previewURL: '#',
     image: {
-      src: '/example-workflows/txt2img-controlnet.webp',
+      src: '/example-workflows/txt2img-controlnet.png',
       alt: 'Img2Img SDXL Controlnet',
     }
   },
   {
     title: "Automatic Inpainting (SEG)",
     description: "Type what do you want to select and change that area with your prompt.",
-    previewURL: 'https://www.comfydeploy.com/share/comfy-deploy-example-automatic-inpainting-clip-seg',
+    previewURL: 'https://api.myapps.ai/share/ross-cohen-automatic-inpainting',
     image: {
-      src: '/example-workflows/automatic-inpainting-seg.webp',
+      src: '/example-workflows/automatic-inpainting-seg.png',
       alt: 'Img2Img SDXL Controlnet',
     }
   }
@@ -90,7 +99,7 @@ async function Examples() {
     <div className="w-full py-4">
       <section className="mx-auto flex max-w-[980px] flex-col items-center gap-2 py-8 md:py-12 md:pb-8 lg:py-24 lg:pb-20">
         <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl text-center">
-          Check out some examples
+          Check out some examples of what you can do with Pixio API
         </h1>
         <p className="max-w-[560px] text-center text-lg text-muted-foreground">Text to Image, Image to Image, IPAdapter, and more. Here are some examples that you can use to deploy your workflow.</p>
       </section>
