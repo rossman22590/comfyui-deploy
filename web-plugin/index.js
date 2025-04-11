@@ -1186,7 +1186,7 @@ async function deployWorkflow() {
       <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">${loadingIcon}</div>
       <iframe 
       style="z-index: 10; min-width: 600px; max-width: 1024px; min-height: 600px; border: none; background-color: transparent;"
-      src="https://www.comfydeploy.com/dependency-graph?deps=${encodeURIComponent(
+      src="https://api.myapps.ai/dependency-graph?deps=${encodeURIComponent(
         JSON.stringify(deps),
       )}" />`,
       // createDynamicUIHtml(deps),
@@ -1747,7 +1747,7 @@ export class ConfigDialog extends ComfyDialog {
 
     this.container.innerHTML = `
     <div style="width: 400px; display: flex; gap: 18px; flex-direction: column;">
-    <h3 style="margin: 0px;">Pixio Deploy Config</h3>
+    <h3 style="margin: 0px;">Pixio API Config</h3>
     <label style="color: white; width: 100%;">
       <select id="deployOption" style="margin: 8px 0px; width: 100%; height:30px; box-sizing: border-box;" >
         <option value="cloud" ${data.environment === "cloud" ? "selected" : ""}>Cloud</option>
