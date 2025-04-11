@@ -1,7 +1,8 @@
-import { app } from "./app.js";
-import { api } from "./api.js";
+import { app } from "../../scripts/app.js";
+import { api } from "../../scripts/api.js";
 import { ComfyWidgets, LGraphNode } from "./widgets.js";
 import { generateDependencyGraph } from "https://esm.sh/comfyui-json@0.1.25";
+import { ComfyDeploy } from "https://esm.sh/comfydeploy@2.0.0-beta.69";
 
 const loadingIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="#888888" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg>`;
 
@@ -1213,3 +1214,282 @@ export class ConfigDialog extends ComfyDialog {
 }
 
 export const configDialog = new ConfigDialog();
+
+// Add ComfyDeploy client setup and API URL configuration
+const currentOrigin = window.location.origin;
+const client = new ComfyDeploy({
+  bearerAuth: getData().apiKey,
+  serverURL: `${currentOrigin}/comfydeploy/api/`,
+});
+
+// Register the deploy tab in sidebar
+app.extensionManager.registerSidebarTab({
+  id: "search",
+  icon: "pi pi-cloud-upload",
+  title: "Deploy",
+  tooltip: "Deploy and Configure",
+  type: "custom",
+  render: (el) => {
+    el.innerHTML = `
+      <div style="padding: 20px;">
+        <h3>Comfy Deploy</h3>
+        <div id="deploy-container" style="margin-bottom: 20px;"></div>
+        <div id="workflows-container">
+          <h4>Your Workflows</h4>
+          <div id="workflows-loading" style="display: flex; justify-content: center; align-items: center; height: 100px;">
+            ${loadingIcon}
+          </div>
+          <ul id="workflows-list" style="list-style-type: none; padding: 0; display: none;"></ul>
+        </div>
+        <div id="config-container"></div>
+      </div>
+    `;
+
+    // Add deploy button
+    const deployContainer = el.querySelector("#deploy-container");
+    const deployButton = document.createElement("button");
+    deployButton.id = "sidebar-deploy-button";
+    deployButton.style.display = "flex";
+    deployButton.style.alignItems = "center";
+    deployButton.style.justifyContent = "center";
+    deployButton.style.width = "100%";
+    deployButton.style.marginBottom = "10px";
+    deployButton.style.padding = "10px";
+    deployButton.style.fontSize = "16px";
+    deployButton.style.fontWeight = "bold";
+    deployButton.style.backgroundColor = "#4CAF50";
+    deployButton.style.color = "white";
+    deployButton.style.border = "none";
+    deployButton.style.borderRadius = "5px";
+    deployButton.style.cursor = "pointer";
+    deployButton.innerHTML = `<i class="pi pi-cloud-upload" style="margin-right: 8px;"></i><div id='sidebar-button-title'>Deploy</div>`;
+    deployButton.onclick = async () => {
+      await deployWorkflow();
+      // Refresh the workflows list after deployment
+      refreshWorkflowsList(el);
+    };
+    deployContainer.appendChild(deployButton);
+
+    // Add config button
+    const configContainer = el.querySelector("#config-container");
+    const configButton = document.createElement("button");
+    configButton.style.display = "flex";
+    configButton.style.alignItems = "center";
+    configButton.style.justifyContent = "center";
+    configButton.style.width = "100%";
+    configButton.style.padding = "8px";
+    configButton.style.fontSize = "14px";
+    configButton.style.backgroundColor = "#f0f0f0";
+    configButton.style.color = "#333";
+    configButton.style.border = "1px solid #ccc";
+    configButton.style.borderRadius = "5px";
+    configButton.style.cursor = "pointer";
+    configButton.innerHTML = `<i class="pi pi-cog" style="margin-right: 8px;"></i>Configure`;
+    configButton.onclick = () => {
+      configDialog.show();
+    };
+    deployContainer.appendChild(configButton);
+
+    // Fetch and display workflows
+    refreshWorkflowsList(el);
+  },
+});
+
+// Add this function to refresh the workflows list
+function refreshWorkflowsList(el) {
+  const workflowsList = el.querySelector("#workflows-list");
+  const workflowsLoading = el.querySelector("#workflows-loading");
+
+  if (!workflowsList || !workflowsLoading) return;
+
+  workflowsLoading.style.display = "flex";
+  workflowsList.style.display = "none";
+  workflowsList.innerHTML = "";
+
+  client.workflows
+    .getAll({
+      page: "1",
+      pageSize: "10",
+    })
+    .then((result) => {
+      workflowsLoading.style.display = "none";
+      workflowsList.style.display = "block";
+
+      if (result.length === 0) {
+        workflowsList.innerHTML =
+          "<li style='color: #bdbdbd;'>No workflows found</li>";
+        return;
+      }
+
+      result.forEach((workflow) => {
+        const li = document.createElement("li");
+        li.style.marginBottom = "15px";
+        li.style.padding = "15px";
+        li.style.backgroundColor = "#2a2a2a";
+        li.style.borderRadius = "8px";
+        li.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+
+        const lastRun = workflow.runs[0];
+        const lastRunStatus = lastRun ? lastRun.status : "No runs";
+        const statusColor =
+          lastRunStatus === "success"
+            ? "#4CAF50"
+            : lastRunStatus === "error"
+              ? "#F44336"
+              : "#FFC107";
+
+        const timeAgo = getTimeAgo(new Date(workflow.updatedAt));
+
+        li.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <strong style="font-size: 18px; color: #e0e0e0;">${workflow.name}</strong>
+            </div>
+            <span style="font-size: 12px; color: ${statusColor}; margin-left: 10px;">Last run: ${lastRunStatus}</span>
+          </div>
+          <div style="font-size: 14px; color: #bdbdbd; margin-bottom: 10px;">Last updated ${timeAgo}</div>
+          <div style="display: flex; gap: 10px;">
+            <button class="open-cloud-btn" style="padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Open in Cloud</button>
+            <button class="load-api-btn" style="padding: 5px 10px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">Load Workflow</button>
+          </div>
+        `;
+
+        const openCloudBtn = li.querySelector(".open-cloud-btn");
+        openCloudBtn.onclick = () =>
+          window.open(
+            `${getData().endpoint}/workflows/${workflow.id}?workspace=true`,
+            "_blank",
+          );
+
+        const loadApiBtn = li.querySelector(".load-api-btn");
+        loadApiBtn.onclick = () => loadWorkflowApi(workflow.versions[0].id);
+
+        workflowsList.appendChild(li);
+      });
+    })
+    .catch((error) => {
+      console.error("Error fetching workflows:", error);
+      workflowsLoading.style.display = "none";
+      workflowsList.style.display = "block";
+      workflowsList.innerHTML =
+        "<li style='color: #F44336;'>Error fetching workflows</li>";
+    });
+}
+
+function getTimeAgo(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + " years ago";
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + " months ago";
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + " days ago";
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + " hours ago";
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + " minutes ago";
+  return Math.floor(seconds) + " seconds ago";
+}
+
+async function loadWorkflowApi(versionId) {
+  try {
+    const response = await client.comfyui.getWorkflowVersionVersionId({
+      versionId: versionId,
+    });
+    // Implement the logic to load the workflow API into the ComfyUI interface
+    console.log("Workflow API loaded:", response);
+    app.loadGraphData(response.workflow);
+    // You might want to update the UI or trigger some action in ComfyUI here
+  } catch (error) {
+    console.error("Error loading workflow API:", error);
+    // Show an error message to the user
+    infoDialog.showMessage("Error", "Failed to load workflow: " + error.message);
+  }
+}
+
+// Add utility functions for sending direct events to ComfyDeploy
+function sendDirectEventToCD(event, data) {
+  const message = {
+    type: event,
+    data: data,
+  };
+  window.parent.postMessage(message, "*");
+}
+
+// Intercept window drag and drop events
+const originalDropHandler = document.ondrop;
+document.ondrop = async (e) => {
+  console.log("Drop event intercepted:", e);
+
+  // Prevent default browser behavior
+  e.preventDefault();
+
+  // Handle files if present
+  if (e.dataTransfer?.files?.length > 0) {
+    const files = Array.from(e.dataTransfer.files);
+
+    // Send file data to parent directly as JSON
+    sendDirectEventToCD("file_drop", {
+      files: files,
+      x: e.clientX,
+      y: e.clientY,
+      timestamp: Date.now(),
+    });
+  }
+
+  // Call original handler if exists
+  if (originalDropHandler) {
+    originalDropHandler(e);
+  }
+};
+
+const originalDragEnterHandler = document.ondragenter;
+document.ondragenter = (e) => {
+  // Prevent default to allow drop
+  e.preventDefault();
+
+  // Send dragenter event to parent directly as JSON
+  sendDirectEventToCD("file_dragenter", {
+    x: e.clientX,
+    y: e.clientY,
+    timestamp: Date.now(),
+  });
+
+  if (originalDragEnterHandler) {
+    originalDragEnterHandler(e);
+  }
+};
+
+const originalDragLeaveHandler = document.ondragleave;
+document.ondragleave = (e) => {
+  // Prevent default to allow drop
+  e.preventDefault();
+
+  // Send dragleave event to parent directly as JSON
+  sendDirectEventToCD("file_dragleave", {
+    x: e.clientX,
+    y: e.clientY,
+    timestamp: Date.now(),
+  });
+
+  if (originalDragLeaveHandler) {
+    originalDragLeaveHandler(e);
+  }
+};
+
+const originalDragOverHandler = document.ondragover;
+document.ondragover = (e) => {
+  // Prevent default to allow drop
+  e.preventDefault();
+
+  // Send dragover event to parent directly as JSON
+  sendDirectEventToCD("file_dragover", {
+    x: e.clientX,
+    y: e.clientY,
+    timestamp: Date.now(),
+  });
+
+  if (originalDragOverHandler) {
+    originalDragOverHandler(e);
+  }
+};
