@@ -1747,7 +1747,7 @@ export class ConfigDialog extends ComfyDialog {
 
     this.container.innerHTML = `
     <div style="width: 400px; display: flex; gap: 18px; flex-direction: column;">
-    <h3 style="margin: 0px;">Comfy Deploy Config</h3>
+    <h3 style="margin: 0px;">Pixio Deploy Config</h3>
     <label style="color: white; width: 100%;">
       <select id="deployOption" style="margin: 8px 0px; width: 100%; height:30px; box-sizing: border-box;" >
         <option value="cloud" ${data.environment === "cloud" ? "selected" : ""}>Cloud</option>
@@ -1765,7 +1765,7 @@ export class ConfigDialog extends ComfyDialog {
         <input id="apiKey" style="margin-top: 8px; width: 100%; height:40px; box-sizing: border-box; padding: 0px 6px;" type="password" value="${data.apiKey
       }">
         <button id="loginButton" style="margin-top: 8px; width: 100%; height:40px; box-sizing: border-box; padding: 0px 6px;">
-          ${data.apiKey ? "Re-login with ComfyDeploy" : "Login with ComfyDeploy"
+          ${data.apiKey ? "Re-login with Pixio" : "Login with Pixio"
       }
         </button>
       </div>
@@ -1856,7 +1856,7 @@ app.extensionManager.registerSidebarTab({
   render: (el) => {
     el.innerHTML = `
       <div style="padding: 20px;">
-        <h3>Comfy Deploy</h3>
+        <h3>Pixio Deploy</h3>
         <div id="deploy-container" style="margin-bottom: 20px;"></div>
         <div id="workflows-container">
           <h4>Your Workflows</h4>
