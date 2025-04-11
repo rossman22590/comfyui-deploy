@@ -1,5 +1,6 @@
-import { app } from "../../scripts/app.js";
-import { api } from "../../scripts/api.js";
+import { app } from "./app.js";
+import { api } from "./api.js";
+
 // import { LGraphNode } from "../../scripts/widgets.js";
 LGraphNode = LiteGraph.LGraphNode;
 import { ComfyDialog, $el } from "../../scripts/ui.js";
