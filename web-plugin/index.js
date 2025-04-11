@@ -549,6 +549,22 @@ const ext = {
         this.properties.workflow_id = this.properties.workflow_id || "";
         this.properties.version = this.properties.version || "";
 
+        // Try to load saved data from localStorage if properties are empty
+        if (!this.properties.workflow_id) {
+          try {
+            const savedData = localStorage.getItem("comfyui_deploy_node_data");
+            if (savedData) {
+              const parsedData = JSON.parse(savedData);
+              this.properties.workflow_name = parsedData.workflow_name || this.properties.workflow_name;
+              this.properties.workflow_id = parsedData.workflow_id || this.properties.workflow_id;
+              this.properties.version = parsedData.version || this.properties.version;
+              console.log("Loaded ComfyDeploy data from localStorage backup");
+            }
+          } catch (e) {
+            console.error("Error loading saved ComfyDeploy data:", e);
+          }
+        }
+
         this.addWidget(
           "text",
           "workflow_name",
@@ -1258,20 +1274,29 @@ async function deployWorkflow() {
 
     deployMetaNode.widgets[1].value = data.workflow_id;
     deployMetaNode.widgets[2].value = data.version;
-    graph.change();
+    deployMetaNode.properties.workflow_id = data.workflow_id;
+    deployMetaNode.properties.version = data.version;
 
-    infoDialog.show(
-      `<span style="color:green;">Deployed successfully!</span>  <a style="color:white;" target="_blank" href=${endpoint}/workflows/${data.workflow_id}>-> View here</a> <br/> <br/> Workflow ID: ${data.workflow_id} <br/> Workflow Name: ${workflow_name} <br/> Workflow Version: ${data.version} <br/>`,
-    );
-
-    // Save the workflow to localStorage to ensure it persists across page refreshes
+    // Save ComfyDeploy node data to localStorage for persistence
     try {
-      // Save the current graph state to localStorage
-      const state = app.graph.serialize();
-      localStorage.setItem("litegraph", JSON.stringify(state));
-      console.log("Graph state saved to localStorage");
-    } catch (e) {
-      console.error("Error saving graph state to localStorage:", e);
+      const nodeData = {
+        workflow_name: deployMetaNode.properties.workflow_name,
+        workflow_id: deployMetaNode.properties.workflow_id,
+        version: deployMetaNode.properties.version
+      };
+      localStorage.setItem("comfyui_deploy_node_data", JSON.stringify(nodeData));
+      console.log("Saved ComfyDeploy node data to localStorage for persistence");
+      
+      // Try to also save the entire graph if possible
+      if (app.graph && app.graph.serialize) {
+        // Use app's own save method if available
+        if (typeof app.save === 'function') {
+          app.save();
+          console.log("Graph saved using app.save() for persistence");
+        }
+      }
+    } catch (err) {
+      console.error("Error saving ComfyDeploy node data to localStorage:", err);
     }
 
     // // Refresh the workflows list in the sidebar
@@ -1376,6 +1401,232 @@ function refreshWorkflowsList(el) {
       workflowsList.innerHTML =
         "<li style='color: #F44336;'>Error fetching workflows</li>";
     });
+}
+
+function getTimeAgo(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + " years ago";
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + " months ago";
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + " days ago";
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + " hours ago";
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + " minutes ago";
+  return Math.floor(seconds) + " seconds ago";
+}
+
+async function loadWorkflowApi(versionId) {
+  try {
+    const response = await client.comfyui.getWorkflowVersionVersionId({
+      versionId: versionId,
+    });
+    // Implement the logic to load the workflow API into the ComfyUI interface
+    console.log("Workflow API loaded:", response);
+    await window["app"].ui.settings.setSettingValueAsync(
+      "Comfy.Validation.Workflows",
+      false,
+    );
+    app.loadGraphData(response.workflow);
+    // You might want to update the UI or trigger some action in ComfyUI here
+  } catch (error) {
+    console.error("Error loading workflow API:", error);
+    // Show an error message to the user
+  }
+}
+
+const orginal_fetch_api = api.fetchApi;
+api.fetchApi = async (route, options) => {
+  console.log("Fetch API called with args:", route, options, ext.native_mode);
+
+  if (route.startsWith("/prompt") && ext.native_mode) {
+    const info = await getSelectedWorkflowInfo();
+    console.log("info", info);
+    if (info) {
+      const body = JSON.parse(options.body);
+
+      const data = {
+        client_id: body.client_id,
+        workflow_api_json: body.prompt,
+        workflow: body?.extra_data?.extra_pnginfo?.workflow,
+        is_native_run: true,
+        machine_id: info.machine_id,
+        workflow_id: info.workflow_id,
+        native_run_api_endpoint: info.native_run_api_endpoint,
+        gpu_event_id: info.gpu_event_id,
+      };
+
+      return await fetch("/comfyui-deploy/run", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${info.cd_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+    }
+  }
+
+  return await orginal_fetch_api.call(api, route, options);
+};
+
+// Intercept window drag and drop events
+const originalDropHandler = document.ondrop;
+document.ondrop = async (e) => {
+  console.log("Drop event intercepted:", e);
+
+  // Prevent default browser behavior
+  e.preventDefault();
+
+  // Handle files if present
+  if (e.dataTransfer?.files?.length > 0) {
+    const files = Array.from(e.dataTransfer.files);
+
+    // Send file data to parent directly as JSON
+    sendDirectEventToCD("file_drop", {
+      files: files,
+      x: e.clientX,
+      y: e.clientY,
+      timestamp: Date.now(),
+    });
+  }
+
+  // Call original handler if exists
+  if (originalDropHandler) {
+    originalDropHandler(e);
+  }
+};
+
+const originalDragEnterHandler = document.ondragenter;
+document.ondragenter = (e) => {
+  // Prevent default to allow drop
+  e.preventDefault();
+
+  // Send dragenter event to parent directly as JSON
+  sendDirectEventToCD("file_dragenter", {
+    x: e.clientX,
+    y: e.clientY,
+    timestamp: Date.now(),
+  });
+
+  if (originalDragEnterHandler) {
+    originalDragEnterHandler(e);
+  }
+};
+
+const originalDragLeaveHandler = document.ondragleave;
+document.ondragleave = (e) => {
+  // Prevent default to allow drop
+  e.preventDefault();
+
+  // Send dragleave event to parent directly as JSON
+  sendDirectEventToCD("file_dragleave", {
+    x: e.clientX,
+    y: e.clientY,
+    timestamp: Date.now(),
+  });
+
+  if (originalDragLeaveHandler) {
+    originalDragLeaveHandler(e);
+  }
+};
+
+const originalDragOverHandler = document.ondragover;
+document.ondragover = (e) => {
+  // Prevent default to allow drop
+  e.preventDefault();
+
+  // Send dragover event to parent directly as JSON
+  sendDirectEventToCD("file_dragover", {
+    x: e.clientX,
+    y: e.clientY,
+    timestamp: Date.now(),
+  });
+
+  if (originalDragOverHandler) {
+    originalDragOverHandler(e);
+  }
+};
+
+// Function to create a single button
+function createQueueButton(config) {
+  const button = document.createElement("button");
+  button.id = `cd-button-${config.id}`;
+  button.className =
+    "p-button p-component p-button-icon-only p-button-secondary p-button-text";
+  button.innerHTML = `
+    <span class="p-button-icon pi ${config.icon}"></span>
+    <span class="p-button-label">&nbsp;</span>
+  `;
+  button.onclick = () => {
+    const eventData =
+      typeof config.eventData === "function"
+        ? config.eventData()
+        : config.eventData || {};
+    sendEventToCD(config.event, eventData);
+  };
+  button.setAttribute("data-pd-tooltip", config.tooltip);
+  return button;
+}
+
+// Function to add buttons to queue group
+function addQueueButtons(buttonConfigs = DEFAULT_BUTTONS) {
+  const queueButtonGroup = document.querySelector(".queue-button-group.flex");
+  if (!queueButtonGroup) return;
+
+  // Remove any existing CD buttons
+  const existingButtons =
+    queueButtonGroup.querySelectorAll('[id^="cd-button-"]');
+  existingButtons.forEach((button) => button.remove());
+
+  // Add new buttons
+  buttonConfigs.forEach((config) => {
+    const button = createQueueButton(config);
+    queueButtonGroup.appendChild(button);
+  });
+}
+
+// Function to add butons to the menu right 
+function addMenuRightButtons(buttonConfigs) {
+  const menuRightButtons = document.querySelector('.comfyui-menu-right .flex')
+
+  if (!menuRightButtons) return
+
+  // Remove any existing CD buttons
+  const existingButtons = document.querySelectorAll('.comfyui-menu-right [id^="cd-button-"]')
+  for (const button of existingButtons) {
+    button.remove()
+  }
+
+  const container = document.createElement('div')
+  container.className = 'comfyui-button-group mx-2'
+
+  for (const config of buttonConfigs) {
+    const button = createMenuRightButton(config)
+    container.appendChild(button)
+  }
+
+  menuRightButtons.appendChild(container)
+}
+
+function createMenuRightButton(config) {
+  const button = document.createElement('button')
+  button.id = `cd-button-${config.id}`
+  button.className = `p-button p-component p-button-secondary p-button-md ${config.btnClasses}`
+  button.innerHTML = `
+    <span class="p-button-icon pi ${config.icon}"></span>
+    <span class="p-button-label">${config.label}</span>
+  `
+  button.onclick = () => {
+    const eventData = typeof config.eventData === 'function' ?
+      config.eventData() :
+      config.eventData || {}
+    sendEventToCD(config.event, eventData)
+  }
+  button.setAttribute('data-pd-tooltip', config.tooltip)
+  return button
 }
 
 function addButton() {
@@ -1943,229 +2194,3 @@ app.extensionManager.registerSidebarTab({
     refreshWorkflowsList(el);
   },
 });
-
-function getTimeAgo(date) {
-  const seconds = Math.floor((new Date() - date) / 1000);
-  let interval = seconds / 31536000;
-  if (interval > 1) return Math.floor(interval) + " years ago";
-  interval = seconds / 2592000;
-  if (interval > 1) return Math.floor(interval) + " months ago";
-  interval = seconds / 86400;
-  if (interval > 1) return Math.floor(interval) + " days ago";
-  interval = seconds / 3600;
-  if (interval > 1) return Math.floor(interval) + " hours ago";
-  interval = seconds / 60;
-  if (interval > 1) return Math.floor(interval) + " minutes ago";
-  return Math.floor(seconds) + " seconds ago";
-}
-
-async function loadWorkflowApi(versionId) {
-  try {
-    const response = await client.comfyui.getWorkflowVersionVersionId({
-      versionId: versionId,
-    });
-    // Implement the logic to load the workflow API into the ComfyUI interface
-    console.log("Workflow API loaded:", response);
-    await window["app"].ui.settings.setSettingValueAsync(
-      "Comfy.Validation.Workflows",
-      false,
-    );
-    app.loadGraphData(response.workflow);
-    // You might want to update the UI or trigger some action in ComfyUI here
-  } catch (error) {
-    console.error("Error loading workflow API:", error);
-    // Show an error message to the user
-  }
-}
-
-const orginal_fetch_api = api.fetchApi;
-api.fetchApi = async (route, options) => {
-  console.log("Fetch API called with args:", route, options, ext.native_mode);
-
-  if (route.startsWith("/prompt") && ext.native_mode) {
-    const info = await getSelectedWorkflowInfo();
-    console.log("info", info);
-    if (info) {
-      const body = JSON.parse(options.body);
-
-      const data = {
-        client_id: body.client_id,
-        workflow_api_json: body.prompt,
-        workflow: body?.extra_data?.extra_pnginfo?.workflow,
-        is_native_run: true,
-        machine_id: info.machine_id,
-        workflow_id: info.workflow_id,
-        native_run_api_endpoint: info.native_run_api_endpoint,
-        gpu_event_id: info.gpu_event_id,
-      };
-
-      return await fetch("/comfyui-deploy/run", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${info.cd_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-    }
-  }
-
-  return await orginal_fetch_api.call(api, route, options);
-};
-
-// Intercept window drag and drop events
-const originalDropHandler = document.ondrop;
-document.ondrop = async (e) => {
-  console.log("Drop event intercepted:", e);
-
-  // Prevent default browser behavior
-  e.preventDefault();
-
-  // Handle files if present
-  if (e.dataTransfer?.files?.length > 0) {
-    const files = Array.from(e.dataTransfer.files);
-
-    // Send file data to parent directly as JSON
-    sendDirectEventToCD("file_drop", {
-      files: files,
-      x: e.clientX,
-      y: e.clientY,
-      timestamp: Date.now(),
-    });
-  }
-
-  // Call original handler if exists
-  if (originalDropHandler) {
-    originalDropHandler(e);
-  }
-};
-
-const originalDragEnterHandler = document.ondragenter;
-document.ondragenter = (e) => {
-  // Prevent default to allow drop
-  e.preventDefault();
-
-  // Send dragenter event to parent directly as JSON
-  sendDirectEventToCD("file_dragenter", {
-    x: e.clientX,
-    y: e.clientY,
-    timestamp: Date.now(),
-  });
-
-  if (originalDragEnterHandler) {
-    originalDragEnterHandler(e);
-  }
-};
-
-const originalDragLeaveHandler = document.ondragleave;
-document.ondragleave = (e) => {
-  // Prevent default to allow drop
-  e.preventDefault();
-
-  // Send dragleave event to parent directly as JSON
-  sendDirectEventToCD("file_dragleave", {
-    x: e.clientX,
-    y: e.clientY,
-    timestamp: Date.now(),
-  });
-
-  if (originalDragLeaveHandler) {
-    originalDragLeaveHandler(e);
-  }
-};
-
-const originalDragOverHandler = document.ondragover;
-document.ondragover = (e) => {
-  // Prevent default to allow drop
-  e.preventDefault();
-
-  // Send dragover event to parent directly as JSON
-  sendDirectEventToCD("file_dragover", {
-    x: e.clientX,
-    y: e.clientY,
-    timestamp: Date.now(),
-  });
-
-  if (originalDragOverHandler) {
-    originalDragOverHandler(e);
-  }
-};
-
-// Function to create a single button
-function createQueueButton(config) {
-  const button = document.createElement("button");
-  button.id = `cd-button-${config.id}`;
-  button.className =
-    "p-button p-component p-button-icon-only p-button-secondary p-button-text";
-  button.innerHTML = `
-    <span class="p-button-icon pi ${config.icon}"></span>
-    <span class="p-button-label">&nbsp;</span>
-  `;
-  button.onclick = () => {
-    const eventData =
-      typeof config.eventData === "function"
-        ? config.eventData()
-        : config.eventData || {};
-    sendEventToCD(config.event, eventData);
-  };
-  button.setAttribute("data-pd-tooltip", config.tooltip);
-  return button;
-}
-
-// Function to add buttons to queue group
-function addQueueButtons(buttonConfigs = DEFAULT_BUTTONS) {
-  const queueButtonGroup = document.querySelector(".queue-button-group.flex");
-  if (!queueButtonGroup) return;
-
-  // Remove any existing CD buttons
-  const existingButtons =
-    queueButtonGroup.querySelectorAll('[id^="cd-button-"]');
-  existingButtons.forEach((button) => button.remove());
-
-  // Add new buttons
-  buttonConfigs.forEach((config) => {
-    const button = createQueueButton(config);
-    queueButtonGroup.appendChild(button);
-  });
-}
-
-// Function to add butons to the menu right 
-function addMenuRightButtons(buttonConfigs) {
-  const menuRightButtons = document.querySelector('.comfyui-menu-right .flex')
-
-  if (!menuRightButtons) return
-
-  // Remove any existing CD buttons
-  const existingButtons = document.querySelectorAll('.comfyui-menu-right [id^="cd-button-"]')
-  for (const button of existingButtons) {
-    button.remove()
-  }
-
-  const container = document.createElement('div')
-  container.className = 'comfyui-button-group mx-2'
-
-  for (const config of buttonConfigs) {
-    const button = createMenuRightButton(config)
-    container.appendChild(button)
-  }
-
-  menuRightButtons.appendChild(container)
-}
-
-function createMenuRightButton(config) {
-  const button = document.createElement('button')
-  button.id = `cd-button-${config.id}`
-  button.className = `p-button p-component p-button-secondary p-button-md ${config.btnClasses}`
-  button.innerHTML = `
-    <span class="p-button-icon pi ${config.icon}"></span>
-    <span class="p-button-label">${config.label}</span>
-  `
-  button.onclick = () => {
-    const eventData = typeof config.eventData === 'function' ?
-      config.eventData() :
-      config.eventData || {}
-    sendEventToCD(config.event, eventData)
-  }
-  button.setAttribute('data-pd-tooltip', config.tooltip)
-  return button
-}
