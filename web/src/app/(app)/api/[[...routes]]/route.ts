@@ -10,7 +10,6 @@ import { registerWorkflowUploadRoute } from "@/routes/registerWorkflowUploadRout
 import { registerGetAuthResponse } from "@/routes/registerGetAuthResponse";
 import { registerGetWorkflowRoute } from "@/routes/registerGetWorkflow";
 import { cors } from "hono/cors";
-
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // 5 minutes
 
@@ -45,23 +44,21 @@ async function checkAuth(c: Context, next: Next, headers?: HeadersInit) {
   await next();
 }
 
+app.use("/run", checkAuth);
+app.use("/upload-url", checkAuth);
+
 const corsHandler = cors({
   origin: "*",
   allowHeaders: ["Authorization", "Content-Type"],
-  allowMethods: ["POST", "GET", "OPTIONS", "PUT", "DELETE", "PATCH"],
+  allowMethods: ["POST", "GET", "OPTIONS"],
   exposeHeaders: ["Content-Length"],
   maxAge: 600,
   credentials: true,
 });
 
-// Apply CORS to all routes
-app.use("*", corsHandler);
-
-// Then apply auth checks to specific routes 
-app.use("/run", checkAuth);
-app.use("/upload-url", checkAuth);
-app.use("/workflow", checkAuth);
-app.use("/workflow-version/*", checkAuth);
+// CORS Check
+app.use("/workflow", corsHandler, checkAuth);
+app.use("/workflow-version/*", corsHandler, checkAuth);
 
 // create run endpoint
 registerCreateRunRoute(app);
