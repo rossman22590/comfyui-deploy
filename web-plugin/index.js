@@ -582,7 +582,7 @@ const ext = {
         this.widgets_start_y = 10;
         this.serialize_widgets = true;
         this.isVirtualNode = true;
-        
+
         // Ensure the node size is set correctly
         this.size = this.computeSize();
         this.setDirtyCanvas(true, true);
@@ -609,14 +609,14 @@ const ext = {
         // Ensure all necessary data is restored
         if (o.properties) {
           this.properties = { ...this.properties, ...o.properties };
-          
+
           // Update widget values if they exist
           if (this.widgets && this.widgets.length >= 3) {
             this.widgets[0].value = this.properties.workflow_name || "";
             this.widgets[1].value = this.properties.workflow_id || "";
             this.widgets[2].value = this.properties.version || "1";
           }
-          
+
           // Force a redraw of the canvas
           if (app && app.graph) {
             app.graph.setDirtyCanvas(true, true);
@@ -1198,7 +1198,7 @@ async function deployWorkflow() {
       <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">${loadingIcon}</div>
       <iframe 
       style="z-index: 10; min-width: 600px; max-width: 1024px; min-height: 600px; border: none; background-color: transparent;"
-      src="https://api.myapps.ai/dependency-graph?deps=${encodeURIComponent(
+      src="https://comfyworkflows.com/dependency-graph?deps=${encodeURIComponent(
         JSON.stringify(deps),
       )}" />`,
       // createDynamicUIHtml(deps),
@@ -1263,6 +1263,16 @@ async function deployWorkflow() {
     infoDialog.show(
       `<span style="color:green;">Deployed successfully!</span>  <a style="color:white;" target="_blank" href=${endpoint}/workflows/${data.workflow_id}>-> View here</a> <br/> <br/> Workflow ID: ${data.workflow_id} <br/> Workflow Name: ${workflow_name} <br/> Workflow Version: ${data.version} <br/>`,
     );
+
+    // Save the workflow to localStorage to ensure it persists across page refreshes
+    try {
+      // Save the current graph state to localStorage
+      const state = app.graph.serialize();
+      localStorage.setItem("litegraph", JSON.stringify(state));
+      console.log("Graph state saved to localStorage");
+    } catch (e) {
+      console.error("Error saving graph state to localStorage:", e);
+    }
 
     // // Refresh the workflows list in the sidebar
     // const sidebarEl = document.querySelector(
@@ -1564,7 +1574,7 @@ export class InputDialog extends InfoDialog {
         <h3 style="margin: 0px;">${title}</h3>
         <label>
           ${message}
-          <input id="input" style="margin-top: 8px; width: 100%; height:40px; padding: 0px 6px; box-sizing: border-box; outline-offset: -1px;">
+          <input id="input" style="margin-top: 8px; width: 100%; height:40px; box-sizing: border-box; outline-offset: -1px;">
         </label>
         </div>
       `);
