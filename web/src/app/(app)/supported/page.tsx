@@ -141,7 +141,7 @@ const machineCreationConfig = `{
   "comfyui": "b9d9bcba1418711f13d7e432605f85303d900723",
   "git_custom_nodes": {
     "https://github.com/rossman22590/comfyui-deploy.git": {
-      "hash": "2dbb2d9de0514406b0fd181aa1b0fa53c78b30fb",
+      "hash": "ee8887e33dfd44bbf288fe0d97f98385f84c42b8",
       "disabled": false
     }
   },
@@ -516,39 +516,39 @@ export default function SupportedModelsPage() {
         </motion.div>
       </Section>
 
-{/* SDK SECTION */}
-<Section className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 text-center">
-  <SectionHeading
-    title="Available SDKs"
-    subtitle="Start integrating Pixio into your own apps in minutes."
-  />
-  <motion.div
-    variants={fadeInUp}
-    className="max-w-4xl mx-auto text-center flex flex-col items-center"
-  >
-    <p className="text-lg mb-6 sm:px-8 text-black">
-      We currently provide first-class SDKs for popular frameworks.
-      Getting started is as simple as installing our package and calling a few intuitive methods.
-    </p>
-    <div className="flex flex-col gap-4"> {/* Added this wrapper div with gap */}
-      <GradientButton
-        href="https://github.com/rossman22590/comfydeploy-fullstack-demo"
-        className="w-64"
-      >
-        Full Stack Next.js App
-      </GradientButton>
-      <GradientButton
-        href="https://github.com/rossman22590/pixio-api-nextjs"
-        className="w-64"
-      >
-        Next.js SDK
-      </GradientButton>
-    </div>
-    <p className="mt-4 text-black">
-      <em>More SDKs coming soon...</em>
-    </p>
-  </motion.div>
-</Section>
+      {/* SDK SECTION */}
+      <Section className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 text-center">
+        <SectionHeading
+          title="Available SDKs"
+          subtitle="Start integrating Pixio into your own apps in minutes."
+        />
+        <motion.div
+          variants={fadeInUp}
+          className="max-w-4xl mx-auto text-center flex flex-col items-center"
+        >
+          <p className="text-lg mb-6 sm:px-8 text-black">
+            We currently provide first-class SDKs for popular frameworks.
+            Getting started is as simple as installing our package and calling a few intuitive methods.
+          </p>
+          <div className="flex flex-col gap-4"> {/* Added this wrapper div with gap */}
+            <GradientButton
+              href="https://github.com/rossman22590/comfydeploy-fullstack-demo"
+              className="w-64"
+            >
+              Full Stack Next.js App
+            </GradientButton>
+            <GradientButton
+              href="https://github.com/rossman22590/pixio-api-nextjs"
+              className="w-64"
+            >
+              Next.js SDK
+            </GradientButton>
+          </div>
+          <p className="mt-4 text-black">
+            <em>More SDKs coming soon...</em>
+          </p>
+        </motion.div>
+      </Section>
 
     </motion.div>
   );

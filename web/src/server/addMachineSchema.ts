@@ -17,7 +17,7 @@ export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
       comfyui: "b9d9bcba1418711f13d7e432605f85303d900723",
       git_custom_nodes: {
         "https://github.com/rossman22590/comfyui-deploy.git": {
-          hash: "b0428c8350dd9f05c1ba5feeae0a005d8912bc87",
+          hash: "ee8887e33dfd44bbf288fe0d97f98385f84c42b8",
           disabled: false,
         },
       },
