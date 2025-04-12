@@ -208,7 +208,7 @@ export default function SupportedModelsPage() {
             <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-visible">
               <thead>
                 <tr className="bg-gray-100 text-gray-700">
-                  <th className="px-4 py-2 text-left">Latest Comfy</th>
+                  <th className="px-4 py-2 text-left">ComfyUI Version</th>
                   <th className="px-4 py-2 text-left">Supported</th>
                   <th className="px-4 py-2 text-left">Notes</th>
                 </tr>
@@ -223,7 +223,7 @@ export default function SupportedModelsPage() {
                         }
                         className="text-blue-600"
                       >
-                        Hash 0723
+                        Latest
                       </span>
                       {/* Tooltip: displays full hash on hover */}
                       <div
