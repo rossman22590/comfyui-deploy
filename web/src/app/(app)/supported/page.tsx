@@ -208,7 +208,7 @@ export default function SupportedModelsPage() {
             <table className="w-full bg-white rounded-lg shadow border border-gray-200 overflow-visible">
               <thead>
                 <tr className="bg-gray-100 text-gray-700">
-                  <th className="px-4 py-2 text-left">Version / Hash</th>
+                  <th className="px-4 py-2 text-left">Latest Comfy</th>
                   <th className="px-4 py-2 text-left">Supported</th>
                   <th className="px-4 py-2 text-left">Notes</th>
                 </tr>
@@ -219,7 +219,7 @@ export default function SupportedModelsPage() {
                     <div className="relative group cursor-pointer inline-block">
                       <span
                         onClick={() =>
-                          handleCopy("b9d9bcba1418711f13d7e432605f85303d900723")
+                          handleCopy("3661c833bcc41b788a7c9f0e7bc48524f8ee5f82")
                         }
                         className="text-blue-600"
                       >
@@ -231,7 +231,7 @@ export default function SupportedModelsPage() {
                                    bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
                                    group-hover:opacity-100 transition-opacity w-max z-50"
                       >
-                        b9d9bcba1418711f13d7e432605f85303d900723
+                        3661c833bcc41b788a7c9f0e7bc48524f8ee5f82
                       </div>
                     </div>
                   </td>
