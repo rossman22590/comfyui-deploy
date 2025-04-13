@@ -14,10 +14,10 @@ export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
   gpu: (schema) => schema.gpu.default("T4"),
   snapshot: (schema) =>
     schema.snapshot.default({
-      comfyui: "b9d9bcba1418711f13d7e432605f85303d900723",
+      comfyui: "22ad513c72b891322f7baf6b459aa41858087b3b",
       git_custom_nodes: {
         "https://github.com/rossman22590/comfyui-deploy.git": {
-          hash: "ee8887e33dfd44bbf288fe0d97f98385f84c42b8",
+          hash: "40fc9d2914b8f1fc68534635146241d2cebca72b",
           disabled: false,
         },
       },
@@ -33,7 +33,7 @@ export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
         description: "Stable Diffusion 1.5 base model",
         reference: "https://huggingface.co/runwayml/stable-diffusion-v1-5",
         filename: "v1-5-pruned-emaonly.ckpt",
-        url: "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.ckpt",
+        url: "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
       },
     ]),
 });
