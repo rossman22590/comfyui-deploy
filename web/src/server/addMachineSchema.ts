@@ -26,7 +26,7 @@ export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
   models: (schema) =>
     schema.models.default([
       {
-        name: "v1-5-pruned-emaonly.ckpt",
+        name: "v1-5-pruned-emaonly.safetensors",
         type: "checkpoints",
         base: "SD1.5",
         save_path: "default",
