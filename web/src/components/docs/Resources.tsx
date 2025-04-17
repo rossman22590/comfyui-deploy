@@ -24,7 +24,7 @@ interface Resource {
 
 const resources: Array<Resource> = [
   {
-    href: "/contacts",
+    href: "https://calendly.com/techinschools/pixio-api-onboarding",
     name: "Contacts",
     description:
       "Learn about the contact model and how to create, retrieve, update, delete, and list contacts.",
