@@ -5,8 +5,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useMediaQuery } from "usehooks-ts";
+import { createPortal } from "react-dom";
 
 /** Optional submenu interface */
 interface SubItem {
@@ -34,6 +35,18 @@ export function NavbarMenu({
 }) {
   const isDesktopMedia = useMediaQuery("(min-width: 1024px)");
   const [isDesktop, setIsDesktop] = useState(true);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+
+    // Clean up function to hide all dropdowns when navigating
+    return () => {
+      setActiveDropdown(null);
+    };
+  }, []);
 
   useEffect(() => {
     setIsDesktop(isDesktopMedia);
@@ -168,9 +181,9 @@ export function NavbarMenu({
       );
     }
     return (
-      <Link 
-        href={path} 
-        className={classes} 
+      <Link
+        href={path}
+        className={classes}
         onClick={() => closeSheet?.()}
         target={newTab ? "_blank" : "_self"}
       >
@@ -180,13 +193,36 @@ export function NavbarMenu({
   }
 
   function DesktopTabs() {
+    const handleMouseEnter = (event: React.MouseEvent, pageName: string, hasSub: boolean) => {
+      if (!hasSub) return;
+
+      const target = event.currentTarget;
+      const rect = target.getBoundingClientRect();
+
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+      });
+
+      setActiveDropdown(pageName);
+    };
+
+    const handleMouseLeave = () => {
+      setActiveDropdown(null);
+    };
+
     return (
       <Tabs defaultValue={pathname} className="w-fit flex pointer-events-auto">
-        <TabsList className="w-full">
+        <TabsList className="w-full relative">
           {pages.map((page) => {
             const hasSub = page.submenu && page.submenu.length > 0;
             return (
-              <div key={page.name} className="relative group">
+              <div
+                key={page.name}
+                className="relative group"
+                onMouseEnter={(e) => handleMouseEnter(e, page.name, !!hasSub)}
+                onMouseLeave={handleMouseLeave}
+              >
                 <TabsTrigger
                   value={page.path}
                   className="group-hover:bg-gray-50 flex items-center pointer-events-none"
@@ -201,8 +237,8 @@ export function NavbarMenu({
                       {page.name}
                     </a>
                   ) : (
-                    <Link 
-                      href={page.path} 
+                    <Link
+                      href={page.path}
                       className="pointer-events-auto"
                       target={page.newTab ? "_blank" : "_self"}
                     >
@@ -213,30 +249,6 @@ export function NavbarMenu({
                     <span className="ml-1 text-sm pointer-events-none">▼</span>
                   )}
                 </TabsTrigger>
-
-                {hasSub && (
-                  <div
-                    className="
-                      absolute left-0 top-full
-                      bg-white border border-gray-200
-                      rounded-md shadow-lg z-50
-                      whitespace-nowrap
-                      pointer-events-auto
-                      hidden group-hover:block
-                      mt-0
-                      overflow-hidden
-                    "
-                  >
-                    {page.submenu?.map((sub) => (
-                      <div
-                        key={sub.name}
-                        className="px-4 py-1 text-xs hover:bg-gray-100 cursor-pointer pointer-events-auto"
-                      >
-                        {renderLink(sub.name, sub.path, sub.external, true, sub.newTab)}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             );
           })}
@@ -276,8 +288,57 @@ export function NavbarMenu({
   }
 
   return (
-    <div className={cn("mr-2 text-base", className)}>
+    <div className={cn("mr-2 text-base relative", className)} style={{ zIndex: 1 }}>
       {isDesktop ? <DesktopTabs /> : <MobileList />}
+
+      {/* Portal for dropdowns */}
+      {isMounted && activeDropdown && typeof document !== "undefined" && createPortal(
+        <div
+          style={{
+            position: "absolute",
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            zIndex: 2147483647,
+            backgroundColor: "white",
+            border: "1px solid #e5e7eb",
+            borderRadius: "0.375rem",
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+            padding: "0.5rem 0",
+            minWidth: "12rem",
+          }}
+          onMouseEnter={() => setActiveDropdown(activeDropdown)}
+          onMouseLeave={() => setActiveDropdown(null)}
+        >
+          {pages.find((p) => p.name === activeDropdown)?.submenu?.map((sub) => (
+            <div
+              key={sub.name}
+              className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+            >
+              {sub.external ? (
+                <a
+                  href={sub.path}
+                  className="block w-full"
+                  target={sub.newTab ? "_blank" : "_self"}
+                  rel={sub.newTab ? "noopener noreferrer" : undefined}
+                  onClick={() => setActiveDropdown(null)}
+                >
+                  {sub.name}
+                </a>
+              ) : (
+                <Link
+                  href={sub.path}
+                  className="block w-full"
+                  target={sub.newTab ? "_blank" : "_self"}
+                  onClick={() => setActiveDropdown(null)}
+                >
+                  {sub.name}
+                </Link>
+              )}
+            </div>
+          ))}
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

@@ -45,7 +45,13 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col gap-4">
               <SheetHeader>
-                <SheetTitle className="text-start">Pixio API</SheetTitle>
+                <SheetTitle className="text-start">
+                  <img 
+                    src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1744929281766-687474~1.PNG" 
+                    alt="Pixio API Logo" 
+                    className="h-12 w-auto"
+                  />
+                </SheetTitle>
               </SheetHeader>
               <div className="grid h-full grid-rows-[1fr_auto]">
                 <NavbarMenu
@@ -75,7 +81,11 @@ export function Navbar() {
           </Sheet>
         )}
         <a className="font-bold text-md md:text-lg hover:underline" href="/">
-          {meta.name}
+          <img 
+            src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1744929281766-687474~1.PNG" 
+            alt="Pixio API"
+            className="h-12 w-auto" 
+          />
         </a>
         {isDesktop && (
           <OrganizationSwitcher

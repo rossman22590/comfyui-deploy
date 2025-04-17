@@ -153,7 +153,11 @@ function ArtShowcase({ src, alt, type = "image" }: ArtShowcaseProps) {
 function UseCaseCard({ icon, title, description }: UseCaseCardProps) {
   return (
     <motion.div className="bg-white rounded-lg p-6 shadow-md hover:shadow-xl transition-shadow flex items-center space-x-4" whileHover={{ y: -5 }} variants={fadeInUp}>
-      <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-purple-100 to-blue-100 rounded-full">{icon}</div>
+      <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-purple-100 to-blue-100 rounded-full overflow-hidden flex-shrink-0">
+        <div className="flex items-center justify-center w-full h-full">
+          {React.cloneElement(icon as React.ReactElement, { className: "w-5 h-5" })}
+        </div>
+      </div>
       <div>
         <h4 className="text-xl font-semibold mb-2">{title}</h4>
         <p className="text-gray-600">{description}</p>
@@ -271,9 +275,9 @@ const useCasesData: UseCaseCardProps[] = [
 ];
 
 const pricingPlansData: PricingPlanProps[] = [
-  { title: "Standard", price: "$100/mo", features: ["AI Art Generation (Basic)", "5 Machine Credits", "Standard Image Enhancement", "Serverless Deployment"], ctaLink: "https://docs.google.com/forms/d/e/1FAIpQLSf8tmmvyA108ZjTbMsvecjMy1STSJi-HnPZ-cVS0VMfmGfLEw/viewform" },
-  { title: "Pro", price: "$500/mo", features: ["AI Art Generation (Advanced)", "50 Machine Credits", "High-Resolution Image Enhancement", "Priority Support"], ctaLink: "https://docs.google.com/forms/d/e/1FAIpQLSf8tmmvyA108ZjTbMsvecjMy1STSJi-HnPZ-cVS0VMfmGfLEw/viewform", highlighted: true },
-  { title: "Enterprise", price: "Custom", features: ["Unlimited AI Art Generation", "Customized Video Pipelines", "High-Fidelity Image Enhancement", "Dedicated Support & SLA"], ctaLink: "https://docs.google.com/forms/d/e/1FAIpQLSf8tmmvyA108ZjTbMsvecjMy1STSJi-HnPZ-cVS0VMfmGfLEw/viewform" },
+  { title: "Basic", price: "$100/mo", features: ["AI Art Generation (Basic)", "5 Machine Credits", "Standard Image Enhancement", "Serverless Deployment"], ctaLink: "https://buy.stripe.com/4gw7uv7lL3Ybf1CcN5" },
+  { title: "Professional", price: "$200/mo", features: ["AI Art Generation (Advanced)", "25 Machine Credits", "High-Resolution Image Enhancement", "Priority Email Support"], ctaLink: "https://buy.stripe.com/4gwbKL8pP3Ybf1CaEY", highlighted: true },
+  { title: "Enterprise", price: "$500/mo", features: ["Unlimited AI Art Generation", "100 Machine Credits", "High-Fidelity Image Enhancement", "Dedicated Support & SLA"], ctaLink: "https://buy.stripe.com/7sIbKLbC12U7dXy6oJ" },
 ];
 
 const testimonialsData: TestimonialProps[] = [
@@ -297,7 +301,7 @@ export default function ClientMain() {
           padding-right: 0 !important;
         }
       `}</style>
-      
+
       {/* HEADER SECTION - Full width gradient background */}
       <Section className="w-full bg-gradient-to-br from-purple-50 via-blue-50 to-blue-100 flex flex-col items-center justify-center text-center overflow-hidden relative">
         <HeroBackgroundAnimation />
@@ -319,7 +323,7 @@ export default function ClientMain() {
           </div>
         </div>
       </Section>
-      
+
       {/* FEATURES SECTION */}
       <Section className="w-full bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -333,7 +337,7 @@ export default function ClientMain() {
           </motion.div>
         </div>
       </Section>
-      
+
       {/* HOW IT WORKS SECTION */}
       <Section className="w-full bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -374,7 +378,7 @@ const run = await client.getRun(run_id);
           </div>
         </div>
       </Section>
-      
+
       {/* AI SHOWCASE SECTION */}
       <Section className="w-full bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -391,7 +395,7 @@ const run = await client.getRun(run_id);
           </motion.div>
         </div>
       </Section>
-      
+
       {/* USE CASES SECTION */}
       <Section className="w-full bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -405,7 +409,7 @@ const run = await client.getRun(run_id);
           </motion.div>
         </div>
       </Section>
-      
+
       {/* PRICING SECTION */}
       <Section className="w-full bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -419,7 +423,7 @@ const run = await client.getRun(run_id);
           </motion.div>
         </div>
       </Section>
-      
+
       {/* TESTIMONIALS SECTION */}
       <Section className="w-full bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -433,7 +437,7 @@ const run = await client.getRun(run_id);
           </motion.div>
         </div>
       </Section>
-      
+
       {/* FINAL CTA SECTION */}
       <Section className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white">
         <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
@@ -450,7 +454,7 @@ const run = await client.getRun(run_id);
           </motion.div>
         </div>
       </Section>
-      
+
       {/* Global Styles for Gradient Animation */}
       <style jsx global>{`
         @keyframes gradient-rotation {
