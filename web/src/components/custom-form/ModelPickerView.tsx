@@ -64,7 +64,7 @@ const CivitalModelSchema = z.object({
           createdAt: z.string().optional(),
           updatedAt: z.string().optional(),
           status: z.string().optional(),
-          publishedAt: z.string().optional(),
+          publishedAt: z.string().nullable().optional(),
           trainedWords: z.array(z.unknown()),
           trainingStatus: z.string().nullable().optional(),
           trainingDetails: z.string().nullable().optional(),
