@@ -174,13 +174,13 @@ export default function AboutPage() {
           className="max-w-4xl mx-auto text-center text-xl text-gray-700 leading-relaxed"
         >
           <motion.p variants={fadeInUp} className="mb-6">
-            Whether you're designing a next-gen application or building out creative 
-            workflows, Pixio API makes it easy to integrate cutting-edge AI features like 
-            image generation, style transfer, video synthesis, and more—all from a single, 
+            Whether you're designing a next-gen application or building out creative
+            workflows, Pixio API makes it easy to integrate cutting-edge AI features like
+            image generation, style transfer, video synthesis, and more—all from a single,
             intuitive interface.
           </motion.p>
           <motion.p variants={fadeInUp}>
-            We believe in bringing powerful tools to everyone, simplifying the creation 
+            We believe in bringing powerful tools to everyone, simplifying the creation
             of stunning visuals and interactive experiences—without complex overhead.
           </motion.p>
         </motion.div>
@@ -261,7 +261,7 @@ export default function AboutPage() {
             Discover how Pixio API and ComfyUI can power your creative workflows,
             unlocking new possibilities in record time.
           </p>
-          <GradientButton href="/contact" className="w-48">
+          <GradientButton href="https://calendly.com/techinschools/pixio-api-onboarding" className="w-48">
             Contact Us
           </GradientButton>
         </motion.div>
