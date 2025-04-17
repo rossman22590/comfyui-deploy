@@ -46,9 +46,9 @@ export function Navbar() {
             <SheetContent side="left" className="flex flex-col gap-4">
               <SheetHeader>
                 <SheetTitle className="text-start">
-                  <img 
-                    src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1744929281766-687474~1.PNG" 
-                    alt="Pixio API Logo" 
+                  <img
+                    src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1744929281766-687474~1.PNG"
+                    alt="Pixio API Logo"
                     className="h-12 w-auto"
                   />
                 </SheetTitle>
@@ -81,10 +81,10 @@ export function Navbar() {
           </Sheet>
         )}
         <a className="font-bold text-md md:text-lg hover:underline" href="/">
-          <img 
-            src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1744929281766-687474~1.PNG" 
+          <img
+            src="https://pixiomedia.nyc3.digitaloceanspaces.com/uploads/1744929281766-687474~1.PNG"
             alt="Pixio API"
-            className="h-12 w-auto" 
+            className="h-12 w-auto"
           />
         </a>
         {isDesktop && (
@@ -104,7 +104,7 @@ export function Navbar() {
           variant="link"
           className="rounded-full aspect-square p-2 mr-4"
         >
-          <a href="/docs">Docs</a>
+          <a href="https://support.myapps.ai">Docs</a>
         </Button>
         <UserButton />
         <Button
