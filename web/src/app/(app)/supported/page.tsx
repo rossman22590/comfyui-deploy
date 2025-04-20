@@ -219,7 +219,7 @@ export default function SupportedModelsPage() {
                     <div className="relative group cursor-pointer inline-block">
                       <span
                         onClick={() =>
-                          handleCopy("3661c833bcc41b788a7c9f0e7bc48524f8ee5f82")
+                          handleCopy("93292bc450dd291925c45adea00ebedb8a3209ef")
                         }
                         className="text-blue-600"
                       >
@@ -231,7 +231,7 @@ export default function SupportedModelsPage() {
                                    bg-gray-800 text-white text-xs rounded shadow-lg opacity-0
                                    group-hover:opacity-100 transition-opacity w-max z-50"
                       >
-                        3661c833bcc41b788a7c9f0e7bc48524f8ee5f82
+                        93292bc450dd291925c45adea00ebedb8a3209ef
                       </div>
                     </div>
                   </td>
