@@ -448,7 +448,7 @@ const run = await client.getRun(run_id);
             Join thousands of artists and creators harnessing the power of AI to push the boundaries of creativity.
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.2 }}>
-            <GradientButton href="/signup" className="bg-white text-purple-600 hover:bg-gray-200">
+            <GradientButton href="/machines" className="bg-white text-purple-600 hover:bg-gray-200">
               Get Started Now
             </GradientButton>
           </motion.div>
