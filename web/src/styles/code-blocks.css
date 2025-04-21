@@ -1,0 +1,78 @@
+/* Code block styling for chat messages */
+pre {
+  background-color: #1a202c;
+  color: #f7fafc;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+  max-height: 400px;
+  scrollbar-width: thin;
+  scrollbar-color: #4a5568 #2d3748;
+  position: relative;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+pre code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  display: block;
+  width: 100%;
+}
+
+/* Language badge */
+pre::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #2d3748;
+  color: #a0aec0;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-bottom-left-radius: 0.25rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* JSON specific styling */
+pre.language-json {
+  background-color: #1e2b3a;
+}
+
+pre.language-json code {
+  color: #e2e8f0;
+}
+
+pre.language-json .string { color: #9ae6b4; }
+pre.language-json .number { color: #fbd38d; }
+pre.language-json .boolean { color: #b794f4; }
+pre.language-json .null { color: #fc8181; }
+pre.language-json .key { color: #63b3ed; }
+
+/* Inline code styling */
+code:not(pre code) {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+}
+
+/* User message code styling */
+.user-message code:not(pre code) {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ebf8ff;
+}
+
+/* Bot message code styling */
+.bot-message code:not(pre code) {
+  background-color: #e2e8f0;
+  color: #2d3748;
+}
+
+/* Thinking message code styling */
+.thinking-message code:not(pre code) {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #f0fff4;
+}
