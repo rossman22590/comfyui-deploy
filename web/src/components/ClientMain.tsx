@@ -439,6 +439,9 @@ const run = await client.getRun(run_id);
 
           {/* Senja Widget - Placed right after pricing plans */}
           <div className="mt-16">
+            <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-4xl font-bold text-center mb-12">
+              What Our Users Say
+            </motion.h2>
             <Script 
               src="https://widget.senja.io/widget/698903f7-82e1-43c9-a1e4-507b33742e0a/platform.js" 
               strategy="afterInteractive"
