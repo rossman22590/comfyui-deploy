@@ -15,6 +15,8 @@ import {
   CloudArrowUpIcon,
 } from "@heroicons/react/24/outline";
 import meta from "next-gen/config";
+import { PaymentActivationPopup, shouldShowPaymentActivationPopup } from "./PaymentActivationPopup";
+import Script from "next/script";
 
 /* ---------------------------------- Types ---------------------------------- */
 interface SectionProps {
@@ -289,6 +291,14 @@ const testimonialsData: TestimonialProps[] = [
 /* --------------------------- Main Page Component --------------------------- */
 export default function ClientMain() {
   const [isVisible, setIsVisible] = useState(false);
+  const [showActivationPopup, setShowActivationPopup] = useState(false);
+
+  // Check if we should show the payment activation popup when component mounts
+  useEffect(() => {
+    const shouldShow = shouldShowPaymentActivationPopup();
+    setShowActivationPopup(shouldShow);
+  }, []);
+
   useEffect(() => {
     setIsVisible(true);
   }, []);
@@ -301,6 +311,11 @@ export default function ClientMain() {
           padding-right: 0 !important;
         }
       `}</style>
+
+      {/* Payment Activation Popup */}
+      {showActivationPopup && (
+        <PaymentActivationPopup onClose={() => setShowActivationPopup(false)} />
+      )}
 
       {/* HEADER SECTION - Full width gradient background */}
       <Section className="w-full bg-gradient-to-br from-purple-50 via-blue-50 to-blue-100 flex flex-col items-center justify-center text-center overflow-hidden relative">
@@ -421,20 +436,21 @@ const run = await client.getRun(run_id);
               <PricingPlan key={index} {...plan} />
             ))}
           </motion.div>
-        </div>
-      </Section>
 
-      {/* TESTIMONIALS SECTION */}
-      <Section className="w-full bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-4xl font-bold text-center mb-12">
-            What Our Users Say
-          </motion.h2>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="w-full grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonialsData.map((testimonial, index) => (
-              <Testimonial key={index} {...testimonial} />
-            ))}
-          </motion.div>
+          {/* Senja Widget - Placed right after pricing plans */}
+          <div className="mt-16">
+            <Script 
+              src="https://widget.senja.io/widget/698903f7-82e1-43c9-a1e4-507b33742e0a/platform.js" 
+              strategy="afterInteractive"
+            />
+            <div 
+              className="senja-embed" 
+              data-id="698903f7-82e1-43c9-a1e4-507b33742e0a" 
+              data-mode="shadow" 
+              data-lazyload="false" 
+              style={{display: "block"}}
+            />
+          </div>
         </div>
       </Section>
 
