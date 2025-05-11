@@ -44,6 +44,9 @@ export function MachineSecretsConfig({
         <p className="text-sm text-muted-foreground">
           Configure secrets that your machine needs (API keys, tokens, etc). These values will be available as environment variables in your ComfyUI instance.
         </p>
+        <div className="text-xs text-muted-foreground border-l-2 border-blue-500 pl-2 my-1 bg-blue-50 p-1 rounded">
+          <span className="font-semibold">Example:</span> Add <code className="bg-slate-100 px-1 rounded">OPENAI_API_KEY</code> to use OpenAI in your workflow: <code className="bg-slate-100 px-1 rounded">import os; api_key = os.environ.get("OPENAI_API_KEY")</code>
+        </div>
       </div>
         {value.length === 0 ? (
           <div className="text-sm text-muted-foreground mb-4">

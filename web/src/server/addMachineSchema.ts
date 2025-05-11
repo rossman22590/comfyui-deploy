@@ -46,9 +46,15 @@ export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
         url: "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
       },
     ]),
-  // Add secrets field with empty array default
+  // Add secrets field with example defaults
   // @ts-ignore - secrets will be handled through JSON
-  secrets: () => machineSecretConfigSchema.default([]),
+  secrets: () => machineSecretConfigSchema.default([
+    {
+      name: "OPENAI_API_KEY",
+      description: "API key for using OpenAI services",
+      required: true
+    }
+  ]),
 });
 
 export const addCustomMachineSchema = insertCustomMachineSchema.pick({
