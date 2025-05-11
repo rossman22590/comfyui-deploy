@@ -75,7 +75,7 @@ export const addMachine = withServerPromise(
 export const updateCustomMachine = withServerPromise(
   async ({
     id,
-    ...data
+    ...formData
   }: z.infer<typeof addCustomMachineSchema> & {
     id: string;
   }) => {
@@ -90,14 +90,22 @@ export const updateCustomMachine = withServerPromise(
 
     // Check if snapshot or models have changed
     const snapshotChanged =
-      JSON.stringify(data.snapshot) !== JSON.stringify(currentMachine.snapshot);
+      JSON.stringify(formData.snapshot) !== JSON.stringify(currentMachine.snapshot);
     const modelsChanged =
-      JSON.stringify(data.models) !== JSON.stringify(currentMachine.models);
-    const gpuChanged = data.gpu !== currentMachine.gpu;
+      JSON.stringify(formData.models) !== JSON.stringify(currentMachine.models);
+    const gpuChanged = formData.gpu !== currentMachine.gpu;
 
-    // return {
-    //   message: `snapshotChanged: ${snapshotChanged}, modelsChanged: ${modelsChanged}`,
-    // };
+    // Convert form data to match database schema types
+    const data = {
+      name: formData.name,
+      // Cast type to a valid enum value
+      type: formData.type as "classic" | "runpod-serverless" | "modal-serverless" | "comfy-deploy-serverless",
+      // Cast gpu to the specific enum values expected by the database
+      gpu: formData.gpu as "T4" | "A10G" | "A100" | null,
+      snapshot: formData.snapshot,
+      models: formData.models,
+      // Note: secrets is handled elsewhere, not stored in the database
+    };
 
     await db.update(machinesTable).set(data).where(eq(machinesTable.id, id));
 
@@ -113,7 +121,7 @@ export const updateCustomMachine = withServerPromise(
         .where(eq(machinesTable.id, id));
 
       // Perform custom build if there are changes
-      await _buildMachine(data, currentMachine);
+      await _buildMachine(formData, currentMachine);
       redirect(`/machines/${id}`);
     } else {
       revalidatePath("/machines");
