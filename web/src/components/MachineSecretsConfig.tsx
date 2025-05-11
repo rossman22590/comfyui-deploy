@@ -38,14 +38,13 @@ export function MachineSecretsConfig({
   };
 
   return (
-    <Card className="mt-4">
-      <CardHeader>
-        <CardTitle>Machine Secrets</CardTitle>
-        <CardDescription>
+    <>
+      <div className="space-y-2 mb-2">
+        <h3 className="text-lg font-medium">Machine Secrets</h3>
+        <p className="text-sm text-muted-foreground">
           Configure secrets that your machine needs (API keys, tokens, etc). These values will be available as environment variables in your ComfyUI instance.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
+      </div>
         {value.length === 0 ? (
           <div className="text-sm text-muted-foreground mb-4">
             No secrets configured. Add secrets if your machine needs access to API keys or other credentials.
@@ -104,7 +103,6 @@ export function MachineSecretsConfig({
           <PlusIcon className="h-4 w-4 mr-2" />
           Add Secret
         </Button>
-      </CardContent>
-    </Card>
+    </>
   );
 }
