@@ -380,11 +380,11 @@ export function MachineList({
                   showLabel: false,
                 },
               },
-              // @ts-ignore - secrets will be handled via JSON config
-              secrets_config: {
-                fieldType: "secrets-config",
+              // @ts-ignore - secrets will be handled via JSON
+              secrets: {
+                fieldType: "machine-secrets",
                 inputProps: {
-                  label: "Machine Secrets",
+                  showLabel: false,
                 },
               },
               gpu: {

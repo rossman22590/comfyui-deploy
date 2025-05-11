@@ -46,9 +46,9 @@ export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
         url: "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
       },
     ]),
-  // Add secrets_config field with empty array default
-  // @ts-ignore - secrets_config will be added to the database via migration
-  secrets_config: () => machineSecretConfigSchema.default([]),
+  // Add secrets field with empty array default
+  // @ts-ignore - secrets will be handled through JSON
+  secrets: () => machineSecretConfigSchema.default([]),
 });
 
 export const addCustomMachineSchema = insertCustomMachineSchema.pick({
@@ -57,5 +57,5 @@ export const addCustomMachineSchema = insertCustomMachineSchema.pick({
   snapshot: true,
   models: true,
   gpu: true,
-  secrets_config: true, // Add secrets_config to be picked
+  secrets: true, // Use 'secrets' field to match UI
 });
