@@ -163,16 +163,26 @@ export const addCustomMachine = withServerPromise(
 
     if (!userId) return { error: "No user id" };
 
+    // Convert form data to match database schema types
+    const dbData = {
+      name: data.name,
+      // Cast type to a valid enum value
+      type: data.type as "classic" | "runpod-serverless" | "modal-serverless" | "comfy-deploy-serverless",
+      // Cast gpu to the specific enum values expected by the database
+      gpu: data.gpu as "T4" | "A10G" | "A100" | null,
+      snapshot: data.snapshot,
+      models: data.models,
+      // Add required fields
+      org_id: orgId,
+      user_id: userId,
+      status: "building" as const,
+      endpoint: "not-ready",
+    };
+    
     // Insert to our db
     const a = await db
       .insert(machinesTable)
-      .values({
-        ...data,
-        org_id: orgId,
-        user_id: userId,
-        status: "building",
-        endpoint: "not-ready",
-      })
+      .values(dbData)
       .returning();
 
     const b = a[0];
@@ -218,7 +228,13 @@ async function _buildMachine(
     await db
       .update(machinesTable)
       .set({
-        ...data,
+        name: data.name,
+        // Cast type to a valid enum value
+        type: data.type as "classic" | "runpod-serverless" | "modal-serverless" | "comfy-deploy-serverless",
+        // Cast gpu to the specific enum values expected by the database
+        gpu: data.gpu as "T4" | "A10G" | "A100" | null,
+        snapshot: data.snapshot,
+        models: data.models,
         status: "error",
         build_log: error_log,
       })
@@ -230,7 +246,13 @@ async function _buildMachine(
     await db
       .update(machinesTable)
       .set({
-        ...data,
+        name: data.name,
+        // Cast type to a valid enum value
+        type: data.type as "classic" | "runpod-serverless" | "modal-serverless" | "comfy-deploy-serverless",
+        // Cast gpu to the specific enum values expected by the database
+        gpu: data.gpu as "T4" | "A10G" | "A100" | null,
+        snapshot: data.snapshot,
+        models: data.models,
         build_machine_instance_id: json.build_machine_instance_id,
       })
       .where(eq(machinesTable.id, b.id));
