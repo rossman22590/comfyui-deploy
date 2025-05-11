@@ -250,6 +250,8 @@ export const columns: ColumnDef<Machine>[] = [
                 ...machine,
                 // Ensure nullable fields have default values for the form
                 gpu: machine.gpu || "T4",
+                // Add empty secrets array as it's required by the form schema
+                secrets: [],
               }}
               open={open}
               setOpen={setOpen}
