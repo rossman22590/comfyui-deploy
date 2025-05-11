@@ -175,6 +175,7 @@ class Item(BaseModel):
     models: List[Model]
     callback_url: str
     gpu: GPUType = Field(default=GPUType.T4)
+    secret_name: Optional[str] = None
 
     @field_validator('gpu')
     @classmethod
@@ -291,6 +292,54 @@ async def stop_app(item: StopAppItem):
 # Initialize the logs cache
 machine_logs_cache = {}
 
+@app.post("/create-secrets")
+async def create_secrets(request: Request):
+    global last_activity_time
+    last_activity_time = time.time()
+    
+    try:
+        data = await request.json()
+        machine_id = data.get("machine_id")
+        secret_name = data.get("secret_name", f"machine-{machine_id}-secrets")
+        secret_values = data.get("secret_values", {})
+        
+        if not machine_id or not secret_values:
+            return JSONResponse(status_code=400, content={"error": "Missing required parameters"})
+        
+        logger.info(f"Creating secrets for machine {machine_id} with name {secret_name}")
+        
+        # Format secret arguments for CLI command
+        secret_args = " ".join([f"{key}={value}" for key, value in secret_values.items()])
+        
+        # Try to delete existing secret first (for updates)
+        # This is safe to run even if the secret doesn't exist
+        delete_process = subprocess.run(
+            f"modal secret delete {secret_name}",
+            shell=True,
+            capture_output=True,
+            text=True
+        )
+        
+        # Create the new secret
+        process = subprocess.run(
+            f"modal secret create {secret_name} {secret_args}",
+            shell=True,
+            capture_output=True,
+            text=True
+        )
+        
+        if process.returncode != 0:
+            error_msg = f"Failed to create secret: {process.stderr}"
+            logger.error(error_msg)
+            return JSONResponse(status_code=500, content={"error": error_msg})
+        
+        logger.info(f"Secret {secret_name} created successfully")
+        return {"status": "success", "message": "Secret created successfully"}
+    except Exception as e:
+        error_msg = f"Error creating secret: {str(e)}"
+        logger.error(error_msg)
+        return JSONResponse(status_code=500, content={"error": error_msg})
+
 
 async def build_logic(item: Item):
     # Deploy to modal
@@ -309,14 +358,20 @@ async def build_logic(item: Item):
     await cp_process.wait()
 
     # Write the config file
-    config = {
+    config_data = {
         "name": item.name,
         "deploy_test": os.environ.get("DEPLOY_TEST_FLAG", "False"),
         "gpu": item.gpu,
         "civitai_token": os.environ.get("CIVITAI_TOKEN", "")
     }
-    with open(f"{folder_path}/config.py", "w") as f:
-        f.write("config = " + json.dumps(config))
+    
+    # Add secret_name to config if provided
+    if item.secret_name:
+        config_data["secret_name"] = item.secret_name
+        logger.info(f"Including secret {item.secret_name} in machine configuration")
+    
+    with open(f"{folder_path}/data/config.json", "w") as f:
+        json.dump(config_data, f)
 
     with open(f"{folder_path}/data/snapshot.json", "w") as f:
         f.write(item.snapshot.json())

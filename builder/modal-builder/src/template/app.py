@@ -283,6 +283,8 @@ def spawn_comfyui_in_background():
 @stub.function(
     image=target_image,
     gpu=config["gpu"],
+    # Add secrets if configured
+    secrets=[modal.Secret.from_name(config["secret_name"])] if "secret_name" in config else None,
     # Allows 100 concurrent requests per container.
     allow_concurrent_inputs=100,
     # Restrict to 1 container because we want to our ComfyUI session state
