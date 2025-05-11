@@ -1,5 +1,6 @@
 import { insertMachineSchema, machinesTable } from "@/db/schema";
 import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 
 export const addMachineSchema = insertMachineSchema.pick({
   name: true,
@@ -7,6 +8,8 @@ export const addMachineSchema = insertMachineSchema.pick({
   type: true,
   auth_token: true,
 });
+
+// We'll use a simpler approach for machine secrets without formal schema definitions
 
 export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
   name: (schema) => schema.name.default("My Machine"),
@@ -36,6 +39,9 @@ export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
         url: "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
       },
     ]),
+  // Add secrets_config field with empty array default
+  // @ts-ignore - secrets_config will be handled without schema definitions
+  secrets_config: () => z.array(z.any()).default([]),
 });
 
 export const addCustomMachineSchema = insertCustomMachineSchema.pick({
@@ -44,4 +50,5 @@ export const addCustomMachineSchema = insertCustomMachineSchema.pick({
   snapshot: true,
   models: true,
   gpu: true,
+  secrets_config: true, // Add secrets_config to be picked
 });

@@ -380,6 +380,12 @@ export function MachineList({
                   showLabel: false,
                 },
               },
+              secrets_config: {
+                fieldType: "secrets-config",
+                inputProps: {
+                  label: "Machine Secrets",
+                },
+              },
               gpu: {
                 fieldType: !userMetadata.betaFeaturesAccess
                   ? "fallback"
