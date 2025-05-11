@@ -22,7 +22,7 @@ export const machineSecretConfigSchema = z.array(
 export const insertCustomMachineUISchema = z.object({
   name: z.string().default("My Machine"),
   type: z.string().default("comfy-deploy-serverless"),
-  gpu: z.string().default("T4"),
+  gpu: z.string().nullable().default("T4"),
   snapshot: z.any().default({
     comfyui: "93292bc450dd291925c45adea00ebedb8a3209ef",
     git_custom_nodes: {

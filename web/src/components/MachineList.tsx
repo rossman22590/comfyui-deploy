@@ -246,7 +246,11 @@ export const columns: ColumnDef<Machine>[] = [
           {machine.type === "comfy-deploy-serverless" ? (
             <UpdateModal
               dialogClassName="sm:max-w-[600px]"
-              data={machine}
+              data={{
+                ...machine,
+                // Ensure nullable fields have default values for the form
+                gpu: machine.gpu || "T4",
+              }}
               open={open}
               setOpen={setOpen}
               title="Edit"
