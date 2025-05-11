@@ -45,7 +45,7 @@ export const insertCustomMachineUISchema = z.object({
       url: "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
     },
   ]),
-  secrets: machineSecretConfigSchema.optional(),
+  secrets: machineSecretConfigSchema.optional().default([]),
 });
 
 // For database operations, use the original schema

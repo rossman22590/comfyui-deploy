@@ -151,8 +151,14 @@ export const buildMachine = withServerPromise(
       .where(eq(machinesTable.id, id))
       .returning();
 
+    // Add secrets field to database data before calling _buildMachine
+    const machineData = {
+      ...datas[0],
+      secrets: [], // Provide empty secrets array as it's required by _buildMachine
+    };
+    
     // Perform custom build if there are changes
-    await _buildMachine(datas[0], currentMachine);
+    await _buildMachine(machineData, currentMachine);
     redirect(`/machines/${id}`);
   }
 );
@@ -198,6 +204,11 @@ async function _buildMachine(
   data: z.infer<typeof addCustomMachineSchema>,
   b: MachineType
 ) {
+  // Ensure secrets is available even if it comes from database object without secrets
+  const dataWithDefaults = {
+    ...data,
+    secrets: data.secrets || [],
+  };
   const headersList = headers();
 
   const domain = headersList.get("x-forwarded-host") || "";
@@ -207,7 +218,7 @@ async function _buildMachine(
     throw new Error("No domain");
   }
 
-  // Call remote builder
+    // Call remote builder
   const result = await fetch(`${process.env.MODAL_BUILDER_URL!}/create`, {
     method: "POST",
     headers: {
@@ -216,10 +227,10 @@ async function _buildMachine(
     body: JSON.stringify({
       machine_id: b.id,
       name: b.id,
-      snapshot: data.snapshot, //JSON.parse( as string),
+      snapshot: dataWithDefaults.snapshot, //JSON.parse( as string),
       callback_url: `${protocol}://${domain}/api/machine-built`,
-      models: data.models, //JSON.parse(data.models as string),
-      gpu: data.gpu && data.gpu.length > 0 ? data.gpu : "T4",
+      models: dataWithDefaults.models, //JSON.parse(data.models as string),
+      gpu: dataWithDefaults.gpu && dataWithDefaults.gpu.length > 0 ? dataWithDefaults.gpu : "T4",
     }),
   });
 
