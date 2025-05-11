@@ -380,6 +380,7 @@ export function MachineList({
                   showLabel: false,
                 },
               },
+              // @ts-ignore - secrets will be handled via JSON config
               secrets_config: {
                 fieldType: "secrets-config",
                 inputProps: {

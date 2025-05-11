@@ -14,15 +14,6 @@ import { z } from "zod";
 
 export const dbSchema = pgSchema("comfyui_deploy");
 
-// Define the schema for machine secrets
-export const machineSecretConfigSchema = z.array(
-  z.object({
-    name: z.string(),
-    description: z.string().optional(),
-    required: z.boolean().default(false),
-  })
-);
-
 export const usersTable = dbSchema.table("users", {
   id: text("id").primaryKey().notNull(),
   username: text("username").notNull(),
@@ -219,19 +210,18 @@ export const machinesTable = dbSchema.table("machines", {
       onDelete: "cascade",
     })
     .notNull(),
-  org_id: text("org_id"),
   name: text("name").notNull(),
+  org_id: text("org_id"),
   endpoint: text("endpoint").notNull(),
-  auth_token: text("auth_token"),
-  status: machinesStatus("status").default("ready").notNull(),
-  type: machinesType("type").default("classic").notNull(),
-  modal_app_id: text("modal_app_id"),
-  gpu: machineGPUOptions("gpu").default("T4"),
-  snapshot: jsonb("snapshot").$type<z.infer<typeof snapshotType>>(),
-  models: jsonb("models").$type<any[]>(),
-  secrets_config: jsonb("secrets_config").$type<z.infer<typeof machineSecretConfigSchema>>(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
+  disabled: boolean("disabled").default(false).notNull(),
+  auth_token: text("auth_token"),
+  type: machinesType("type").notNull().default("classic"),
+  status: machinesStatus("status").notNull().default("ready"),
+  snapshot: jsonb("snapshot").$type<any>(),
+  models: jsonb("models").$type<any>(),
+  gpu: machineGPUOptions("gpu"),
   build_machine_instance_id: text("build_machine_instance_id"),
   build_log: text("build_log"),
 });

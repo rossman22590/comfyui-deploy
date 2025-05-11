@@ -9,7 +9,14 @@ export const addMachineSchema = insertMachineSchema.pick({
   auth_token: true,
 });
 
-// We'll use a simpler approach for machine secrets without formal schema definitions
+// Define the schema for machine secrets
+export const machineSecretConfigSchema = z.array(
+  z.object({
+    name: z.string(),
+    description: z.string().optional(),
+    required: z.boolean().default(false),
+  })
+);
 
 export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
   name: (schema) => schema.name.default("My Machine"),
@@ -40,8 +47,8 @@ export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
       },
     ]),
   // Add secrets_config field with empty array default
-  // @ts-ignore - secrets_config will be handled without schema definitions
-  secrets_config: () => z.array(z.any()).default([]),
+  // @ts-ignore - secrets_config will be added to the database via migration
+  secrets_config: () => machineSecretConfigSchema.default([]),
 });
 
 export const addCustomMachineSchema = insertCustomMachineSchema.pick({
