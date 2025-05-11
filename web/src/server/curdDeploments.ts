@@ -224,6 +224,8 @@ export const cloneMachine = withServerPromise(async (deployment_id: string) => {
     snapshot: deployment.machine.snapshot,
     name: `${deployment.machine.name} (Cloned)`,
     type: "comfy-deploy-serverless",
+    // Add empty secrets array as it's required by the function signature
+    secrets: [],
   });
 
   return {
