@@ -218,15 +218,19 @@ export const cloneMachine = withServerPromise(async (deployment_id: string) => {
 
   if (!userId) throw new Error("No user id");
 
-  await addCustomMachine({
-    gpu: deployment.machine.gpu,
-    models: deployment.machine.models,
-    snapshot: deployment.machine.snapshot,
+  // Create the machine configuration with all required fields
+  const machineConfig = {
+    // Required fields from the schema
     name: `${deployment.machine.name} (Cloned)`,
-    type: "comfy-deploy-serverless",
-    // Add empty secrets array as it's required by the function signature
+    type: "comfy-deploy-serverless" as const,
+    gpu: deployment.machine.gpu,
+    snapshot: deployment.machine.snapshot,
+    models: deployment.machine.models,
+    // Empty array for secrets as required by the schema
     secrets: [],
-  });
+  };
+  
+  await addCustomMachine(machineConfig);
 
   return {
     message: "Successfully cloned workflow",
