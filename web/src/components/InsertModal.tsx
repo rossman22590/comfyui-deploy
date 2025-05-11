@@ -5,14 +5,8 @@ import { callServerPromise } from "@/components/callServerPromise";
 import AutoForm, { AutoFormSubmit } from "@/components/ui/auto-form";
 import type { FieldConfig } from "@/components/ui/auto-form/types";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
@@ -78,25 +72,25 @@ export function InsertModal<
           <DialogTitle>{props.title}</DialogTitle>
           <DialogDescription>{props.description}</DialogDescription>
         </DialogHeader>
-        {/* <ScrollArea> */}
-        <AutoForm
-          fieldConfig={props.fieldConfig}
-          formSchema={props.formSchema}
-          onSubmit={async (data) => {
-            setIsLoading(true);
-            await callServerPromise(props.serverAction(data));
-            setIsLoading(false);
-            setOpen(false);
-          }}
-        >
-          <div className="flex justify-end">
-            <AutoFormSubmit>
-              Save Changes
-              {isLoading && <LoadingIcon />}
-            </AutoFormSubmit>
-          </div>
-        </AutoForm>
-        {/* </ScrollArea> */}
+        <ScrollArea className="pr-4 max-h-[calc(80vh-100px)]">
+          <AutoForm
+            fieldConfig={props.fieldConfig}
+            formSchema={props.formSchema}
+            onSubmit={async (data) => {
+              setIsLoading(true);
+              await callServerPromise(props.serverAction(data));
+              setIsLoading(false);
+              setOpen(false);
+            }}
+          >
+            <div className="flex justify-end mt-4">
+              <AutoFormSubmit>
+                Save Changes
+                {isLoading && <LoadingIcon />}
+              </AutoFormSubmit>
+            </div>
+          </AutoForm>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
@@ -154,31 +148,33 @@ export function UpdateModal<
           <DialogTitle>{props.title}</DialogTitle>
           <DialogDescription>{props.description}</DialogDescription>
         </DialogHeader>
-        <AutoForm
-          values={values}
-          onValuesChange={setValues}
-          fieldConfig={props.fieldConfig}
-          formSchema={props.formSchema}
-          onSubmit={async (data) => {
-            setIsLoading(true);
-            await callServerPromise(
-              props.serverAction({
-                ...data,
-                id: props.data.id,
-              })
-            );
-            setIsLoading(false);
-            setOpen(false);
-          }}
-        >
-          <div className="flex justify-end flex-wrap gap-2">
-            {props.extraButtons}
-            <AutoFormSubmit>
-              Save Changes
-              {isLoading && <LoadingIcon />}
-            </AutoFormSubmit>
-          </div>
-        </AutoForm>
+        <ScrollArea className="pr-4 max-h-[calc(80vh-100px)]">
+          <AutoForm
+            values={values}
+            onValuesChange={setValues}
+            fieldConfig={props.fieldConfig}
+            formSchema={props.formSchema}
+            onSubmit={async (data) => {
+              setIsLoading(true);
+              await callServerPromise(
+                props.serverAction({
+                  ...data,
+                  id: props.data.id,
+                })
+              );
+              setIsLoading(false);
+              setOpen(false);
+            }}
+          >
+            <div className="flex justify-end flex-wrap gap-2 mt-4">
+              {props.extraButtons}
+              <AutoFormSubmit>
+                Save Changes
+                {isLoading && <LoadingIcon />}
+              </AutoFormSubmit>
+            </div>
+          </AutoForm>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

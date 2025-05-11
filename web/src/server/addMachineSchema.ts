@@ -18,6 +18,37 @@ export const machineSecretConfigSchema = z.array(
   })
 );
 
+// Create a schema for the form UI that includes a secrets field not in the database
+export const insertCustomMachineUISchema = z.object({
+  name: z.string().default("My Machine"),
+  type: z.string().default("comfy-deploy-serverless"),
+  gpu: z.string().default("T4"),
+  snapshot: z.any().default({
+    comfyui: "93292bc450dd291925c45adea00ebedb8a3209ef",
+    git_custom_nodes: {
+      "https://github.com/rossman22590/comfyui-deploy.git": {
+        hash: "40fc9d2914b8f1fc68534635146241d2cebca72b",
+        disabled: false,
+      },
+    },
+    file_custom_nodes: [],
+  }),
+  models: z.any().default([
+    {
+      name: "v1-5-pruned-emaonly.safetensors",
+      type: "checkpoints",
+      base: "SD1.5",
+      save_path: "default",
+      description: "Stable Diffusion 1.5 base model",
+      reference: "https://huggingface.co/runwayml/stable-diffusion-v1-5",
+      filename: "v1-5-pruned-emaonly.ckpt",
+      url: "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
+    },
+  ]),
+  secrets: machineSecretConfigSchema.optional(),
+});
+
+// For database operations, use the original schema
 export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
   name: (schema) => schema.name.default("My Machine"),
   type: (schema) => schema.type.default("comfy-deploy-serverless"),
@@ -46,18 +77,11 @@ export const insertCustomMachineSchema = createInsertSchema(machinesTable, {
         url: "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
       },
     ]),
-  // Add secrets field with example defaults
-  // @ts-ignore - secrets will be handled through JSON
-  secrets: () => machineSecretConfigSchema.default([
-    {
-      name: "OPENAI_API_KEY",
-      description: "API key for using OpenAI services",
-      required: true
-    }
-  ]),
+  // No secrets field in database schema
 });
 
-export const addCustomMachineSchema = insertCustomMachineSchema.pick({
+// Use the UI schema for the form
+export const addCustomMachineSchema = insertCustomMachineUISchema.pick({
   name: true,
   type: true,
   snapshot: true,
