@@ -121,6 +121,7 @@ export const machineGPUOptions = pgEnum("machine_gpu", [
   "A10G",
   "A100",
   "A100-80GB",
+  "H200",
   // "L4",
 ]);
 
