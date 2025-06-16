@@ -116,7 +116,15 @@ export const workflowRunOrigin = pgEnum("workflow_run_origin", [
 export const WorkflowRunOriginSchema = z.enum(workflowRunOrigin.enumValues);
 export type WorkflowRunOriginType = z.infer<typeof WorkflowRunOriginSchema>;
 
-export const machineGPUOptions = pgEnum("machine_gpu", ["T4", "A10G", "A100"]);
+export const machineGPUOptions = pgEnum("machine_gpu", [
+  "T4",
+  "A10G",
+  "A100",
+  "A100-80GB",
+  "L4",
+]);
+
+// export const machineGPUOptions = pgEnum("machine_gpu", ["T4", "A10G", "A100"]);
 
 export const machinesType = pgEnum("machine_type", [
   "classic",
