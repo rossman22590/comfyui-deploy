@@ -335,7 +335,7 @@ async def post_prompt(json_data):
         if valid[0]:
             outputs_to_execute = valid[2]
             prompt_server.prompt_queue.put(
-                (number, prompt_id, prompt, extra_data, outputs_to_execute)
+                (number, prompt_id, prompt, extra_data, outputs_to_execute, False)
             )
             response = {
                 "prompt_id": prompt_id,
