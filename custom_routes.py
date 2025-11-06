@@ -287,41 +287,36 @@ async def post_prompt(json_data):
         if "partial_execution_targets" in json_data:
             partial_execution_targets = json_data["partial_execution_targets"]
 
-        # Handle different validate_prompt signatures (newest to oldest)
+        # Handle different validate_prompt signatures (newest to oldest) and async/sync variants
         valid = None
         last_error = None
 
-        # v0.3.48 (3 args)
-        try:
-            valid = await execution.validate_prompt(
-                prompt_id, prompt, partial_execution_targets
-            )
-        except TypeError as e:
-            last_error = e
-            logger.debug(
-                f"validate_prompt with 3 params not supported, trying with 2. Debug: {last_error}"
-            )
-
-        # v0.3.45 - 0.3.47 (2 args)
-        if valid is None:
+        async def try_validate(args_tuple):
+            nonlocal last_error
             try:
-                valid = await execution.validate_prompt(prompt_id, prompt)
+                res = execution.validate_prompt(*args_tuple)
             except TypeError as e:
                 last_error = e
-                logger.debug(
-                    f"validate_prompt with 2 params not supported, trying legacy signature. Debug: {last_error}"
-                )
+                return None
+            if asyncio.iscoroutine(res):
+                res = await res
+            return res
 
-        # v0.3.44 or older (1 arg)
+        # Try 3-arg (prompt_id, prompt, partial_targets)
+        valid = await try_validate((prompt_id, prompt, partial_execution_targets))
         if valid is None:
-            try:
-                valid = execution.validate_prompt(prompt)
-            except TypeError as e:
-                last_error = e
-                logger.error(
-                    f"validate_prompt failed with all signatures. Last error: {last_error}"
-                )
-                raise
+            # Try 2-arg (prompt_id, prompt)
+            valid = await try_validate((prompt_id, prompt))
+        if valid is None:
+            # Try 1-arg (prompt)
+            valid = await try_validate((prompt,))
+        if valid is None:
+            logger.error(
+                f"validate_prompt failed with all signatures. Last error: {last_error}"
+            )
+            raise last_error if last_error else RuntimeError(
+                "validate_prompt failed with unknown error"
+            )
 
         extra_data = {}
         if "extra_data" in json_data:
