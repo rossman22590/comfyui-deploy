@@ -209,6 +209,49 @@ from globals import (
     prompt_metadata,
 )
 
+# Detect whether ComfyUI's prompt worker expects a 6-tuple (with 'sensitive') or legacy 5-tuple
+_CD_SUPPORTS_SENSITIVE = None
+
+
+def _detect_sensitive_support() -> bool:
+    global _CD_SUPPORTS_SENSITIVE
+    if _CD_SUPPORTS_SENSITIVE is not None:
+        return _CD_SUPPORTS_SENSITIVE
+    try:
+        import inspect
+        import main as comfy_main
+
+        src = None
+        try:
+            src = inspect.getsource(comfy_main.prompt_worker)
+        except Exception:
+            try:
+                with open(comfy_main.__file__, "r", encoding="utf-8", errors="ignore") as f:
+                    src = f.read()
+            except Exception:
+                src = None
+        if src and "sensitive" in src:
+            _CD_SUPPORTS_SENSITIVE = True
+        else:
+            _CD_SUPPORTS_SENSITIVE = False
+    except Exception:
+        # If we cannot detect, default to new behavior (safer for newer ComfyUI)
+        _CD_SUPPORTS_SENSITIVE = True
+    return _CD_SUPPORTS_SENSITIVE
+
+
+def _enqueue_prompt_tuple(prompt_server, number, prompt_id, prompt, extra_data, outputs_to_execute):
+    if _detect_sensitive_support():
+        # Newer ComfyUI expects 'sensitive' iterable
+        prompt_server.prompt_queue.put(
+            (number, prompt_id, prompt, extra_data, outputs_to_execute, [])
+        )
+    else:
+        # Legacy ComfyUI expects 5-tuple
+        prompt_server.prompt_queue.put(
+            (number, prompt_id, prompt, extra_data, outputs_to_execute)
+        )
+
 
 class EventEmitter:
     def __init__(self):
@@ -330,8 +373,8 @@ async def post_prompt(json_data):
         if valid[0]:
             outputs_to_execute = valid[2]
             # Newer ComfyUI expects 'sensitive' to be iterable; use empty list for compatibility
-            prompt_server.prompt_queue.put(
-                (number, prompt_id, prompt, extra_data, outputs_to_execute, [])
+            _enqueue_prompt_tuple(
+                prompt_server, number, prompt_id, prompt, extra_data, outputs_to_execute
             )
             response = {
                 "prompt_id": prompt_id,

@@ -145,6 +145,42 @@ def calculate_file_hash(filename: str, hash_every_n: int = 1):
 
 prompt_queue = server.PromptServer.instance.prompt_queue
 
+# Backwards-compatible enqueue helper (detects if 'sensitive' is supported)
+_CD_SUPPORTS_SENSITIVE = None
+
+
+def _detect_sensitive_support() -> bool:
+    global _CD_SUPPORTS_SENSITIVE
+    if _CD_SUPPORTS_SENSITIVE is not None:
+        return _CD_SUPPORTS_SENSITIVE
+    try:
+        import inspect
+        import main as comfy_main
+
+        src = None
+        try:
+            src = inspect.getsource(comfy_main.prompt_worker)
+        except Exception:
+            try:
+                with open(comfy_main.__file__, "r", encoding="utf-8", errors="ignore") as f:
+                    src = f.read()
+            except Exception:
+                src = None
+        if src and "sensitive" in src:
+            _CD_SUPPORTS_SENSITIVE = True
+        else:
+            _CD_SUPPORTS_SENSITIVE = False
+    except Exception:
+        _CD_SUPPORTS_SENSITIVE = True
+    return _CD_SUPPORTS_SENSITIVE
+
+
+def _enqueue_prompt_tuple(number, prompt_id, prompt, extra_data, outputs_to_execute):
+    if _detect_sensitive_support():
+        prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute, []))
+    else:
+        prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute))
+
 
 def requeue_workflow_unchecked():
     """Requeues the current workflow without checking for multiple requeues"""
@@ -168,8 +204,7 @@ def requeue_workflow_unchecked():
     number = -server.PromptServer.instance.number
     server.PromptServer.instance.number += 1
     prompt_id = str(server.uuid.uuid4())
-    # Newer ComfyUI expects 'sensitive' to be iterable; use empty list
-    prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute, []))
+    _enqueue_prompt_tuple(number, prompt_id, prompt, extra_data, outputs_to_execute)
 
 
 requeue_guard = [None, 0, 0, {}]
