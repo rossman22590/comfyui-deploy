@@ -15,17 +15,23 @@ class ComfyUIDeployExternalImageAlpha:
             },
             "optional": {
                 "default_value": ("IMAGE",),
+                "display_name": (
+                    "STRING",
+                    {"multiline": False, "default": ""},
+                ),
+                "description": (
+                    "STRING",
+                    {"multiline": True, "default": ""},
+                ),
             }
         }
 
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image",)
-
     FUNCTION = "run"
+    CATEGORY = "🔗ComfyDeploy"
 
-    CATEGORY = "image"
-
-    def run(self, input_id, default_value=None):
+    def run(self, input_id, default_value=None, display_name=None, description=None):
         image = default_value
         try:
             if input_id.startswith('http'):

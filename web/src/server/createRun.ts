@@ -1,8 +1,11 @@
 "use server";
 
-import { withServerPromise } from "./withServerPromise";
 import { db } from "@/db/db";
-import type { MachineType, WorkflowVersionType } from "@/db/schema";
+import type {
+  MachineType,
+  WorkflowRunOriginType,
+  WorkflowVersionType,
+} from "@/db/schema";
 import { machinesTable, workflowRunsTable } from "@/db/schema";
 import type { APIKeyUserType } from "@/server/APIKeyBodyRequest";
 import { getRunsData } from "@/server/getRunsData";
@@ -12,6 +15,7 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import "server-only";
 import { v4 } from "uuid";
+import { withServerPromise } from "./withServerPromise";
 
 export const createRun = withServerPromise(
   async ({
@@ -19,14 +23,14 @@ export const createRun = withServerPromise(
     workflow_version_id,
     machine_id,
     inputs,
-    isManualRun,
+    runOrigin,
     apiUser,
   }: {
     origin: string;
     workflow_version_id: string | WorkflowVersionType;
     machine_id: string | MachineType;
-    inputs?: Record<string, string>;
-    isManualRun?: boolean;
+    inputs?: Record<string, string | number>;
+    runOrigin?: WorkflowRunOriginType;
     apiUser?: APIKeyUserType;
   }) => {
     const machine =
@@ -34,7 +38,7 @@ export const createRun = withServerPromise(
         ? await db.query.machinesTable.findFirst({
             where: and(
               eq(machinesTable.id, machine_id),
-              eq(machinesTable.disabled, false)
+              eq(machinesTable.disabled, false),
             ),
           })
         : machine_id;
@@ -86,14 +90,19 @@ export const createRun = withServerPromise(
         Object.entries(workflow_api).forEach(([_, node]) => {
           if (node.inputs["input_id"] === key) {
             node.inputs["input_id"] = inputs[key];
+            // Fix for external text default value
+            if (node.class_type == "ComfyUIDeployExternalText") {
+              node.inputs["default_value"] = inputs[key];
+            }
           }
+
         });
       }
     }
 
     let prompt_id: string | undefined = undefined;
     const shareData = {
-      workflow_api: workflow_api,
+      workflow_api_raw: workflow_api,
       status_endpoint: `${origin}/api/update-run`,
       file_upload_endpoint: `${origin}/api/file-upload`,
     };
@@ -109,7 +118,7 @@ export const createRun = withServerPromise(
         workflow_version_id: workflow_version_data.id,
         workflow_inputs: inputs,
         machine_id: machine.id,
-        origin: isManualRun ? "manual" : "api",
+        origin: runOrigin,
       })
       .returning();
 
@@ -139,7 +148,7 @@ export const createRun = withServerPromise(
             throw new Error(
               `Error creating run, ${
                 ___result.statusText
-              } ${await ___result.text()}`
+              } ${await ___result.text()}`,
             );
           console.log(_data, ___result);
           break;
@@ -173,7 +182,7 @@ export const createRun = withServerPromise(
             throw new Error(
               `Error creating run, ${
                 __result.statusText
-              } ${await __result.text()}`
+              } ${await __result.text()}`,
             );
           console.log(data, __result);
           break;
@@ -195,7 +204,7 @@ export const createRun = withServerPromise(
             let message = `Error creating run, ${_result.statusText}`;
             try {
               const result = await ComfyAPI_Run.parseAsync(
-                await _result.json()
+                await _result.json(),
               );
               message += ` ${result.node_errors}`;
             } catch (error) {}
@@ -215,11 +224,20 @@ export const createRun = withServerPromise(
       throw e;
     }
 
+    // It successfully started, update the started_at time
+
+    await db
+      .update(workflowRunsTable)
+      .set({
+        started_at: new Date(),
+      })
+      .where(eq(workflowRunsTable.id, workflow_run[0].id));
+
     return {
       workflow_run_id: workflow_run[0].id,
       message: "Successful workflow run",
     };
-  }
+  },
 );
 
 export async function checkStatus(run_id: string) {

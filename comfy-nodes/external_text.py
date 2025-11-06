@@ -18,6 +18,14 @@ class ComfyUIDeployExternalText:
                     "STRING",
                     {"multiline": True, "default": ""},
                 ),
+                "display_name": (
+                    "STRING",
+                    {"multiline": False, "default": ""},
+                ),
+                "description": (
+                    "STRING",
+                    {"multiline": True, "default": ""},
+                ),
             }
         }
 
@@ -26,12 +34,10 @@ class ComfyUIDeployExternalText:
 
     FUNCTION = "run"
 
-    CATEGORY = "text"
+    CATEGORY = "🔗ComfyDeploy"
 
-    def run(self, input_id, default_value=None):
-        if not input_id or len(input_id.strip()) == 0:
-            return [default_value]
-        return [input_id]
+    def run(self, input_id, default_value=None, display_name=None, description=None):
+        return [default_value]
 
 
 NODE_CLASS_MAPPINGS = {"ComfyUIDeployExternalText": ComfyUIDeployExternalText}

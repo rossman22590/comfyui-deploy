@@ -1,18 +1,16 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
-  "editor.formatOnSave": false,
+  "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "quickfix.biome": "always"
+    // "source.organizeImports.biome": "explicit"
   },
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "spellright.language": ["en"],
   "spellright.documentTypes": ["markdown", "typescript", "typescriptreact"],
   "tailwindCSS.experimental.classRegex": [
-    [
-      "cva\\(([^)]*)\\)",
-      "[\"'`]([^\"'`]*).*?[\"'`]"
-    ]
-  ],
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+  ]
   // "eslint.workingDirectories": [
   //   { "mode": "auto" }
   // ],

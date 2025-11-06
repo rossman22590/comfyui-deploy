@@ -1,15 +1,15 @@
-import { relations, type InferSelectModel } from "drizzle-orm";
+import { type InferSelectModel, relations } from "drizzle-orm";
 import {
-  text,
-  pgSchema,
-  uuid,
+  boolean,
   integer,
-  timestamp,
   jsonb,
   pgEnum,
-  boolean,
+  pgSchema,
+  text,
+  timestamp,
+  uuid,
 } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const dbSchema = pgSchema("comfyui_deploy");
@@ -35,7 +35,13 @@ export const workflowTable = dbSchema.table("workflows", {
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const workflowRelations = relations(workflowTable, ({ many }) => ({
+export const workflowSchema = createSelectSchema(workflowTable);
+
+export const workflowRelations = relations(workflowTable, ({ many, one }) => ({
+  user: one(usersTable, {
+    fields: [workflowTable.user_id],
+    references: [usersTable.id],
+  }),
   versions: many(workflowVersionTable),
   deployments: many(deploymentsTable),
 }));
@@ -75,6 +81,7 @@ export const workflowVersionTable = dbSchema.table("workflow_versions", {
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
+export const workflowVersionSchema = createSelectSchema(workflowVersionTable);
 
 export const workflowVersionRelations = relations(
   workflowVersionTable,
@@ -83,7 +90,7 @@ export const workflowVersionRelations = relations(
       fields: [workflowVersionTable.workflow_id],
       references: [workflowTable.id],
     }),
-  })
+  }),
 );
 
 export const workflowRunStatus = pgEnum("workflow_run_status", [
@@ -103,7 +110,11 @@ export const deploymentEnvironment = pgEnum("deployment_environment", [
 export const workflowRunOrigin = pgEnum("workflow_run_origin", [
   "manual",
   "api",
+  "public-share",
 ]);
+
+export const WorkflowRunOriginSchema = z.enum(workflowRunOrigin.enumValues);
+export type WorkflowRunOriginType = z.infer<typeof WorkflowRunOriginSchema>;
 
 export const machineGPUOptions = pgEnum("machine_gpu", ["T4", "A10G", "A100"]);
 
@@ -128,9 +139,10 @@ export const workflowRunsTable = dbSchema.table("workflow_runs", {
     () => workflowVersionTable.id,
     {
       onDelete: "set null",
-    }
+    },
   ),
-  workflow_inputs: jsonb("workflow_inputs").$type<Record<string, string>>(),
+  workflow_inputs:
+    jsonb("workflow_inputs").$type<Record<string, string | number>>(),
   workflow_id: uuid("workflow_id")
     .notNull()
     .references(() => workflowTable.id, {
@@ -144,6 +156,7 @@ export const workflowRunsTable = dbSchema.table("workflow_runs", {
   status: workflowRunStatus("status").notNull().default("not-started"),
   ended_at: timestamp("ended_at"),
   created_at: timestamp("created_at").defaultNow().notNull(),
+  started_at: timestamp("started_at"),
 });
 
 export const workflowRunRelations = relations(
@@ -162,7 +175,7 @@ export const workflowRunRelations = relations(
       fields: [workflowRunsTable.workflow_id],
       references: [workflowTable.id],
     }),
-  })
+  }),
 );
 
 // We still want to keep the workflow run record.
@@ -186,7 +199,7 @@ export const workflowOutputRelations = relations(
       fields: [workflowRunOutputs.run_id],
       references: [workflowRunsTable.id],
     }),
-  })
+  }),
 );
 
 // when user delete, also delete all the workflow versions
@@ -219,7 +232,7 @@ export const snapshotType = z.object({
     z.object({
       hash: z.string(),
       disabled: z.boolean(),
-    })
+    }),
   ),
   file_custom_nodes: z.array(z.any()),
 });
@@ -230,6 +243,22 @@ export const insertMachineSchema = createInsertSchema(machinesTable, {
   type: (schema) => schema.type.default("classic"),
 });
 
+export const showcaseMedia = z.array(
+  z.object({
+    url: z.string(),
+    isCover: z.boolean().default(false),
+  }),
+);
+
+export const showcaseMediaNullable = z
+  .array(
+    z.object({
+      url: z.string(),
+      isCover: z.boolean().default(false),
+    }),
+  )
+  .nullable();
+
 export const deploymentsTable = dbSchema.table("deployments", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
   user_id: text("user_id")
@@ -237,6 +266,7 @@ export const deploymentsTable = dbSchema.table("deployments", {
       onDelete: "cascade",
     })
     .notNull(),
+  org_id: text("org_id"),
   workflow_version_id: uuid("workflow_version_id")
     .notNull()
     .references(() => workflowVersionTable.id),
@@ -248,10 +278,27 @@ export const deploymentsTable = dbSchema.table("deployments", {
   machine_id: uuid("machine_id")
     .notNull()
     .references(() => machinesTable.id),
+  share_slug: text("share_slug").unique(),
+  description: text("description"),
+  showcase_media:
+    jsonb("showcase_media").$type<z.infer<typeof showcaseMedia>>(),
   environment: deploymentEnvironment("environment").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const publicShareDeployment = z.object({
+  description: z.string().nullable(),
+  showcase_media: showcaseMedia,
+});
+
+// createInsertSchema(deploymentsTable, {
+//   description: (schema) => schema.description.default(""),
+//   showcase_media: () => showcaseMedia.default([]),
+// }).pick({
+//   description: true,
+//   showcase_media: true,
+// });
 
 export const deploymentsRelations = relations(deploymentsTable, ({ one }) => ({
   machine: one(machinesTable, {
@@ -284,6 +331,16 @@ export const apiKeyTable = dbSchema.table("api_keys", {
   org_id: text("org_id"),
   revoked: boolean("revoked").default(false).notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const authRequestsTable = dbSchema.table("auth_requests", {
+  request_id: text("request_id").primaryKey().notNull(),
+  user_id: text("user_id"),
+  org_id: text("org_id"),
+  api_hash: text("api_hash"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  expired_date: timestamp("expired_date"),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
 

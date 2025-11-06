@@ -2,7 +2,16 @@
 
 Open source comfyui deployment platform, a `vercel` for generative workflow infra. (serverless hosted gpu with vertical intergation with comfyui)
 
+Check out our latest lcoal demo -> https://github.com/comfy-deploy/comfyui-api-comfydeploy
+
+Full backend and frontend is here -> https://github.com/comfy-deploy/comfydeploy
+
+> [!NOTE]  
+> Im looking for creative hacker to join ComfyDeploy's core team! DM me on [twitter](https://x.com/BennyKokMusic)
+
 Join [Discord](https://discord.gg/EEYcQmdYZw) to chat more or visit [Comfy Deploy](https://comfydeploy.com/) to get started!
+
+Check out our latest [nextjs starter kit](https://github.com/BennyKok/comfyui-deploy-next-example) with Comfy Deploy
 
 ![63shots_so 1](https://github.com/BennyKok/comfyui-deploy/assets/18395202/c0b88377-0135-4d9a-8a20-8b38b975bb48)\# How it works
 
@@ -73,10 +82,11 @@ Major areas
 3. `bun i`
 4. Start docker
 5. `cp .env.example .env.local`
-6. Repace `JWT_SECRET` with `openssl rand -hex 32`
+6. Replace `JWT_SECRET` with `openssl rand -hex 32`
 7. Get a local clerk dev key for `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`
 8. Keep a terminal live for `bun run db-dev`
-9. Finally start the next server with `bun dev`
+9. Execute the local migration to create the initial data `bun run migrate-local`
+10. Finally start the next server with `bun dev`
 
 **Schema Changes**
 

@@ -16,22 +16,31 @@ class ComfyUIDeployExternalNumber:
             "optional": {
                 "default_value": (
                     "FLOAT",
-                    {"multiline": True, "display": "number", "default": 0},
+                    {"multiline": True, "display": "number", "default": 0, "min": -2147483647, "max": 2147483647, "step": 0.01},
+                ),
+                "display_name": (
+                    "STRING",
+                    {"multiline": False, "default": ""},
+                ),
+                "description": (
+                    "STRING",
+                    {"multiline": True, "default": ""},
                 ),
             }
         }
 
     RETURN_TYPES = ("FLOAT",)
     RETURN_NAMES = ("value",)
-
     FUNCTION = "run"
+    CATEGORY = "🔗ComfyDeploy"
 
-    CATEGORY = "number"
-
-    def run(self, input_id, default_value=None):
-        if not input_id or len(input_id.strip()) == 0:
+    def run(self, input_id, default_value=None, display_name=None, description=None):
+        try:
+            float_value = float(input_id)
+            print("my number", float_value)
+            return [float_value]
+        except ValueError:
             return [default_value]
-        return [input_id]
 
 
 NODE_CLASS_MAPPINGS = {"ComfyUIDeployExternalNumber": ComfyUIDeployExternalNumber}
