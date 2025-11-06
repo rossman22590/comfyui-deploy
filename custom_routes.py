@@ -1421,7 +1421,10 @@ def swizzle_send_sync(self, event, data, sid=None):
 
 server.PromptServer.send_sync = swizzle_send_sync
 
-send_json = prompt_server.send_json
+import inspect
+
+# Keep a direct reference to the original send_json to avoid recursion
+orig_send_json = prompt_server.send_json
 
 
 async def send_json_override(self, event, data, sid=None):
@@ -1432,13 +1435,16 @@ async def send_json_override(self, event, data, sid=None):
     if target_sid == "comfy_deploy_instance":
         target_sid = None
 
-    # now we send everything
-    await asyncio.wait(
-        [
-            asyncio.create_task(send(event, data, sid=target_sid)),
-            asyncio.create_task(self.send_json_original(event, data, sid)),
-        ]
-    )
+    # now we send everything without causing recursion or un-awaited coroutines
+    tasks = [asyncio.create_task(send(event, data, sid=target_sid))]
+    try:
+        res = orig_send_json(event, data, sid)
+        if inspect.isawaitable(res):
+            tasks.append(asyncio.create_task(res))
+    except Exception as e:
+        logger.error(f"Error calling original send_json: {e}")
+    if tasks:
+        await asyncio.gather(*tasks, return_exceptions=True)
 
     if prompt_id in comfy_message_queues:
         comfy_message_queues[prompt_id].put_nowait({"event": event, "data": data})
@@ -2254,7 +2260,8 @@ async def update_run_with_output(
     await send("outputs_uploaded", {"prompt_id": prompt_id})
 
 
-prompt_server.send_json_original = prompt_server.send_json
+# Expose original for any external users that might expect it
+prompt_server.send_json_original = orig_send_json
 prompt_server.send_json = send_json_override.__get__(prompt_server, server.PromptServer)
 
 root_path = os.path.dirname(os.path.abspath(__file__))
