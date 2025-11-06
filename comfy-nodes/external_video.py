@@ -149,9 +149,11 @@ prompt_queue = server.PromptServer.instance.prompt_queue
 def requeue_workflow_unchecked():
     """Requeues the current workflow without checking for multiple requeues"""
     currently_running = prompt_queue.currently_running
-    (_, _, prompt, extra_data, outputs_to_execute) = next(
-        iter(currently_running.values())
-    )
+    current = next(iter(currently_running.values()))
+    # Compatible with both 5-tuple (old) and 6-tuple (new with 'sensitive')
+    prompt = current[2]
+    extra_data = current[3]
+    outputs_to_execute = current[4]
 
     # Ensure batch_managers are marked stale
     prompt = prompt.copy()
@@ -166,7 +168,8 @@ def requeue_workflow_unchecked():
     number = -server.PromptServer.instance.number
     server.PromptServer.instance.number += 1
     prompt_id = str(server.uuid.uuid4())
-    prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute))
+    # Newer ComfyUI requires a 6th 'sensitive' flag; set to False for requeue
+    prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute, False))
 
 
 requeue_guard = [None, 0, 0, {}]
@@ -175,7 +178,9 @@ requeue_guard = [None, 0, 0, {}]
 def requeue_workflow(requeue_required=(-1, True)):
     assert len(prompt_queue.currently_running) == 1
     global requeue_guard
-    (run_number, _, prompt, _, _) = next(iter(prompt_queue.currently_running.values()))
+    current = next(iter(prompt_queue.currently_running.values()))
+    run_number = current[0]
+    prompt = current[2]
     if requeue_guard[0] != run_number:
         # Calculate a count of how many outputs are managed by a batch manager
         managed_outputs = 0
