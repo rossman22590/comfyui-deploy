@@ -1324,67 +1324,42 @@ try:
 
     if is_async:
 
-        async def swizzle_execute(
-            server,
-            dynprompt,
-            caches,
-            current_item,
-            extra_data,
-            executed,
-            prompt_id,
-            execution_list,
-            pending_subgraph_results,
-            pending_async_nodes,
-        ):
-            unique_id = current_item
-            class_type = dynprompt.get_node(unique_id)["class_type"]
-            last_node_id = server.last_node_id
+        async def swizzle_execute(*args, **kwargs):
+            # Expected positions (old/new):
+            # 0 server, 1 dynprompt, 2 caches, 3 current_item, 4 extra_data,
+            # 5 executed, 6 prompt_id, 7 execution_list, 8 pending_subgraph_results,
+            # 9 pending_async_nodes, [10 ui_node_outputs]
+            try:
+                server_obj = args[0]
+                dynprompt = args[1]
+                current_item = args[3]
+                prompt_id = args[6] if len(args) > 6 else kwargs.get("prompt_id")
+                unique_id = current_item
+                class_type = dynprompt.get_node(unique_id)["class_type"]
+                last_node_id = getattr(server_obj, "last_node_id", None)
+            except Exception:
+                # Fallback if unexpected signature; still forward the call
+                return await origin_execute(*args, **kwargs)
 
-            result = await origin_execute(
-                server,
-                dynprompt,
-                caches,
-                current_item,
-                extra_data,
-                executed,
-                prompt_id,
-                execution_list,
-                pending_subgraph_results,
-                pending_async_nodes,
-            )
-
-            handle_execute(class_type, last_node_id, prompt_id, server, unique_id)
+            result = await origin_execute(*args, **kwargs)
+            handle_execute(class_type, last_node_id, prompt_id, server_obj, unique_id)
             return result
     else:
 
-        def swizzle_execute(
-            server,
-            dynprompt,
-            caches,
-            current_item,
-            extra_data,
-            executed,
-            prompt_id,
-            execution_list,
-            pending_subgraph_results,
-        ):
-            unique_id = current_item
-            class_type = dynprompt.get_node(unique_id)["class_type"]
-            last_node_id = server.last_node_id
+        def swizzle_execute(*args, **kwargs):
+            try:
+                server_obj = args[0]
+                dynprompt = args[1]
+                current_item = args[3]
+                prompt_id = args[6] if len(args) > 6 else kwargs.get("prompt_id")
+                unique_id = current_item
+                class_type = dynprompt.get_node(unique_id)["class_type"]
+                last_node_id = getattr(server_obj, "last_node_id", None)
+            except Exception:
+                return origin_execute(*args, **kwargs)
 
-            result = origin_execute(
-                server,
-                dynprompt,
-                caches,
-                current_item,
-                extra_data,
-                executed,
-                prompt_id,
-                execution_list,
-                pending_subgraph_results,
-            )
-
-            handle_execute(class_type, last_node_id, prompt_id, server, unique_id)
+            result = origin_execute(*args, **kwargs)
+            handle_execute(class_type, last_node_id, prompt_id, server_obj, unique_id)
             return result
 
     execution.execute = swizzle_execute
