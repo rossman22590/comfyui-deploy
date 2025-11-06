@@ -168,8 +168,8 @@ def requeue_workflow_unchecked():
     number = -server.PromptServer.instance.number
     server.PromptServer.instance.number += 1
     prompt_id = str(server.uuid.uuid4())
-    # Newer ComfyUI requires a 6th 'sensitive' flag; set to False for requeue
-    prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute, False))
+    # Newer ComfyUI expects 'sensitive' to be iterable; use empty list
+    prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute, []))
 
 
 requeue_guard = [None, 0, 0, {}]
